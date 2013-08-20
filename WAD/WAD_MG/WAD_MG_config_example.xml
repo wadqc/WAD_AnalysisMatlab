@@ -57,7 +57,7 @@
 	<!-- parameters -->
 	<params>
 	    <!-- where to find the exposure index -->
-	    <IE_field>RelativeXrayExposure</IE_field>
+	    <EI_field>RelativeXrayExposure</EI_field>
 	</params>
 	<limits>
 	    <Exposure>
