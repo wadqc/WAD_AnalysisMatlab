@@ -33,6 +33,13 @@ function WAD_MR_FMRI_weisskoff( i_iSeries, sSeries, sParams, sLimits )
 % 2012-12-05 / JK
 % adapted to WAD
 % ------------------------------------------------------------------------
+% Implementation of QC tests for fMRI purposes:
+% Relevant references:
+% - Lee Friedman and Gary H. Glover. Report on a Multicenter fMRI Quality
+%   Assurance Protocol. J Magn Res Imag 23:827–839 (2006)
+% - Weisskoff RM. Simple measurement of scanner stability for functional NMR
+%   imaging of activation in the brain. Magn Reson Med 1996;36:643-645
+% - Bodurka et al, ISMRM 14 (2006), p. 1094
 
 
 % produce a figure on the screen or be quiet...
@@ -46,6 +53,21 @@ my.version = '0.1';
 my.date = '20121205';
 WAD_vbprint( ['Module ' my.name ' Version ' my.version ' (' my.date ')'] );
 
+
+% *** TODO: configurable parameters ***
+% *** TODO: get from sParams (from configuration XML file) ***
+
+% slice to analyse
+iSlice = 10;
+
+% ROI size for summary statistics (SNR, FSNR etc)
+roisize = 20; % size
+
+% max ROI size for Weisskoff plot
+WK_MxRoisize = 20;
+
+% detrending: order of polynomal fit
+detrendOrder = 5;
 
 % % ---------------------------------------------
 % % select the plain water image without features
@@ -70,13 +92,12 @@ WAD_vbprint( ['Module ' my.name ' Version ' my.version ' (' my.date ')'] );
 
 % list of instance numbers
 instanceNumber = [sSeries.instance(:).number];
-nImages = length( instanceNumber )
+nImages = length( instanceNumber );
+WAD_vbprint( ['Number of images: ' num2str(nImages) ] );
 
 % sort instances to instance number
 [ sorted_nums, instanceNumSortedIndex ] = sort( instanceNumber );
 
-% slice
-iSlice = 19;
 % initial volumes (measurements, acquisitions, samples, whatever you like to call them) to skip
 nVolumesToSkip = 2;
 WAD_vbprint( ['Skipping first ' num2str(nVolumesToSkip) ' volumes.'] );
@@ -116,7 +137,7 @@ if SIMULATIONMODE
     % TSRNn = n * SNR / { sqrt( 1 + (n*lambda*SNR) ^2 ) }
     simuSignal = 5000;
     simuSNR = 250;
-    simuLambda = 0; %0.002;
+    simuLambda = 0.0002;
     imgs = simuSignal ./ simuSNR * randn(size(imgs)) + simuSignal;
     for v=1:nVolumes
         imgs(v,:,:) = imgs(v,:,:) + simuLambda * simuSignal * randn(1,1);
@@ -126,26 +147,28 @@ else
     % display waitbar in interactive mode
     if isInteractive, h = waitbar( 0, 'Reading images...' ); end
 
+    %h1 = figure();
     % loop over images
     i_icVol = 1;
     % Siemens / GE give all slices of a volume
-    %disp('Siemens / GE slice/time order!!!')
-    %for i_icNum = iSlice + nVolumesToSkip*nSlices : nSlices : nImages
+    disp('Siemens / GE / Toshiba slice/time order!!!')
+    for i_icNum = iSlice + nVolumesToSkip*nSlices : nSlices : nImages
     % Philips give all time points of a slice
-    disp('Philips slice/time order!!!')
-    for i_icNum = 1 + iSlice*nVolumesTotal + nVolumesToSkip : (iSlice+1)*nVolumesTotal
+    %disp('Philips slice/time order!!!')
+    %for i_icNum = 1 + iSlice*nVolumesTotal + nVolumesToSkip : (iSlice+1)*nVolumesTotal
         %disp( i_icNum )
         % read image   
         img = dicomread( sSeries.instance( instanceNumSortedIndex(i_icNum) ).filename );
+        %figure(h1);
+        %imshow(img,[])
         imgs( i_icVol, : , : ) = img;
         i_icVol = i_icVol + 1;
         % update waitbar
         % Siemens / GE
-        %if isInteractive, waitbar( i_icNum / nImages, h ); end
+        if isInteractive, waitbar( i_icNum / nImages, h ); end
         % Philips
-        if isInteractive, waitbar( i_icNum / nVolumes, h ); end
+        %if isInteractive, waitbar( i_icNum / nVolumes, h ); end
     end
-
     %imshow(reshape(imgs(1,:,:),infoFirst.Height,infoFirst.Width),[])
 
     % close waitbar in interactive mode
@@ -155,7 +178,43 @@ end
 % display waitbar in interactive mode
 if isInteractive, h = waitbar( 0, 'Calculating...' ); end
 
-% TODO: eerst pixel-wise detrending???
+disp( ['Fitted polynomal order for detrending: ' num2str(detrendOrder)] )
+
+% square ROI for summary statistics
+disp( ['ROI size for summary statistics: ' num2str(roisize) ' pixels'] )
+i_iRoiX = floor( (infoFirst.Width -roisize)/2 )+1 : ceil( (infoFirst.Width +roisize)/2 ); % index
+i_iRoiY = floor( (infoFirst.Height-roisize)/2 )+1 : ceil( (infoFirst.Height+roisize)/2 ); % index
+
+% Detrending of ROI time series
+% time series of mean signal in ROI
+timeseriesRoiSignal = mean( mean( imgs( :, i_iRoiY, i_iRoiX ), 3), 2);
+% detrending with polynomal fit
+time_s = (0:nVolumes-1)' .* infoFirst.RepetitionTime ./ 1000;
+[detrendCoeff, ~, muScale] = polyfit( time_s, timeseriesRoiSignal , detrendOrder);
+detrendVal = polyval( detrendCoeff, time_s, [], muScale );
+
+% trend is max difference in signal between start and end
+% trend expressed as percentage of mean signal
+ROI_trend_percent = ( max(detrendVal) - min(detrendVal) ) ./ mean( timeseriesRoiSignal ) * 100;
+disp( ['ROI trend      : ' num2str(ROI_trend_percent) ' %'] );
+
+% fluctuation is SD of residual after detrending
+ROI_fluctuation = std( timeseriesRoiSignal - detrendVal ) ./ mean( timeseriesRoiSignal ) * 100;
+disp( ['ROI fluctuation: ' num2str(ROI_fluctuation) ' %'] );
+
+
+% create ROI-signal detrended images
+imgs_ROI_detrended = zeros( nVolumes, infoFirst.Height, infoFirst.Width );
+for i_ix = 1:infoFirst.Width
+    for i_iy = 1:infoFirst.Height
+        % time series of pixel signal
+        imgs_ROI_detrended( :, i_iy, i_ix ) = imgs( :, i_iy, i_ix ) - detrendVal;
+    end
+end
+
+
+% create pixel-wise detrended images
+imgs_pix_detrended = zeros( nVolumes, infoFirst.Height, infoFirst.Width );
 WAD_vbprint( 'Start pixel-wise detrending...' );
 time_s = (0:nVolumes-1)' .* infoFirst.RepetitionTime ./ 1000;
 for i_ix = 1:infoFirst.Width
@@ -164,17 +223,24 @@ for i_ix = 1:infoFirst.Width
         timeseriesPixelSignal = imgs( :, i_iy, i_ix );
         % mean signal
         meanPixelSignal = mean( timeseriesPixelSignal );
-        % detrending with 2nd order polynomal
-        detrendCoeff = polyfit( time_s, timeseriesPixelSignal - meanPixelSignal, 2);
-        imgs( :, i_iy, i_ix ) = timeseriesPixelSignal - polyval( detrendCoeff, time_s );
+        % detrending with polynomal fit
+        [detrendCoeff, ~, muScale] = polyfit( time_s, timeseriesPixelSignal - meanPixelSignal, detrendOrder);
+        imgs_pix_detrended( :, i_iy, i_ix ) = timeseriesPixelSignal - polyval( detrendCoeff, time_s, [], muScale );
     end
 end
 
-meanimg = mean( imgs );
-stdimg = std(imgs);
 
-meanOddimg = mean( imgs(1:2:end, :, :) );
-meanEvenimg = mean( imgs(2:2:end, :, :) );
+% mean is simply the mean of all images
+meanimg = mean( imgs );
+
+% temporal flucturation noise: sd of residuals after detrending
+stdimg = std( imgs_pix_detrended );
+
+% if the images in the timeseries exhibit no drift in amplitude or geometry,
+% the noiseAvg image will display no structure from the phantom, and the 
+% variance in this image will be a measure of the intrinsic noise.
+meanOddimg = mean( imgs_pix_detrended(1:2:end, :, :) );
+meanEvenimg = mean( imgs_pix_detrended(2:2:end, :, :) );
 noiseAvgimg = meanOddimg - meanEvenimg;
 
 % following fBIRN definition: signal fluctuation to noise ratio (sfnr)
@@ -198,14 +264,8 @@ subplot(2,2,4)
 imshow( reshape(sfnrimg(1,:,:),infoFirst.Height,infoFirst.Width), [] )
 title( 'SFNR = mean/SD' )
 
-% square ROI
-roisize = 20; % size
-i_iRoiX = floor( (infoFirst.Width -roisize)/2 )+1 : ceil( (infoFirst.Width +roisize)/2 ); % index
-i_iRoiY = floor( (infoFirst.Height-roisize)/2 )+1 : ceil( (infoFirst.Height+roisize)/2 ); % index
-%i_iRoiY = 29:48;
 
-% TODO: automatic centre pos of ROI, and ROI display on images for visual
-% check.
+% TODO: ROI display on images for visual check.
 
 % ROI statistics
 meanroi = mean2( meanimg( 1, i_iRoiY, i_iRoiX ) );
@@ -214,74 +274,59 @@ sdnoise = std2( noiseAvgimg( 1, i_iRoiY, i_iRoiX ) );
 % Noise image was averaged over nVolumes / 2, reducing the SD with factor 
 % sqrt( nVolumes / 2 ), and subtraction increases the SD with a factor
 % sqrt( 2 ), gives total factor of 2 / sqrt( nVolumes )
-SNR = meanroi / ( sdnoise / 2 * sqrt( nVolumes ) )
+SNR = meanroi / ( sdnoise / 2 * sqrt( nVolumes ) );
+disp( ['SNR : ' num2str(SNR)] )
 % signal fluctuation - to - noise ratio
-SFNR = mean2( sfnrimg( 1, i_iRoiY, i_iRoiX ) )
+% calculated over largest ROI size
+SFNR = mean2( sfnrimg( 1, i_iRoiY, i_iRoiX ) );
+disp( ['SFNR : ' num2str(SFNR)] )
 
 
-% time series of mean signal in ROI
-timeseriesRoiSignal = mean( mean( imgs( :, i_iRoiY, i_iRoiX ), 3), 2);
-% detrending with 2nd order polynomal
-time_s = (0:nVolumes-1)' .* infoFirst.RepetitionTime ./ 1000;
-detrendCoeff = polyfit( time_s, timeseriesRoiSignal , 2);
-detrendVal = polyval( detrendCoeff, time_s );
 
-% trend is difference in signal between start and end, per unit time
-trend_ps = ( detrendVal(end) - detrendVal(1) ) ./ ( time_s(end) - time_s(1) )
-
-% SFNR after detrending
-%stdimg = std(imgs - detrendVal); --> dit werkt niet, matrix sizes komen
-%niet overeen. TODO: detrending per pixel????
-%sfnrimg = meanimg ./ stdimg;
-%SFNR = mean2( sfnrimg( 1, i_iRoiY, i_iRoiX ) )
-
-
-hFigPlots = figure();
+hFigPlots1 = figure();
 % mean signal in ROI over time
-subplot(3, 1, 1)
+subplot(2, 1, 1)
 plot( time_s, detrendVal, '- g', time_s, timeseriesRoiSignal, '- b' );
 title( 'Mean ROI signal' );
 xlabel( 'Time [s]' )
 ylabel( 'Signal' )
 
 % spectrum of ROI signal
-subplot(3, 1, 2)
+subplot(2, 1, 2)
 fSpectrum_Hz = (0:nVolumes-1)' ./ nVolumes ./ (infoFirst.RepetitionTime / 1000);
 magnSpectrum = abs( fft( timeseriesRoiSignal - detrendVal ) );
-plot( fSpectrum_Hz(1:nVolumes/2), magnSpectrum(1:nVolumes/2), '- b' );
+plot( fSpectrum_Hz(1:nVolumes/2), magnSpectrum(1:nVolumes/2) / meanroi * 100, '- b' );
 title( 'Spectrum of mean ROI signal' );
 xlabel( 'Freq [Hz]' )
-ylabel( 'Magnitude' )
+ylabel( 'Magnitude [%]' )
 
 % Weisskoff plot
-WK_MxRoisize = 20;
 WK_Roisize = 1:WK_MxRoisize;
 WK_F = zeros(1,WK_MxRoisize);
 for roisize = WK_Roisize
     % for ROI's smaller than max ROI size: move ROI over 20x20 pixel area
     % and calculate average of 
-    pixToMove = 0; % floor( ( WK_MxRoisize - roisize ) /2 );
-    %WK_F(roisize) = 0;
-    disp( ['ROI size = ' num2str(roisize)] );
+    %pixToMove = floor( ( WK_MxRoisize - roisize ) /2 );
+    pixToMove = 0;
+    %disp( ['ROI size = ' num2str(roisize)] );
     count = 0;
     for roicentreX = -pixToMove : pixToMove
         for roicentreY = -pixToMove : pixToMove
             i_iRoiX = floor( (infoFirst.Width  +roicentreX -roisize)/2 )+1 : ceil( (infoFirst.Width  +roicentreX +roisize)/2 ); % index
             i_iRoiY = floor( (infoFirst.Height +roicentreY -roisize)/2 )+1 : ceil( (infoFirst.Height +roicentreY +roisize)/2 ); % index
-            disp( ['  X = ' num2str(i_iRoiX(1)) ':' num2str(i_iRoiX(end)) ' Y = ' num2str(i_iRoiY(1)) ':' num2str(i_iRoiY(end)) ] );
+            %disp( ['  X = ' num2str(i_iRoiX(1)) ':' num2str(i_iRoiX(end)) ' Y = ' num2str(i_iRoiY(1)) ':' num2str(i_iRoiY(end)) ] );
             % time series of mean signal in ROI
-            timeseriesRoiSignal = mean( mean( imgs( :, i_iRoiY, i_iRoiX ), 3), 2);
-            %detrendCoeff = polyfit( time_s, timeseriesRoiSignal , 2);
-            %detrendVal = polyval( detrendCoeff, time_s );
-            %display( ['sd = ' num2str(std(timeseriesRoiSignal-detrendVal)) '  mean = ' num2str( mean( timeseriesRoiSignal ) ) ] );
-            %WK_F(roisize) = WK_F(roisize) + std(timeseriesRoiSignal-detrendVal) ./ mean( timeseriesRoiSignal );
+            timeseriesRoiSignal = mean( mean( imgs_pix_detrended( :, i_iRoiY, i_iRoiX ), 3), 2);
             WK_F(roisize) = WK_F(roisize) + std(timeseriesRoiSignal) ./ mean( timeseriesRoiSignal );
             count = count + 1;
         end
     end
-    disp( ['  count = ' num2str(count)] );
+    %disp( ['  count = ' num2str(count)] );
     WK_F(roisize) = WK_F(roisize) ./ count;
 end
+
+decorrelationDistance_pix = WK_F(1) ./ WK_F(WK_MxRoisize);
+disp( ['Decorrelation distance: ' num2str(decorrelationDistance_pix) ' pixels'] )
 
 % Fit noise model from Bodurka et al, ISMRM 14 (2006), p. 1094
 % TSRNn = n * SNR / { sqrt( 1 + (n*lambda*SNR) ^2 ) }
@@ -289,21 +334,26 @@ x0 = [ SNR, 0 ]; % function parameters: SNR and lambda*1E3
 lb = [0 0]; % lower bound: log can't handle negative values
 ub = [];    % upper bound: none
 [ x, resnorm ] = lsqcurvefit( @logTSNR, x0, WK_Roisize, log(WK_F), lb, ub );
-noisemodelSNR = x(1)
-noisemodelLamda = x(2) ./ 1E03
+noisemodelSNR = x(1);
+noisemodelLamda = x(2) ./ 1E03;
+disp( ['Noise model SNR: ' num2str(noisemodelSNR) ' Lambda: ' num2str(noisemodelLamda) ] )
 
-subplot(3, 1, 3)
+
 % Theoretically 1/SNR should be equal to F(1).
 % In case there is no noise correlation, F should decrease with
 % sqrt(number_of_pix_in_ROI) and this equals the 1D ROI size.
 % Therefore reference line is drawn as 1/SNR for F(1), devided by ROI size
 % for ROI size > 1.
-loglog( WK_Roisize, (1/SNR) ./ double(WK_Roisize), '- g', WK_Roisize, TSNR(x,WK_Roisize), '-- g', WK_Roisize, WK_F, '-ob' );
+hFigPlots2 = figure();
+%loglog( WK_Roisize, (1/SNR) ./ double(WK_Roisize) * 100, '- g', WK_Roisize, TSNR(x,WK_Roisize) * 100, '-- g', WK_Roisize, WK_F * 100, '-ob' );
+loglog( WK_Roisize, WK_F(1) ./ double(WK_Roisize) * 100, '- g', WK_Roisize, TSNR(x,WK_Roisize) * 100, '-- g', WK_Roisize, WK_F * 100, '-ob' );
 title( 'Weisskoff plot' );
 xlabel( 'Full ROI size [pix]' )
-ylabel( 'Rel. STD' )
+ylabel( 'Rel. STD [%]' )
 axis tight
 %xlim( [WK_Roisize(1) WK_Roisize(end)] );
+ylim( [ 0.01 10 ] );
+grid on
 
 % close waitbar in interactive mode
 if isInteractive, close( h ), end
