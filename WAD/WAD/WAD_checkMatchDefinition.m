@@ -42,6 +42,10 @@ function [newMatch, valid] = WAD_checkMatchDefinition( match )
 % 2012-11-06 / JK
 % first WAD version named 0.95 converted from SQVID 0.95
 % ------------------------------------------------------------------------
+% VUmc, Amsterdam, NL / Joost Kuijer / jpa.kuijer@vumc.nl
+% 2013-09-06 / JK
+% V1.0: <match> is now optional. If not defined, action is always run.
+% ------------------------------------------------------------------------
 
 
 % ----------------------
@@ -52,8 +56,8 @@ function [newMatch, valid] = WAD_checkMatchDefinition( match )
 
 % version info
 my.name = 'WAD_checkMatchDefinition';
-my.version = '0.95';
-my.date = '20121106';
+my.version = '1.0';
+my.date = '20130906';
 WAD_vbprint( ['Module ' my.name ' Version ' my.version ' (' my.date ')'], 2 );
 
 valid = false;
@@ -61,6 +65,14 @@ valid = false;
 % --------------------
 % check match definition
 % --------------------
+% check the empty case --> valid since V1.0
+if isempty( match )
+    WAD_vbprint( [my.name ': <match> is empty: match-all.'], 2 )
+    valid = true;
+    newMatch = [];
+    return
+end
+
 % this is pretty nasty: for a single match entry, match
 % is a string, but for multiple entries, match is a cell
 % array!

@@ -65,8 +65,8 @@ global WAD
 % ----------------------
 % version info
 my.name = 'WAD_main';
-my.version = '0.95';
-my.date = '20120906';
+my.version = '1.0';
+my.date = '20130910';
 
 logfilename = 'WAD_analysis_log.txt'; % in output dir
 
@@ -178,8 +178,6 @@ if isfield( WAD.cfg, 'version' )
     if isnumeric( WAD.cfg.version ), WAD.cfg.version = num2str( WAD.cfg.version ); end
     WAD_resultsAppendString( 2, WAD.cfg.version, 'Configuratie versie' );
 end
-
-disp( '**********TODO: implement <autoCommentField>StudyComments</autoCommentField>*********' )
 
 
 % ----------------------

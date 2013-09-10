@@ -35,6 +35,10 @@ function WAD_runConfiguredAnalysis
 % 2012-11-06 / JK
 % first WAD version named 0.95 converted from SQVID 0.95
 % ------------------------------------------------------------------------
+% VUmc, Amsterdam, NL / Joost Kuijer / jpa.kuijer@vumc.nl
+% 2013-09-06 / JK
+% V1.0: <match> is now optional. If not defined, action is always run.
+% ------------------------------------------------------------------------
 
 
 % ----------------------
@@ -44,7 +48,7 @@ global WAD
 
 % version info
 my.name = 'WAD_runConfiguredAnalysis';
-my.version = '0.95';
+my.version = '1.0';
 my.date = '20121106';
 WAD_vbprint( ['Module ' my.name ' Version ' my.version ' (' my.date ')'], 2 );
 
@@ -93,8 +97,11 @@ for i_icAction = 1:i_nAction
     % check "match" field
     % --------------------
     if ~isfield( curAct, 'match' ) || isempty( curAct.match )
-        WAD_vbprint( [my.name ' ERROR: "match" is not defined for action ' num2str(i_icAction) ' ' curAct.name], 1 );
-        continue % next action
+        % Change V1.0: not considered an error, repair with empty match.
+        % Empty match results in match with any series.
+        %WAD_vbprint( [my.name ' ERROR: "match" is not defined for action ' num2str(i_icAction) ' ' curAct.name], 1 );
+        %continue % next action
+        curAct.match = [];
     end
     % check match definition
     [curAct.match, validMatch] = WAD_checkMatchDefinition( curAct.match );

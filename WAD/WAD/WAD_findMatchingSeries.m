@@ -32,6 +32,10 @@ function WAD_findMatchingSeries( theStudy, theAction )
 % 2012-11-06 / JK
 % first WAD version named 0.95 converted from SQVID 0.95
 % ------------------------------------------------------------------------
+% VUmc, Amsterdam, NL / Joost Kuijer / jpa.kuijer@vumc.nl
+% 2013-09-06 / JK
+% V1.0: <match> is now optional. If not defined, action is always run.
+% ------------------------------------------------------------------------
 
 
 % ----------------------
@@ -42,8 +46,8 @@ function WAD_findMatchingSeries( theStudy, theAction )
 
 % version info
 my.name = 'WAD_findMatchingSeries';
-my.version = '0.95';
-my.date = '20121106';
+my.version = '1.0';
+my.date = '20130906';
 WAD_vbprint( ['Module ' my.name ' Version ' my.version ' (' my.date ')'], 2 );
 
 
@@ -59,45 +63,62 @@ for i_icSeries = 1:i_nSeries
     WAD_vbprint( [my.name ': --> DICOM series ' num2str(i_iDcmSeries) ' "' theStudy.series( i_icSeries ).description '"' ], 2 );
 
     % ----------------------
-    % loop over fields to match for current action
-    % ----------------------
-    bMatch = false; % programming safety: if we forget to set bMatch in some case...
-    i_nMatch = length( theAction.match );
-    for i_icMatch = 1:i_nMatch
-        % theAction.match is now always cell or struct
-        if iscell( theAction.match )
-            curMatch = theAction.match{ i_icMatch };
-        else
-            curMatch = theAction.match( i_icMatch );
-        end
+    % empty match definition is a match-all
+    % ----------------------  
+    if isempty( theAction.match )
+        bMatch = true;
+    else
+        % ----------------------
+        % loop over fields to match for current action
+        % ----------------------
+        bMatch = false; % programming safety: if we forget to set bMatch in some case...
+        i_nMatch = length( theAction.match );
+        for i_icMatch = 1:i_nMatch
+            % theAction.match is now always cell or struct
+            if iscell( theAction.match )
+                curMatch = theAction.match{ i_icMatch };
+            else
+                curMatch = theAction.match( i_icMatch );
+            end
 
-        switch curMatch.ATTRIBUTE.type
-            case 'DCM4CHEE'
-                switch curMatch.ATTRIBUTE.field
-                    case 'SeriesDescription'
-                        bMatch = matchSeriesDescription( curMatch, curSeries );
-                        if ~bMatch, break; end % break from match loop
-                    case 'ImagesInSeries'
-                        bMatch = matchImagesInSeries( curMatch, curSeries );
-                        if ~bMatch, break; end % break from match loop                    
-                    otherwise
-                        % should not happen...
-                        WAD_vbprint( [my.name ': Unexpected field content in switch/case for match type "DCM4CHEE".'], 1 );
-                        bMatch = false; break; % break from match loop 
-                end % switch field
-            case 'DICOM'
-                bMatch = matchDicomTag( curMatch, curSeries );
-                if ~bMatch, break; end % break from match loop                    
-            otherwise
-                WAD_vbprint( [my.name ': Unexpected type content in matching switch/case.'], 1 );
-                bMatch = false; break % break from match loop
-        end % switch type
-    end % loop over matches
-
+            switch curMatch.ATTRIBUTE.type
+                case 'DCM4CHEE'
+                    switch curMatch.ATTRIBUTE.field
+                        case 'SeriesDescription'
+                            bMatch = matchSeriesDescription( curMatch, curSeries );
+                            if ~bMatch, break; end % break from match loop
+                        case 'ImagesInSeries'
+                            bMatch = matchImagesInSeries( curMatch, curSeries );
+                            if ~bMatch, break; end % break from match loop                    
+                        otherwise
+                            % should not happen...
+                            WAD_vbprint( [my.name ': Unexpected field content in switch/case for match type "DCM4CHEE".'], 1 );
+                            bMatch = false; break; % break from match loop 
+                    end % switch field
+                case 'DICOM'
+                    bMatch = matchDicomTag( curMatch, curSeries );
+                    if ~bMatch, break; end % break from match loop                    
+                otherwise
+                    WAD_vbprint( [my.name ': Unexpected type content in matching switch/case.'], 1 );
+                    bMatch = false; break % break from match loop
+            end % switch type
+        end % loop over matches
+    end % else (match not empty)
+    
     % if we're here: all matches were positive
     if bMatch
         % we have a match!
         WAD_vbprint( [my.name ': match!'], 2 );
+        
+        % parse any auto comment fields if present
+        if isfield( theAction, 'autoComment' ) && ~isempty( theAction.autoComment )
+            WAD_vbprint( [my.name ': Parse autoComment of ' theAction.name ' on series ' num2str(i_icSeries) ' (DICOM series ' num2str(i_iDcmSeries) ' "' theStudy.series( i_icSeries ).description '")'], 1 );
+            try
+                WAD_parseAutoComment( theStudy.series( i_icSeries ), theAction.autoComment );
+            catch err
+                WAD_ErrorMsg( my.name, ['ERROR parse autoComment ' theAction.name ' on series ' num2str(i_icSeries) ' (DICOM series ' num2str(i_iDcmSeries) ' "' theStudy.series( i_icSeries ).description '")'], err );
+            end % try / catch
+        end
 
         % go run the action
         WAD_vbprint( [my.name ': Run action ' theAction.name ' on series ' num2str(i_icSeries) ' (DICOM series ' num2str(i_iDcmSeries) ' "' theStudy.series( i_icSeries ).description '")'], 1 );
