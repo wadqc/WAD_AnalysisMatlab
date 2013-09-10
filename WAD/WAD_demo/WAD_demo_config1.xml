@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+    Configuratie voor WAD demo analyse module
+-->
+
+<WAD_demo_config>
+    <!-- naam van de configuratie -->
+    <name>Demo1</name>
+
+    <!-- beschrijving -->
+    <description>WAD demo configuratie voor modaliteit X</description>
+
+    <!-- versie / datum -->
+    <version>20130905</version>
+        
+    <!-- Logfile verbose options -->
+    <logverbose>
+	<!-- mode: 0 = quiet, 1 = to logfile, 2 = to screen, 3 = to log + screen -->
+	<mode>1</mode>
+	<!-- level: 1 = normal, 2 = output series search -->
+	<level>1</level>
+    </logverbose>
+
+<!--
+    Lijst van analyses
+    De configuratie is per Matlab functie:
+    - <name> naam van de Matlab functie (zie documentatie voor valide funties)
+    - optioneel: <match> series description: indien gelijk wordt de functie gestart
+      <match field="SeriesDescription"> idem
+      <match type="DCM4CHEE" field="SeriesDescription"> idem
+      <match field="ImagesInSeries"> aantal beelden in de DICOM serie: indien gelijk wordt de functie gestart
+      <match type="DICOM" field="SequenceName"> DICOM veld inhoud: indien gelijk wordt de functie gestart
+      Valide "DCM4CHEE" velden (uit de DCM4CHEE database) zijn SeriesDescription en ImagesInSeries (aantal beelden in serie).
+      NB: test op DICOM veld is trager dan "interne" velden.
+      NB: als <match> wordt weggelaten, dan een match met elke serie
+    - optioneel: <autoComment> kopieer een tekst of float DICOM veld naar resultaten, bijv StudyComment
+    - optioneel: <params> configuratie parameters per funtie
+    - optioneel: <limits> actielimieten per resultaat
+-->
+
+    <action>
+	<!-- actionOne -->
+	<name>WAD_demo_actionOne</name>
+	<!-- toon DICOM veld StudyComment in resultaten -->
+	<autoComment>
+	    <description>QC Study Comment</description>
+	    <field>StudyComment</field>
+	    <level>1</level>
+	</autoComment>
+    </action>
+
+
+    <action>
+	<!-- actionTne -->
+	<name>WAD_demo_actionTwo</name>
+	<!-- series selectie -->
+	<match>B0_MAP</match>
+	<!-- parameters -->
+	<params>
+	    <!-- ROI definition, pixel index starts with 1 (not 0) -->
+	    <Xmin>32</Xmin>
+	    <Xmax>64</Xmax>
+	    <Ymin>60</Ymin>
+	    <Ymax>80</Ymax>
+	</params>
+	<limits>
+	    <SignalMean>
+		<acceptable>
+		    <lower>100</lower>
+		    <upper>200</upper>
+		</acceptable>
+		<critical>		
+		    <lower>50</lower>
+		    <upper>250</upper>
+		</critical>
+	    </SignalMean>
+	    <SignalRelSD>
+		<acceptable>
+		    <lower>5</lower>
+		    <upper>10</upper>
+		</acceptable>
+		<critical>		
+		    <lower>0</lower>
+		    <upper>20</upper>
+		</critical>
+	    </SignalRelSD>
+	</limits>
+    </action>
+
+</WAD_demo_config>
