@@ -19,7 +19,7 @@
 % along with this program.  If not, see <http://www.gnu.org/licenses/>.
 % ------------------------------------------------------------------------
 
-function [diameter_pix, centre_pix, figureHandle ] = WAD_MR_privateSizePos_pix( sImage, interpolPower, quiet )
+function [diameter_pix, centre_pix, figureHandle ] = WAD_MR_privateSizePos_pix( sImage, sParams, quiet )
 % Fit a circle to the edge of the ACR phantom.
 % To be used with plain slice that has NO features, e.g. middle slice.
 %
@@ -65,8 +65,8 @@ function [diameter_pix, centre_pix, figureHandle ] = WAD_MR_privateSizePos_pix( 
 
 % version info
 my.name = 'WAD_MR_privateSizePos_pix';
-my.version = '0.84';
-my.date = '20120807';
+my.version = '1.1';
+my.date = '20130904';
 
 
 
@@ -81,11 +81,35 @@ my.date = '20120807';
 
 % Parameters for exclusion of edge pixels from ellipse fit
 % exclude top angle because of the air bubble
-excludeAngle_deg = 17.0;
-% exclude pixels at a distance from fitted ellipse
-excludedst_pix2 = 20; % 2nd iteration
-excludedst_pix3 = 10; % 3rd iteration
+if isfield( sParams, 'excludeAngle_deg' ) && ~isempty(sParams.excludeAngle_deg)
+    excludeAngle_deg = sParams.excludeAngle_deg;
+else
+    % default
+    excludeAngle_deg = 17.0;
+end
 
+% exclude pixels at a distance from fitted ellipse
+% 2nd iteration
+if isfield( sParams, 'excludedst2_pix' ) && ~isempty(sParams.excludedst2_pix)
+    excludedst2_pix = sParams.excludedst2_pix;
+else
+    % default
+    excludedst2_pix = 20; 
+end
+% 3rd iteration
+if isfield( sParams, 'excludedst3_pix' ) && ~isempty(sParams.excludedst3_pix)
+    excludedst3_pix = sParams.excludedst3_pix;
+else
+    % default
+    excludedst3_pix = 10;
+end
+% interpolation power
+if isfield( sParams, 'interpolPower' ) && ~isempty(sParams.interpolPower)
+    interpolPower = sParams.interpolPower;
+else
+    % default
+    interpolPower = 0;
+end
 
 
 % Get the initial image
@@ -94,7 +118,7 @@ x = dicomread( fname );
     
 
 % interpolate pixels with factor 2^interpolPower
-% interpolPower = 1; % do we need interpolation? difference was 0.02%
+% do we need interpolation? difference was 0.02%
 w = interp2( double(x), interpolPower, '*cubic' ); % default
 %w = double(x);
 
@@ -233,7 +257,7 @@ ell1_ic = 0;
 % V0.84: exclude points that are more than 20 pix (should roughly be 20 mm)
 % away from detected radius to avoid false detection due to artefacts
 avgdst = (ellipse_t.a + ellipse_t.b) / 2;
-excludedst_pix = excludedst_pix2;
+excludedst_pix = excludedst2_pix;
 refdst = excludedst_pix * 2^interpolPower;
 
 % Pre-allocate memory for faster performance
@@ -268,7 +292,7 @@ ell1_ic = 0;
 % V0.84: exclude points that are more than 10 pix (should roughly be 10 mm)
 % away from detected radius to avoid false detection due to artefacts
 avgdst = (ellipse_t.a + ellipse_t.b) / 2;
-excludedst_pix = excludedst_pix3;
+excludedst_pix = excludedst3_pix;
 refdst = excludedst_pix * 2^interpolPower;
 
 % Pre-allocate memory for faster performance

@@ -9,14 +9,10 @@
     <name>Avanto</name>
 
     <!-- beschrijving -->
-    <description>WAD MR configuratie voor VUmc Siemens Avanto</description>
+    <description>WAD MR configuratie voor Siemens Avanto</description>
 
     <!-- versie / datum -->
-    <version>20121105</version>
-    
-    <!-- DICOM veld (Matlab benaming!) waarvan inhoud naar rapportage gekopieerd wordt,
-         en op de MRI bij patient registratie kan worden ingevuld, bijvoorbeeld "na onderhoud" -->
-    <autoCommentField>StudyComments</autoCommentField>
+    <version>20130910</version>
     
     <!-- Logfile verbose options -->
     <logverbose>
@@ -37,6 +33,7 @@
       <match type="DICOM" field="SequenceName"> DICOM veld inhoud: indien gelijk wordt de functie gestart
       Valide "DCM4CHEE" velden (uit de DCM4CHEE database) zijn SeriesDescription en ImagesInSeries (aantal beelden in serie).
       NB: test op DICOM veld is trager dan "interne" velden.
+    - optioneel: <autoComment> kopieer een tekst of float DICOM veld naar resultaten, bijv StudyComment
     - optioneel: <params> configuratie parameters per funtie
     - optioneel: <limits> actielimieten per resultaat
 -->
@@ -46,6 +43,17 @@
 	<name>WAD_MR_TxAmplFreq</name>
 	<!-- series selectie -->
 	<match>ACR TRA T1 DIS2D</match>
+	<!-- auto comment field -->
+	<autoComment>
+	    <description>QC Study Comment</description>
+	    <field>AdditionalPatientHistory</field>
+	    <level>1</level>
+	</autoComment>
+	<autoComment>
+	    <description>Scanner Software Version</description>
+	    <field>SoftwareVersion</field>
+	    <level>2</level>
+	</autoComment>
 	<!-- parameters -->
 	<params>
 	    <!-- scanner-specifieke DICOM info -->
@@ -58,6 +66,30 @@
 		<field>ImagingFrequency</field>
 	    </TxFreq>
 	</params>
+	<limits>
+	    <TxAmpl>
+		<acceptable>
+		    <lower>107.00</lower>
+		    <upper>145.00</upper>
+		</acceptable>
+		<critical>		
+		    <lower>88.00</lower>
+		    <upper>164.00</upper>
+		</critical>
+	    </TxAmpl>
+	    <TxFreq>
+	    <!-- Transmitter frequency should be a running average, not fixed values!
+		 The magnet will slowly ramp down ~500Hz/year or so -->
+		<acceptable>
+		    <lower>127.7620</lower>
+		    <upper>127.7630</upper>
+		</acceptable>
+		<critical>		
+		    <lower>127.7640</lower>
+		    <upper>127.7610</upper>
+		</critical>
+	    </TxFreq>
+	</limits>
     </action>
     
     <action>
@@ -65,8 +97,19 @@
 	<name>WAD_MR_geomZ</name>
 	<!-- series selectie -->
 	<match>ACR SAG DIS2D</match>
-	<!-- parameters -->
-	<params></params>
+	<limits>
+	    <lengthZ_mm>
+		<acceptable>
+		    <lower>146.50</lower>
+		    <upper>148.50</upper>
+		</acceptable>
+		<critical>		
+		    <lower>146.00</lower>
+		    <upper>149.00</upper>
+		</critical>
+	    </lengthZ_mm>
+	    <!-- no action limits for rotationSAG_deg -->
+	</limits>
     </action>
 
     <action>
@@ -79,7 +122,39 @@
 	    <!-- image nummer voor geometrie -->
 	    <!-- toegestaan: <nummmer>, firstInSeries, lastInSeries -->
 	    <image>7</image>
+	    <!-- optie: interpolatie in beeld domein met factor 2-tot-de-macht <interpolPower> -->
+	    <!-- default waarde is 1 -->
+	    <!-- <interpolPower>1</interpolPower> -->
+	    <!-- optie: exclusie van luchtbel in fit van ellips, gedefinieerd als hoek in graden -->
+	    <!-- default waarde is 17 -->	    
+	    <!-- <excludeAngle_deg>17</excludeAngle_deg> -->
+	    <!-- optie: exclusie van pixels op afstand van de gefitte ellips, bij 2e en 3e iteratie -->
+	    <!-- default waardes zijn resp 20 en 10 -->
+	    <!-- <excludedst2_pix>20</excludedst2_pix> -->
+	    <!-- <excludedst3_pix>10</excludedst3_pix> -->
 	</params>
+	<limits>
+	    <diameterX_mm>
+		<acceptable>
+		    <lower>189.00</lower>
+		    <upper>191.00</upper>
+		</acceptable>
+		<critical>		
+		    <lower>188.50</lower>
+		    <upper>191.50</upper>
+		</critical>
+	    </diameterX_mm>
+	    <diameterY_mm>
+		<acceptable>
+		    <lower>189.00</lower>
+		    <upper>191.00</upper>
+		</acceptable>
+		<critical>		
+		    <lower>188.50</lower>
+		    <upper>191.50</upper>
+		</critical>
+	    </diameterY_mm>
+	</limits>
     </action>
 
     <action>
@@ -95,9 +170,59 @@
 	    <!-- Siemens bewaart combined image in een nieuwe serie -->
 	    <image>1</image>
 	    <!-- achtergrond ROI positie (vanuit centrum fantoom) voor SNR en ghosting -->
-	    <!-- let op: dit is voor beeld zonder 2D distortion correction! -->
-	    <ROIshift>112</ROIshift>
+	    <!-- let op: dit is voor beeld ZONDER 2D GradWarp! -->
+	    <!-- default waarde is 108, waarde in [mm]  -->
+	    <backgroundROIshift>112</backgroundROIshift>
+	    <!-- achtergrond ROI grootte voor SNR en ghosting -->
+	    <!-- default waarde is 7, waarde in [mm]  -->
+	    <backgroundROIsize>7</backgroundROIsize>
+	    <!-- Fantoom ROI grootte voor SNR, ghosting en uniformiteit -->
+	    <!-- default waarde is 75, waarde in [mm] -->
+	    <ROIradius>75</ROIradius>
+	    <!-- overige opties: zie WAD_MR_geomXY deze kunnen hier ook gebruikt worden -->
 	</params>
+	<limits>
+	    <SNR>
+		<acceptable>
+		    <lower>553.00</lower>
+		    <upper>675.00</upper>
+		</acceptable>
+		<critical>		
+		    <lower>491.00</lower>
+		    <upper>737.00</upper>
+		</critical>
+	    </SNR>
+	    <ghostRow_percent>
+		<acceptable>
+		    <lower>0</lower>
+		    <upper>0.5</upper>
+		</acceptable>
+		<critical>		
+		    <lower>0</lower>
+		    <upper>1.0</upper>
+		</critical>
+	    </ghostRow_percent>
+	    <ghostCol_percent>
+		<acceptable>
+		    <lower>0</lower>
+		    <upper>0.5</upper>
+		</acceptable>
+		<critical>		
+		    <lower>0</lower>
+		    <upper>1.0</upper>
+		</critical>
+	    </ghostCol_percent>
+	    <imageUniformity_percent>
+		<acceptable>
+		    <lower>81.60</lower>
+		    <upper>86.60</upper>
+		</acceptable>
+		<critical>		
+		    <lower>79.10</lower>
+		    <upper>89.20</upper>
+		</critical>
+	    </imageUniformity_percent>
+	</limits>
     </action>
 
     <action>
@@ -112,8 +237,16 @@
 	    <!-- Siemens bewaart combined image in een nieuwe serie -->
 	    <combinedImage>inNextSeries</combinedImage>
 	    <!-- achtergrond ROI positie (vanuit centrum fantoom) voor SNR en ghosting -->
-	    <!-- let op: dit is voor beeld zonder 2D distortion correction! -->
-	    <ROIshift>112</ROIshift>
+	    <!-- let op: dit is voor beeld ZONDER 2D GradWarp! -->
+	    <!-- default waarde is 108, waarde in [mm]  -->
+	    <backgroundROIshift>112</backgroundROIshift>
+	    <!-- achtergrond ROI grootte voor SNR en ghosting -->
+	    <!-- default waarde is 7, waarde in [mm]  -->
+	    <backgroundROIsize>7</backgroundROIsize>
+	    <!-- Fantoom ROI grootte voor SNR, ghosting en uniformiteit -->
+	    <!-- default waarde is 75, waarde in [mm] -->
+	    <ROIradius>75</ROIradius>
+	    <!-- overige opties: zie WAD_MR_geomXY deze kunnen hier ook gebruikt worden -->
 	</params>
     </action>
 
@@ -129,6 +262,18 @@
 	    naming gets a prefix "WAD_MR_B0_read". -->
 	    <type>SiemensServiceStimEcho</type>
 	</params>
+	<limits>
+	    <B0_uniformity_ppm>
+		<acceptable>
+		    <lower>0.0</lower>
+		    <upper>1.5</upper>
+		</acceptable>
+		<critical>		
+		    <lower>0.0</lower>
+		    <upper>2.0</upper>
+		</critical>
+	    </B0_uniformity_ppm>
+	</limits>
     </action>
 
 </WAD_MR_config>

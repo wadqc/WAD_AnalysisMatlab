@@ -44,8 +44,8 @@ global WAD
 
 % version info
 my.name = 'WAD_MR_geomXY';
-my.version = '1.0';
-my.date = '20120807';
+my.version = '1.1';
+my.date = '20130904';
 WAD_vbprint( ['Module ' my.name ' Version ' my.version ' (' my.date ')'] );
 
 
@@ -90,10 +90,15 @@ end
 if isInteractive, h = waitbar( 0, 'Calculating Geometry X and Y...' ); end
 
 % do the evaluation...
-interpolPower = 1; % use half the pixel size, goes slower but should be a little more precise.
+% define the interpolation if not defined as parameter in the config file
 WAD_vbprint( [my.name ':   calculating diameter and centre coordinates ...'] );
+if ~isfield( sParams, 'interpolPower' ) || isempty( sParams.interpolPower )
+    sParams.interpolPower = 1; % default setting: use half the pixel size, goes slower but should be a little more precise.
+end
+WAD_vbprint( [my.name ':   Interpolation set to 2 ^ ' num2str(sParams.interpolPower) '. This is configurable in <params> <interpolPower>' ] );
+
 try
-    [diameter_pix, centre_pix, hFigGeomXY] = WAD_MR_privateSizePos_pix( sSeries.instance(ci), interpolPower, quiet );
+    [diameter_pix, centre_pix, hFigGeomXY] = WAD_MR_privateSizePos_pix( sSeries.instance(ci), sParams, quiet );
 catch err
     WAD_ErrorMsg( my.name, 'ERROR calculating diameter and centre coordinates.', err );
     return

@@ -2,7 +2,7 @@
 % Virginia Tech - Wake Forest University ACR AutoQA Software
 % 
 % Copyright (c) 2005 Atiba Fitzpatrick and Chris Wyatt
-% Copyright (c) modifications 2008 Joost Kuijer
+% Copyright (c) modifications 2008-2013 Joost Kuijer
 %
 % Permission is hereby granted, free of charge, to any person
 % obtaining a copy of this software and associated documentation
@@ -47,12 +47,15 @@
 % ------------------------------------------------------------------------
 
 
-function [SNR, ghostRow_percent, ghostCol_percent, PIU, figureHandle] = WAD_MR_privateSNR_ghost( image, centrePos_pix, ROIshft_mm, quiet )
+function [SNR, ghostRow_percent, ghostCol_percent, PIU, figureHandle] = WAD_MR_privateSNR_ghost( image, centrePos_pix, sParams, quiet )
 % Calculate SNR and ghosting and Percent Image Uniformity on image.
 % Input
 % - image        : structure with field .fname containing the image filename.
 % - centrePox_pix: coordinates of centre of image (from SQ_MR_sizePos_pix).
-% - ROIshft_mm   : shift from centre to sideways ROIs in background.
+% - sParams.ROIshift: shift [mm] from centre to sideways ROIs in background.
+% - sParams.ROIradius: radius [mm] of large (phantom) ROI.
+% - sParams.backgroundROIsize: size of background ROI's, rectangular ROI's for ghosting have length multiplied by 4.
+%
 % Output
 % - SNR, ghost*, PIU: results
 % - figureHandle: optional, returns plot with ROI's used for evalutation
@@ -78,10 +81,10 @@ slice = double( dicomread( fname ) );
 
 % definitions of ROI sizes/locations
 % ... and convert mm to pixels
-radius  = 75  / info.PixelSpacing(1);    % radius of large ROI
-radius2 = 28  / info.PixelSpacing(1);    % major-axis length of external elliptical ROIs
-%shift   = 108 / info.PixelSpacing(1);    % shift from centre of phantom to external elliptical ROIs
-shift   = ROIshft_mm / info.PixelSpacing(1);    % shift from centre of phantom to external elliptical ROIs
+radius  = sParams.ROIradius          / info.PixelSpacing(1);    % radius of large ROI
+Blength = sParams.backgroundROIsize  / info.PixelSpacing(1);    % length of background ROIs
+%shift   = 108 / info.PixelSpacing(1);    % shift from centre of phantom to background ROIs
+shift   = sParams.backgroundROIshift / info.PixelSpacing(1);    % shift from centre of phantom to background ROIs
 
 cent = centrePos_pix; % centre of phantom
 shiftx = [0, shift];  % shift from centre for ghosting and background ROIs
@@ -103,17 +106,17 @@ centbckgtr  = centrePos_pix - shiftx - shifty;  % center of background ROI
 % Determine mean value in centre and ghosting ROIs
 [B,M]           = ROImask(radius,radius,cent,slice,0);
 if calcGhosting
-    [Btop,Mtop]     = ROImaskrec(radius2,radius2/4,centtop,slice,0);
-    [Bbtm,Mbtm]     = ROImaskrec(radius2,radius2/4,centbtm,slice,0);
-    [Bright,Mright] = ROImaskrec(radius2/4,radius2,centright,slice,0);
-    [Bleft,Mleft]   = ROImaskrec(radius2/4,radius2,centleft,slice,0);
+    [Btop,Mtop]     = ROImaskrec(Blength*4,Blength  ,centtop,slice,0);
+    [Bbtm,Mbtm]     = ROImaskrec(Blength*4,Blength  ,centbtm,slice,0);
+    [Bright,Mright] = ROImaskrec(Blength  ,Blength*4,centright,slice,0);
+    [Bleft,Mleft]   = ROImaskrec(Blength  ,Blength*4,centleft,slice,0);
 end
 
 % background (noise) ROI's
-[Bbckgbl,Mbckgbl] = ROImaskrec(radius2/4,radius2/4,centbckgbl,slice,0);
-[Bbckgtl,Mbckgtl] = ROImaskrec(radius2/4,radius2/4,centbckgtl,slice,0);
-[Bbckgbr,Mbckgbr] = ROImaskrec(radius2/4,radius2/4,centbckgbr,slice,0);
-[Bbckgtr,Mbckgtr] = ROImaskrec(radius2/4,radius2/4,centbckgtr,slice,0);
+[Bbckgbl,Mbckgbl] = ROImaskrec(Blength,Blength,centbckgbl,slice,0);
+[Bbckgtl,Mbckgtl] = ROImaskrec(Blength,Blength,centbckgtl,slice,0);
+[Bbckgbr,Mbckgbr] = ROImaskrec(Blength,Blength,centbckgbr,slice,0);
+[Bbckgtr,Mbckgtr] = ROImaskrec(Blength,Blength,centbckgtr,slice,0);
 % because background ROI's are not overlapping, we just add them up
 Bbckg = Bbckgbl + Bbckgtl + Bbckgbr + Bbckgtr;
 Mbckg = Mbckgbl + Mbckgtl + Mbckgbr + Mbckgtr;

@@ -33,8 +33,11 @@ function WAD_MR( wadInputFileXML )
 % ----------------------
 % version info
 my.name = 'WAD_MR';
-my.version = '0.95';
-my.date = '20121105';
+my.version = '1.0';
+my.date = '20130910';
+
+disp( ['Starting analysis module ' my.name '  Version ' my.version ' ' my.date] );
+
 
 % ----------------------
 % check input arguments
@@ -61,9 +64,10 @@ global WAD
 WAD.const.firstInSeries = 'firstInSeries';
 WAD.const.lastInSeries  = 'lastInSeries';
 WAD.const.inNextSeries  = 'inNextSeries';
-% default shift [mm] for SNR/ghosting ROI's
-WAD.const.defaultRoiShift = 108;
-
+% default size and shift [mm] for SNR/ghosting ROI's
+WAD.const.defaultRoiRadius = 75; % [mm]
+WAD.const.defaultBackgroundRoiShift = 108; % [mm]
+WAD.const.defaultBackgroundRoiSize = 7; % [mm]
 
 % ----------------------
 % call main function
