@@ -59,6 +59,9 @@ isInteractive = false;
 % image number?
 ci = 1;
 
+% limit of number of deviating pixels
+maxNumPix = 200;
+
 
 % load image
 fname = sSeries.instance(ci).filename;
@@ -186,7 +189,6 @@ roiSNRsy = zeros(nRoiY+1,nRoiX+1);
 roiSNR   = zeros(nRoiY+1,nRoiX+1);
 
 % loop over ROI's
-maxNumPix = 200;
 for ix = 1:nRoiX+1
     % update waitbar
     if isInteractive, waitbar( ix/(nRoiX+1), h ); end

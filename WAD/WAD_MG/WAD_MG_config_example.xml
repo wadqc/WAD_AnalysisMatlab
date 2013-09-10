@@ -33,15 +33,9 @@
       <match type="DICOM" field="SequenceName"> DICOM veld inhoud: indien gelijk wordt de functie gestart
       Valide "DCM4CHEE" velden (uit de DCM4CHEE database) zijn SeriesDescription en ImagesInSeries (aantal beelden in serie).
       NB: test op DICOM veld is trager dan "interne" velden.
+    - optioneel: <autoComment> kopieer een tekst of float DICOM veld naar resultaten, bijv StudyComment
     - optioneel: <params> configuratie parameters per funtie
     - optioneel: <limits> actielimieten per resultaat
--->
-
-<!--
-    <action>
-	<name>test_dummy</name>
-	<match>jajaja</match>
-    </action>
 -->
 
     <action>

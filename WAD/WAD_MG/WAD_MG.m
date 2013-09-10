@@ -36,6 +36,8 @@ my.name = 'WAD_MG';
 my.version = '0.95';
 my.date = '20121105';
 
+disp( ['Starting analysis module ' my.name '  Version ' my.version ' ' my.date] );
+
 
 % ----------------------
 % check input arguments
