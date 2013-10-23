@@ -1,0 +1,198 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+                "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html>
+<head>
+  <title>Description of WAD_runConfiguredAnalysis</title>
+  <meta name="keywords" content="WAD_runConfiguredAnalysis">
+  <meta name="description" content="------------------------------------------------------------------------">
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+  <meta name="generator" content="m2html &copy; 2005 Guillaume Flandin">
+  <meta name="robots" content="index, follow">
+  <link type="text/css" rel="stylesheet" href="../m2html.css">
+  <script type="text/javascript">
+    if (top.frames.length == 0) { top.location = "../index.html"; };
+  </script>
+</head>
+<body>
+<a name="_top"></a>
+<!-- menu.html WAD -->
+<h1>WAD_runConfiguredAnalysis
+</h1>
+
+<h2><a name="_name"></a>PURPOSE <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="box"><strong>------------------------------------------------------------------------</strong></div>
+
+<h2><a name="_synopsis"></a>SYNOPSIS <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="box"><strong>function WAD_runConfiguredAnalysis </strong></div>
+
+<h2><a name="_description"></a>DESCRIPTION <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="fragment"><pre class="comment"> ------------------------------------------------------------------------
+ This WAD folder provides a &quot;library&quot; of helper functions written for IQC.
+ NVKF WAD IQC software is a framework for automatic analysis of DICOM objects.
+ 
+ Copyright 2012-2013  Joost Kuijer / jpa.kuijer@vumc.nl
+ 
+ 
+ This program is free software: you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation, either version 3 of the License, or
+ (at your option) any later version.
+ 
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+ 
+ You should have received a copy of the GNU General Public License
+ along with this program.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+ ------------------------------------------------------------------------</pre></div>
+
+<!-- crossreference -->
+<h2><a name="_cross"></a>CROSS-REFERENCE INFORMATION <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+This function calls:
+<ul style="list-style-image:url(../matlabicon.gif)">
+<li><a href="WAD_checkMatchDefinition.html" class="code" title="function [newMatch, valid] = WAD_checkMatchDefinition( match )">WAD_checkMatchDefinition</a>	------------------------------------------------------------------------</li><li><a href="WAD_findMatchingSeries.html" class="code" title="function WAD_findMatchingSeries( theStudy, theAction )">WAD_findMatchingSeries</a>	------------------------------------------------------------------------</li><li><a href="WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>	------------------------------------------------------------------------</li></ul>
+This function is called by:
+<ul style="list-style-image:url(../matlabicon.gif)">
+<li><a href="WAD_main.html" class="code" title="function WAD_main( wadInputFileXML )">WAD_main</a>	------------------------------------------------------------------------</li></ul>
+<!-- crossreference -->
+
+
+
+<h2><a name="_source"></a>SOURCE CODE <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="fragment"><pre>0001 <span class="comment">% ------------------------------------------------------------------------</span>
+0002 <span class="comment">% This WAD folder provides a &quot;library&quot; of helper functions written for IQC.</span>
+0003 <span class="comment">% NVKF WAD IQC software is a framework for automatic analysis of DICOM objects.</span>
+0004 <span class="comment">%</span>
+0005 <span class="comment">% Copyright 2012-2013  Joost Kuijer / jpa.kuijer@vumc.nl</span>
+0006 <span class="comment">%</span>
+0007 <span class="comment">%</span>
+0008 <span class="comment">% This program is free software: you can redistribute it and/or modify</span>
+0009 <span class="comment">% it under the terms of the GNU General Public License as published by</span>
+0010 <span class="comment">% the Free Software Foundation, either version 3 of the License, or</span>
+0011 <span class="comment">% (at your option) any later version.</span>
+0012 <span class="comment">%</span>
+0013 <span class="comment">% This program is distributed in the hope that it will be useful,</span>
+0014 <span class="comment">% but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
+0015 <span class="comment">% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
+0016 <span class="comment">% GNU General Public License for more details.</span>
+0017 <span class="comment">%</span>
+0018 <span class="comment">% You should have received a copy of the GNU General Public License</span>
+0019 <span class="comment">% along with this program.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
+0020 <span class="comment">% ------------------------------------------------------------------------</span>
+0021 
+0022 <a name="_sub0" href="#_subfunctions" class="code">function WAD_runConfiguredAnalysis</a>
+0023 <span class="comment">% Runs configured analysis modules</span>
+0024 <span class="comment">%</span>
+0025 <span class="comment">% - Check format of configured actions in configuration XML</span>
+0026 <span class="comment">% - Find series that match the configured criteria</span>
+0027 <span class="comment">% - Run the configured analysis</span>
+0028 <span class="comment">%</span>
+0029 <span class="comment">% ------------------------------------------------------------------------</span>
+0030 <span class="comment">% WAD MR</span>
+0031 <span class="comment">% file: WAD_MR_runConfiguredAnalysis</span>
+0032 <span class="comment">%</span>
+0033 <span class="comment">% ------------------------------------------------------------------------</span>
+0034 <span class="comment">% VUmc, Amsterdam, NL / Joost Kuijer / jpa.kuijer@vumc.nl</span>
+0035 <span class="comment">% 2012-11-06 / JK</span>
+0036 <span class="comment">% first WAD version named 0.95 converted from SQVID 0.95</span>
+0037 <span class="comment">% ------------------------------------------------------------------------</span>
+0038 <span class="comment">% VUmc, Amsterdam, NL / Joost Kuijer / jpa.kuijer@vumc.nl</span>
+0039 <span class="comment">% 2013-09-06 / JK</span>
+0040 <span class="comment">% V1.0: &lt;match&gt; is now optional. If not defined, action is always run.</span>
+0041 <span class="comment">% ------------------------------------------------------------------------</span>
+0042 
+0043 
+0044 <span class="comment">% ----------------------</span>
+0045 <span class="comment">% GLOBALS</span>
+0046 <span class="comment">% ----------------------</span>
+0047 <span class="keyword">global</span> WAD
+0048 
+0049 <span class="comment">% version info</span>
+0050 my.name = <span class="string">'WAD_runConfiguredAnalysis'</span>;
+0051 my.version = <span class="string">'1.0'</span>;
+0052 my.date = <span class="string">'20121106'</span>;
+0053 <a href="WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [<span class="string">'Module '</span> my.name <span class="string">' Version '</span> my.version <span class="string">' ('</span> my.date <span class="string">')'</span>], 2 );
+0054 
+0055 
+0056 <span class="keyword">if</span> ~isfield( WAD.cfg, <span class="string">'action'</span> )
+0057     <span class="comment">% no actions defined</span>
+0058     <a href="WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">': no actions defined, check your configuration file!'</span>], 1 );
+0059     <span class="keyword">return</span>
+0060 <span class="keyword">end</span>
+0061 
+0062 <span class="comment">% shortcut access to current study</span>
+0063 curStudy = WAD.in.patient(1).study(1);
+0064 
+0065 <span class="comment">% ----------------------</span>
+0066 <span class="comment">% loop over configured actions</span>
+0067 <span class="comment">% ----------------------</span>
+0068 i_nAction = length( WAD.cfg.action );
+0069 <a href="WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">': number of configured actions = '</span> num2str(i_nAction)], 1 );
+0070 <a href="WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">': starting loop over configured analysis'</span>], 2 );
+0071 
+0072 <span class="keyword">for</span> i_icAction = 1:i_nAction
+0073     <a href="WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">': checking action '</span> num2str(i_icAction)], 2 );
+0074     <span class="comment">% shortcut access to current action</span>
+0075     curAct = WAD.cfg.action( i_icAction );
+0076     
+0077     <span class="comment">% output some debugging info</span>
+0078     <a href="WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">': action name = &quot;'</span> curAct.name <span class="string">'&quot;'</span> ], 2 );
+0079     
+0080     <span class="comment">% --------------------</span>
+0081     <span class="comment">% check &quot;name&quot; field</span>
+0082     <span class="comment">% --------------------</span>
+0083     <span class="keyword">if</span> ~isfield( curAct, <span class="string">'name'</span> )
+0084         <a href="WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">' ERROR: &quot;name&quot; is not defined for action '</span> num2str(i_icAction)], 1 );
+0085         <span class="keyword">continue</span> <span class="comment">% next action</span>
+0086     <span class="keyword">end</span>
+0087     <span class="comment">% check if function (in a .m file) with configured name exists</span>
+0088     <span class="keyword">if</span> exist( curAct.name, <span class="string">'file'</span> ) ~= 2
+0089         <span class="comment">% funtion does not exist</span>
+0090         <a href="WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">' in action '</span> num2str(i_icAction) <span class="string">': cannot find analysis function named &quot;'</span> curAct.name <span class="string">'&quot;'</span> ], 1 );
+0091         <span class="keyword">continue</span> <span class="comment">% next action</span>
+0092     <span class="keyword">end</span>
+0093     <span class="comment">% construct function handle</span>
+0094     curAct.fh = str2func( curAct.name );
+0095     
+0096     <span class="comment">% --------------------</span>
+0097     <span class="comment">% check &quot;match&quot; field</span>
+0098     <span class="comment">% --------------------</span>
+0099     <span class="keyword">if</span> ~isfield( curAct, <span class="string">'match'</span> ) || isempty( curAct.match )
+0100         <span class="comment">% Change V1.0: not considered an error, repair with empty match.</span>
+0101         <span class="comment">% Empty match results in match with any series.</span>
+0102         <span class="comment">%WAD_vbprint( [my.name ' ERROR: &quot;match&quot; is not defined for action ' num2str(i_icAction) ' ' curAct.name], 1 );</span>
+0103         <span class="comment">%continue % next action</span>
+0104         curAct.match = [];
+0105     <span class="keyword">end</span>
+0106     <span class="comment">% check match definition</span>
+0107     [curAct.match, validMatch] = <a href="WAD_checkMatchDefinition.html" class="code" title="function [newMatch, valid] = WAD_checkMatchDefinition( match )">WAD_checkMatchDefinition</a>( curAct.match );
+0108     <span class="comment">% continue with next action if match definition is not valid</span>
+0109     <span class="keyword">if</span> ~validMatch, <span class="keyword">continue</span>; <span class="keyword">end</span> <span class="comment">% next action</span>
+0110     
+0111     <span class="comment">% --------------------</span>
+0112     <span class="comment">% check &quot;params&quot; field</span>
+0113     <span class="comment">% --------------------</span>
+0114     <span class="keyword">if</span> ~isfield( curAct, <span class="string">'params'</span> )
+0115         <span class="comment">% not considered an error, repair with empty params</span>
+0116         curAct.params = [];
+0117     <span class="keyword">end</span>
+0118 
+0119     <span class="comment">% --------------------</span>
+0120     <span class="comment">% check &quot;limits&quot; field</span>
+0121     <span class="comment">% --------------------</span>
+0122     <span class="keyword">if</span> ~isfield( curAct, <span class="string">'limits'</span> )
+0123         <span class="comment">% not considered an error, repair with empty limits</span>
+0124         curAct.limits = [];
+0125     <span class="keyword">end</span>
+0126 
+0127     <span class="comment">% ----------------------</span>
+0128     <span class="comment">% find series that matches with current action</span>
+0129     <span class="comment">% and run action if a match is found</span>
+0130     <span class="comment">% ----------------------</span>
+0131     <a href="WAD_findMatchingSeries.html" class="code" title="function WAD_findMatchingSeries( theStudy, theAction )">WAD_findMatchingSeries</a>( curStudy, curAct )
+0132     
+0133 <span class="keyword">end</span> <span class="comment">% loop over actions</span></pre></div>
+<hr><address>Generated on Wed 23-Oct-2013 14:08:22 by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" target="_parent">m2html</a></strong> &copy; 2005</address>
+</body>
+</html>

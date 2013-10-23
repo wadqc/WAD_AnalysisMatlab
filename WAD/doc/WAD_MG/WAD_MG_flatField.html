@@ -1,0 +1,531 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+                "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html>
+<head>
+  <title>Description of WAD_MG_flatField</title>
+  <meta name="keywords" content="WAD_MG_flatField">
+  <meta name="description" content="------------------------------------------------------------------------">
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+  <meta name="generator" content="m2html &copy; 2005 Guillaume Flandin">
+  <meta name="robots" content="index, follow">
+  <link type="text/css" rel="stylesheet" href="../m2html.css">
+  <script type="text/javascript">
+    if (top.frames.length == 0) { top.location = "../index.html"; };
+  </script>
+</head>
+<body>
+<a name="_top"></a>
+<!-- menu.html WAD_MG -->
+<h1>WAD_MG_flatField
+</h1>
+
+<h2><a name="_name"></a>PURPOSE <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="box"><strong>------------------------------------------------------------------------</strong></div>
+
+<h2><a name="_synopsis"></a>SYNOPSIS <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="box"><strong>function WAD_MG_flatField( i_iSeries, sSeries, sParams, sLimits ) </strong></div>
+
+<h2><a name="_description"></a>DESCRIPTION <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="fragment"><pre class="comment"> ------------------------------------------------------------------------
+ WAD_MG is a mammography analysis module written for IQC.
+ NVKF WAD IQC software is a framework for automatic analysis of DICOM objects.
+ 
+ Copyright 2012-2013  Joost Kuijer / jpa.kuijer@vumc.nl
+ 
+ 
+ This program is free software: you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation, either version 3 of the License, or
+ (at your option) any later version.
+ 
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+ 
+ You should have received a copy of the GNU General Public License
+ along with this program.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+ ------------------------------------------------------------------------</pre></div>
+
+<!-- crossreference -->
+<h2><a name="_cross"></a>CROSS-REFERENCE INFORMATION <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+This function calls:
+<ul style="list-style-image:url(../matlabicon.gif)">
+<li><a href="../WAD/WAD_resultsAppendFigure.html" class="code" title="function WAD_resultsAppendFigure( level, handle, tag, description )">WAD_resultsAppendFigure</a>	------------------------------------------------------------------------</li><li><a href="../WAD/WAD_resultsAppendFloat.html" class="code" title="function WAD_resultsAppendFloat( level, value, variable, unit, description, limits, limits_field_name )">WAD_resultsAppendFloat</a>	------------------------------------------------------------------------</li><li><a href="../WAD/WAD_resultsAppendString.html" class="code" title="function WAD_resultsAppendString( level, value, description )">WAD_resultsAppendString</a>	------------------------------------------------------------------------</li><li><a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>	------------------------------------------------------------------------</li><li><a href="../WAD/myErrordlg.html" class="code" title="function h = myErrordlg(isInteractive,varargin)">myErrordlg</a>	------------------------------------------------------------------------</li></ul>
+This function is called by:
+<ul style="list-style-image:url(../matlabicon.gif)">
+</ul>
+<!-- crossreference -->
+
+<h2><a name="_subfunctions"></a>SUBFUNCTIONS <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<ul style="list-style-image:url(../matlabicon.gif)">
+<li><a href="#_sub1" class="code">function roi = calcFlatFieldRoi( pixdata, roi, mx_nPix )</a></li></ul>
+
+<h2><a name="_source"></a>SOURCE CODE <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="fragment"><pre>0001 <span class="comment">% ------------------------------------------------------------------------</span>
+0002 <span class="comment">% WAD_MG is a mammography analysis module written for IQC.</span>
+0003 <span class="comment">% NVKF WAD IQC software is a framework for automatic analysis of DICOM objects.</span>
+0004 <span class="comment">%</span>
+0005 <span class="comment">% Copyright 2012-2013  Joost Kuijer / jpa.kuijer@vumc.nl</span>
+0006 <span class="comment">%</span>
+0007 <span class="comment">%</span>
+0008 <span class="comment">% This program is free software: you can redistribute it and/or modify</span>
+0009 <span class="comment">% it under the terms of the GNU General Public License as published by</span>
+0010 <span class="comment">% the Free Software Foundation, either version 3 of the License, or</span>
+0011 <span class="comment">% (at your option) any later version.</span>
+0012 <span class="comment">%</span>
+0013 <span class="comment">% This program is distributed in the hope that it will be useful,</span>
+0014 <span class="comment">% but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
+0015 <span class="comment">% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
+0016 <span class="comment">% GNU General Public License for more details.</span>
+0017 <span class="comment">%</span>
+0018 <span class="comment">% You should have received a copy of the GNU General Public License</span>
+0019 <span class="comment">% along with this program.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
+0020 <span class="comment">% ------------------------------------------------------------------------</span>
+0021 
+0022 <a name="_sub0" href="#_subfunctions" class="code">function WAD_MG_flatField( i_iSeries, sSeries, sParams, sLimits )</a>
+0023 <span class="comment">% Implementation of the program flatfield.exe as distributed by EUREF.</span>
+0024 <span class="comment">% The MG image is subdevided into square ROI's, and for each ROI the mean</span>
+0025 <span class="comment">% and variance are calculated. Then the pixels deviating more than a certain</span>
+0026 <span class="comment">% percentage from the ROI mean are counted (details exported to calculation</span>
+0027 <span class="comment">% log). Finally the mean and variance of all ROI's are averaged to get the</span>
+0028 <span class="comment">% overall image mean, SD and SNR.</span>
+0029 <span class="comment">%</span>
+0030 <span class="comment">% ------------------------------------------------------------------------</span>
+0031 <span class="comment">% WAD MG</span>
+0032 <span class="comment">% file: WAD_MG_flatField</span>
+0033 <span class="comment">% ------------------------------------------------------------------------</span>
+0034 <span class="comment">% VUmc, Amsterdam, NL / Joost Kuijer / jpa.kuijer@vumc.nl</span>
+0035 <span class="comment">% 2009-10-09 / JK</span>
+0036 <span class="comment">% first version</span>
+0037 <span class="comment">% ------------------------------------------------------------------------</span>
+0038 <span class="comment">% VUmc, Amsterdam, NL / Joost Kuijer / jpa.kuijer@vumc.nl</span>
+0039 <span class="comment">% 2012-08-14 / JK</span>
+0040 <span class="comment">% Adapted to WAD framework</span>
+0041 <span class="comment">% ------------------------------------------------------------------------</span>
+0042 
+0043 
+0044 <span class="comment">% ----------------------</span>
+0045 <span class="comment">% GLOBALS</span>
+0046 <span class="comment">% ----------------------</span>
+0047 <span class="comment">%global WAD</span>
+0048 
+0049 <span class="comment">% version info</span>
+0050 my.name = <span class="string">'WAD_MG_flatField'</span>;
+0051 my.version = <span class="string">'1.0'</span>;
+0052 my.date = <span class="string">'20120813'</span>;
+0053 <a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [<span class="string">'Module '</span> my.name <span class="string">' Version '</span> my.version <span class="string">' ('</span> my.date <span class="string">')'</span>] );
+0054 
+0055 
+0056 <span class="comment">% display dialogs and figures on screen?</span>
+0057 isInteractive = false;
+0058 
+0059 <span class="comment">% image number?</span>
+0060 ci = 1;
+0061 
+0062 <span class="comment">% limit of number of deviating pixels</span>
+0063 maxNumPix = 200;
+0064 
+0065 
+0066 <span class="comment">% load image</span>
+0067 fname = sSeries.instance(ci).filename;
+0068 <a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">':   reading DICOM image: '</span> fname ] );
+0069 info = dicominfo( fname );
+0070 img = dicomread( info );
+0071 
+0072 szImg = size( img );
+0073 
+0074 <span class="comment">% testcase: set region with low SNR</span>
+0075 <span class="comment">%RR = uint16(randn(50,50) .* 25);</span>
+0076 <span class="comment">%img(3001:3050,1001:1050) = img(3001:3050,1001:1050) + RR(:,:);</span>
+0077 
+0078 <span class="comment">% pixel size</span>
+0079 szPxX_mm = info.PixelSpacing(2);
+0080 szPxY_mm = info.PixelSpacing(1);
+0081 
+0082 <span class="comment">% ROI size in mm</span>
+0083 szROI_mm = 10;
+0084 
+0085 <span class="comment">% ROI size in pixels</span>
+0086 szROIX_px = floor( szROI_mm ./ szPxX_mm );
+0087 szROIY_px = floor( szROI_mm ./ szPxY_mm );
+0088 
+0089 <span class="comment">% ROI shift over half its size</span>
+0090 RoiShiftX_px = floor( szROIX_px ./ 2 );
+0091 RoiShiftY_px = floor( szROIY_px ./ 2 );
+0092 
+0093 
+0094 <span class="comment">% output some info</span>
+0095 <a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">':   Pixel size: '</span> num2str(szPxX_mm) <span class="string">' x '</span> num2str(szPxY_mm) <span class="string">' mm'</span>] );
+0096 <a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">':   ROI size  : '</span> num2str(szROI_mm) <span class="string">' mm (square)'</span>] );
+0097 <a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">':   ROI size  : '</span> num2str(szROIX_px) <span class="string">' x '</span> num2str(szROIY_px) <span class="string">' pixels'</span>] );
+0098 
+0099 <span class="comment">% skip configured number of ROW's at beginning and end</span>
+0100 <span class="comment">% this depends on the detector.</span>
+0101 skipRows = <span class="string">'auto'</span>;
+0102 <span class="keyword">if</span> isfield( sParams, <span class="string">'skipRows'</span> ) &amp;&amp; ~isempty( sParams.skipRows ) &amp;&amp; isnumeric( sParams.skipRows ) &amp;&amp; ( sParams.skipRows &gt;= 0 )
+0103     skipRows = sParams.skipRows;
+0104     <a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">':   Skipping '</span> num2str(skipRows) <span class="string">' rows at start and end.'</span>] );
+0105 <span class="keyword">end</span>
+0106 <span class="comment">% check if autodetection is needed</span>
+0107 <span class="keyword">if</span> isequal( skipRows, <span class="string">'auto'</span> )
+0108     <span class="comment">% autodetect number of rows to skip</span>
+0109     <span class="comment">% collapse cols</span>
+0110     mean4skipRows = mean( img, 2 );
+0111     <span class="comment">% threshols at mean centre value times 2</span>
+0112     <span class="comment">%thres4skipRows = mean( mean4skipRows( end/4:end/4*3 ) ) .* 2;</span>
+0113     <span class="comment">% locate rows above threshold</span>
+0114     <span class="comment">%rowsToSkip = find( mean4skipRows &gt; thres4skipRows )</span>
+0115     <span class="comment">% find first deviating pixel</span>
+0116     skipRows = -1;
+0117     diff4skipRows = diff(mean4skipRows);
+0118     <span class="keyword">for</span> i_ic = 1:length( diff4skipRows )
+0119         <span class="keyword">if</span> diff4skipRows(i_ic) ~= 0
+0120             skipRows = i_ic;
+0121             <span class="keyword">break</span>;
+0122         <span class="keyword">end</span>
+0123     <span class="keyword">end</span>
+0124     <span class="comment">% check if we found anything</span>
+0125     <span class="keyword">if</span> skipRows ~= -1
+0126         <a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">':   Autodetected number of rows to skip: '</span> num2str(skipRows) <span class="string">'.'</span>] );
+0127     <span class="keyword">else</span>
+0128         <a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">':   Autodetection of number of rows to skip failed. Aborting flatfield analysis.'</span>] );
+0129         <span class="keyword">return</span>
+0130     <span class="keyword">end</span>
+0131 <span class="keyword">end</span>
+0132 
+0133 
+0134 nRoiX = floor(  szImg(2)               ./ RoiShiftX_px ) - 1;
+0135 nRoiY = floor( (szImg(1) - 2*skipRows) ./ RoiShiftY_px ) - 1;
+0136 
+0137 <span class="comment">% init struct to combine per-ROI calculations</span>
+0138 roi.nRoi    = 0;
+0139 roi.sumMean = 0;
+0140 roi.sumVar  = 0;
+0141 roi.devPixX = [];
+0142 roi.devPixY = [];
+0143 roi.devPixValue = [];
+0144 roi.devPixRoiMean = [];
+0145 roi.nDevPix = 0;
+0146 roi.SNR = 0;
+0147 
+0148 <span class="comment">% basic check</span>
+0149 <span class="keyword">if</span> (nRoiX == 0) || (nRoiY == 0)
+0150     <a href="../WAD/myErrordlg.html" class="code" title="function h = myErrordlg(isInteractive,varargin)">myErrordlg</a>( isInteractive, <span class="string">'ROI is larger than image. Not calculating Flatflield.'</span>, <span class="string">'FlatField'</span>, <span class="string">'on'</span> );
+0151     <a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">':   ROI is larger than image. Not calculating Flatflield.'</span>] );
+0152     <span class="keyword">return</span>
+0153 <span class="keyword">end</span>
+0154 
+0155 <span class="comment">% set threshold for deviating pixels</span>
+0156 <span class="keyword">if</span> isfield( sParams, <span class="string">'threshold'</span> ) &amp;&amp; ~isempty( sParams.threshold )
+0157     roi.threshold = sParams.threshold; <span class="comment">% threshold for deviating pixels</span>
+0158     <a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">':   Threshold for deviating pixels set at '</span> num2str(roi.threshold*100) <span class="string">'%.'</span>] );
+0159 <span class="keyword">else</span>
+0160     <span class="comment">% no threshold defined, not calculating deviating pixels</span>
+0161     roi.threshold = 0;
+0162     <a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">':   No threshold for deviating pixels (parameter threshold) configured, not calculating deviating pixels.'</span>] );
+0163 <span class="keyword">end</span>    
+0164 
+0165 <span class="comment">% set threshold for deviating ROIs (in terms of SNR</span>
+0166 <span class="keyword">if</span> isfield( sParams, <span class="string">'SNRthreshold'</span> ) &amp;&amp; ~isempty( sParams.SNRthreshold )
+0167     SNRthreshold = sParams.SNRthreshold; <span class="comment">% threshold for deviating ROIs</span>
+0168     <a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">':   Threshold for deviating SNR of ROIs set at '</span> num2str(SNRthreshold*100) <span class="string">'%.'</span>] );
+0169 <span class="keyword">else</span>
+0170     <span class="comment">% no threshold defined, not calculating deviating pixels</span>
+0171     SNRthreshold = 0;
+0172     <a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">':   No threshold for deviating ROIs (parameter SNRthreshold) configured, not calculating deviating ROIs.'</span>] );
+0173 <span class="keyword">end</span>    
+0174 
+0175 
+0176 <span class="comment">% display a waitbar in interactive mode</span>
+0177 <span class="keyword">if</span> isInteractive, h = waitbar( 0, <span class="string">'Calculating FlatField'</span> ); <span class="keyword">end</span>
+0178 <a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">':   Calculating FlatField...'</span>] );
+0179 
+0180 
+0181 <span class="comment">% global mean / SD / SNR</span>
+0182 theMean = mean2( img( 1+skipRows:end-skipRows , : ) );
+0183 SD   = std2 ( img( 1+skipRows:end-skipRows , : ) );
+0184 SNR  = theMean ./ SD;
+0185 
+0186 <span class="comment">% pre-allocate arrays for ROI position and SNR</span>
+0187 roiSNRsx = zeros(nRoiY+1,nRoiX+1);
+0188 roiSNRsy = zeros(nRoiY+1,nRoiX+1);
+0189 roiSNR   = zeros(nRoiY+1,nRoiX+1);
+0190 
+0191 <span class="comment">% loop over ROI's</span>
+0192 <span class="keyword">for</span> ix = 1:nRoiX+1
+0193     <span class="comment">% update waitbar</span>
+0194     <span class="keyword">if</span> isInteractive, waitbar( ix/(nRoiX+1), h ); <span class="keyword">end</span>
+0195 
+0196     <span class="keyword">for</span> iy = 1:nRoiY+1
+0197         <span class="keyword">if</span> ix &gt; nRoiX
+0198             <span class="comment">% last column</span>
+0199             roi.ex = szImg(2); <span class="comment">% end index of ROI</span>
+0200             roi.sx = roi.ex - szROIX_px + 1; <span class="comment">% start index</span>
+0201         <span class="keyword">else</span>            
+0202             roi.sx = (ix-1) * RoiShiftX_px + 1; <span class="comment">% start index</span>
+0203             roi.ex = roi.sx + szROIX_px; <span class="comment">% end index of ROI</span>
+0204         <span class="keyword">end</span>
+0205         <span class="keyword">if</span> iy &gt; nRoiY
+0206             <span class="comment">% last row</span>
+0207             roi.ey = szImg(1) - skipRows; <span class="comment">% end index of ROI</span>
+0208             roi.sy = roi.ey - szROIY_px + 1; <span class="comment">% start index</span>
+0209         <span class="keyword">else</span>        
+0210             roi.sy = skipRows + (iy-1) * RoiShiftY_px + 1; <span class="comment">% start index</span>
+0211             roi.ey = roi.sy + szROIY_px; <span class="comment">% end index of ROI</span>
+0212         <span class="keyword">end</span>
+0213         <span class="comment">% copy coordinates of current ROI</span>
+0214         roiSNRsx(iy,ix) = roi.sx;
+0215         roiSNRsy(iy,ix) = roi.sy;
+0216         
+0217         <span class="comment">% evaluate ROI</span>
+0218         roi = <a href="#_sub1" class="code" title="subfunction roi = calcFlatFieldRoi( pixdata, roi, mx_nPix )">calcFlatFieldRoi</a>( img( roi.sy:roi.ey, roi.sx:roi.ex ), roi, maxNumPix );
+0219         <span class="comment">% copy SNR of current ROI</span>
+0220         roiSNR(iy,ix)   = roi.SNR;
+0221         
+0222         <span class="comment">% check on large number of deviating pixels found, if so probably</span>
+0223         <span class="comment">% something is wrong with the skipRows setting and the analysis</span>
+0224         <span class="comment">% will virtually hang because it takes ages to sieve and sort...</span>
+0225         <span class="keyword">if</span> roi.nDevPix &gt;= maxNumPix
+0226             <a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">':   WARNING: Found '</span> num2str(roi.nDevPix) <span class="string">' potential deviating pixels, maximum number reached; stopped searching.'</span>] );
+0227             <span class="keyword">break</span>; <span class="comment">% escape from inner loop...</span>
+0228         <span class="keyword">end</span>
+0229     <span class="keyword">end</span>
+0230     <span class="comment">% ... and escape from outer loop</span>
+0231     <span class="keyword">if</span> roi.nDevPix &gt;= maxNumPix, <span class="keyword">break</span>, <span class="keyword">end</span>
+0232 <span class="keyword">end</span>
+0233 
+0234 
+0235 <span class="comment">% in case a threshold for deviating pixels was set...</span>
+0236 <span class="keyword">if</span> roi.threshold &gt; 0
+0237     <a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">':   Found '</span> num2str(length(roi.devPixX)) <span class="string">' potential deviating pixels, starting sorting and sieving.'</span>] );
+0238     <span class="comment">% sort and sieve the double counted deviating pixels (ROI's overlap!)</span>
+0239     [devPixX, indx] = sort( roi.devPixX );
+0240     devPixY       = zeros( size ( roi.devPixY       ) );
+0241     devPixValue   = zeros( size ( roi.devPixValue   ) );
+0242     devPixRoiMean = zeros( size ( roi.devPixRoiMean ) );
+0243     <span class="keyword">for</span> i=1:length(devPixX)
+0244         devPixY(i)       = roi.devPixY(indx(i));
+0245         devPixValue(i)   = roi.devPixValue(indx(i));
+0246         devPixRoiMean(i) = roi.devPixRoiMean(indx(i));
+0247     <span class="keyword">end</span>
+0248     <span class="comment">% find double counted pixels</span>
+0249     nPix = length(devPixX);
+0250     ignorePix = zeros( nPix, 1 );
+0251     <span class="keyword">if</span> isInteractive, waitbar( 0, h, <span class="string">'Sorting and sieving deviating pixels'</span>); <span class="keyword">end</span>
+0252     <span class="keyword">for</span> i=1:nPix-1
+0253         <span class="comment">% update waitbar</span>
+0254         <span class="keyword">if</span> isInteractive, waitbar( i/(nPix), h ); <span class="keyword">end</span>
+0255         <span class="comment">% skip pixels already marked to be ignored</span>
+0256         <span class="keyword">if</span> ~ignorePix(i)
+0257             <span class="comment">% check all pixels with same X coordinate</span>
+0258             j = 1;
+0259             <span class="keyword">while</span> (i+j&lt;=nPix) &amp;&amp; (devPixX(i)==devPixX(i+j))
+0260                 <span class="comment">% check for equal Y coordinate</span>
+0261                 <span class="keyword">if</span> devPixY(i)==devPixY(i+j)
+0262                     <span class="comment">% same coordinates... ignore!</span>
+0263                     ignorePix(i+j) = 1;
+0264                 <span class="keyword">end</span>
+0265                 <span class="comment">% check next one</span>
+0266                 j=j+1;
+0267             <span class="keyword">end</span>
+0268         <span class="keyword">end</span>
+0269     <span class="keyword">end</span>
+0270     nSievedDevPix = length(find(~ignorePix));
+0271 <span class="keyword">end</span>
+0272 
+0273 <span class="comment">% export results, only averaged ROI SNR and number of deviating pixels goes into results database</span>
+0274 roi.mean = roi.sumMean ./ roi.nRoi;
+0275 roi.SD   = sqrt( roi.sumVar ./ roi.nRoi );
+0276 SNR_ROI  = roi.mean ./ roi.SD;
+0277 <span class="keyword">if</span> roi.threshold &gt; 0
+0278     numDeviatingPix = nSievedDevPix;
+0279 <span class="keyword">end</span>
+0280 
+0281 <span class="comment">% in case a threshold for deviating ROIs was set...</span>
+0282 <span class="keyword">if</span> SNRthreshold &gt; 0
+0283     <span class="comment">% find deviating ROIs</span>
+0284     thrhi = SNR_ROI * ( 1 + SNRthreshold );
+0285     thrlo = SNR_ROI * ( 1 - SNRthreshold );
+0286     <span class="comment">% above high threshold</span>
+0287     [roiSNRrow,roiSNRcol] = find( roiSNR &gt; thrhi );
+0288     <span class="comment">% below low threshold</span>
+0289     [tmprow,tmpcol] = find( roiSNR &lt; thrlo );
+0290     <span class="comment">% put them together</span>
+0291     roiSNRrow = [ roiSNRrow; tmprow ];
+0292     roiSNRcol = [ roiSNRcol; tmpcol ];
+0293     numDeviatingRoi = length( roiSNRrow );
+0294 <span class="keyword">end</span>
+0295 
+0296 
+0297 <span class="comment">% output results to logfile</span>
+0298 <a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">':   GLOBAL'</span>] );
+0299 <a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">':   Mean = '</span> num2str(theMean)] );
+0300 <a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">':   SD   = '</span> num2str(SD)] );
+0301 <a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">':   SNR  = '</span> num2str(SNR)] );
+0302 <a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">':   ROI (average)'</span>] );
+0303 <a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">':   Mean = '</span> num2str(roi.mean)] );
+0304 <a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">':   SD   = '</span> num2str(roi.SD)] );
+0305 <a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">':   SNR  = '</span> num2str(SNR_ROI)] );
+0306 <span class="keyword">if</span> roi.threshold &gt; 0
+0307     <a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">':   numDeviatingPix = '</span> num2str(numDeviatingPix)] );
+0308 <span class="keyword">end</span>
+0309 <span class="keyword">if</span> SNRthreshold &gt; 0
+0310     <a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">':   numDeviatingRoi = '</span> num2str(numDeviatingRoi)] );
+0311 <span class="keyword">end</span>
+0312 
+0313 <span class="comment">% close waitbar</span>
+0314 <span class="keyword">if</span> isInteractive, close(h), <span class="keyword">end</span>
+0315 
+0316 <span class="comment">% write results</span>
+0317 <a href="../WAD/WAD_resultsAppendString.html" class="code" title="function WAD_resultsAppendString( level, value, description )">WAD_resultsAppendString</a>( 2, [<span class="string">'Analysis on series '</span> num2str( sSeries.number ) <span class="string">' - image '</span> num2str(ci)], <span class="string">'Flatfield'</span> );
+0318 <span class="comment">% global stats</span>
+0319 <a href="../WAD/WAD_resultsAppendFloat.html" class="code" title="function WAD_resultsAppendFloat( level, value, variable, unit, description, limits, limits_field_name )">WAD_resultsAppendFloat</a>( 1, theMean, <span class="string">'Mean'</span>, [], <span class="string">'Flatfield Global'</span>, sLimits, <span class="string">'mean'</span> );
+0320 <a href="../WAD/WAD_resultsAppendFloat.html" class="code" title="function WAD_resultsAppendFloat( level, value, variable, unit, description, limits, limits_field_name )">WAD_resultsAppendFloat</a>( 1, SD, <span class="string">'SD'</span>, [], <span class="string">'Flatfield Global'</span>, sLimits, <span class="string">'SD'</span> );
+0321 <a href="../WAD/WAD_resultsAppendFloat.html" class="code" title="function WAD_resultsAppendFloat( level, value, variable, unit, description, limits, limits_field_name )">WAD_resultsAppendFloat</a>( 1, SNR, <span class="string">'SNR'</span>, [], <span class="string">'Flatfield Global'</span>, sLimits, <span class="string">'SNR'</span> );
+0322 <span class="comment">% ROI stats</span>
+0323 <a href="../WAD/WAD_resultsAppendFloat.html" class="code" title="function WAD_resultsAppendFloat( level, value, variable, unit, description, limits, limits_field_name )">WAD_resultsAppendFloat</a>( 2, roi.mean, <span class="string">'Mean'</span>, [], <span class="string">'Flatfield ROI'</span>, sLimits, <span class="string">'mean_ROI'</span> );
+0324 <a href="../WAD/WAD_resultsAppendFloat.html" class="code" title="function WAD_resultsAppendFloat( level, value, variable, unit, description, limits, limits_field_name )">WAD_resultsAppendFloat</a>( 2, roi.SD, <span class="string">'SD'</span>, [], <span class="string">'Flatfield ROI'</span>, sLimits, <span class="string">'SD_ROI'</span> );
+0325 <a href="../WAD/WAD_resultsAppendFloat.html" class="code" title="function WAD_resultsAppendFloat( level, value, variable, unit, description, limits, limits_field_name )">WAD_resultsAppendFloat</a>( 1, SNR_ROI, <span class="string">'SNR'</span>, [], <span class="string">'Flatfield ROI'</span>, sLimits, <span class="string">'SNR_ROI'</span> );
+0326 
+0327 <span class="comment">% report stuff related to deviating pixels only if threshold was defined</span>
+0328 <span class="keyword">if</span> roi.threshold &gt; 0
+0329     <a href="../WAD/WAD_resultsAppendString.html" class="code" title="function WAD_resultsAppendString( level, value, description )">WAD_resultsAppendString</a>( 2, [<span class="string">'Threshold for deviating pixels set at '</span> num2str(roi.threshold*100) <span class="string">'%.'</span>], <span class="string">'Flatfield'</span> );
+0330     <a href="../WAD/WAD_resultsAppendFloat.html" class="code" title="function WAD_resultsAppendFloat( level, value, variable, unit, description, limits, limits_field_name )">WAD_resultsAppendFloat</a>( 1, numDeviatingPix, <span class="string">'Deviating'</span>, <span class="string">'pixels'</span>, <span class="string">'Flatfield Deviating Pixels'</span>, sLimits, <span class="string">'numDeviatingPix'</span> );
+0331 
+0332     <span class="comment">% write deviating pixel coordinates to calculation log file</span>
+0333     <a href="../WAD/WAD_resultsAppendString.html" class="code" title="function WAD_resultsAppendString( level, value, description )">WAD_resultsAppendString</a>( 2, <span class="string">'Deviating pixels (Coordinates in pixels starting at top-left corner)'</span>, <span class="string">'Flatfield'</span> );
+0334     <a href="../WAD/WAD_resultsAppendString.html" class="code" title="function WAD_resultsAppendString( level, value, description )">WAD_resultsAppendString</a>( 2, <span class="string">'X      Y   value  ROI mean'</span>, <span class="string">'Flatfield'</span> );
+0335     <span class="comment">% and sieve ignored (double) pixels</span>
+0336     sievedDevPixX = zeros( nSievedDevPix, 1 );
+0337     sievedDevPixY = zeros( nSievedDevPix, 1 );
+0338     j=0;
+0339     <span class="keyword">for</span> i=1:nPix
+0340         <span class="keyword">if</span> ~ignorePix(i)
+0341             j=j+1;
+0342             sievedDevPixX(j) = devPixX(i);
+0343             sievedDevPixY(j) = devPixY(i);
+0344             <span class="comment">% write to calculations log file</span>
+0345             coordtxt = sprintf( <span class="string">'%6.0f %6.0f %6.0f %6.2f'</span>, devPixX(i), devPixY(i), devPixValue(i), devPixRoiMean(i) );
+0346             <a href="../WAD/WAD_resultsAppendString.html" class="code" title="function WAD_resultsAppendString( level, value, description )">WAD_resultsAppendString</a>( 2, coordtxt, <span class="string">'Flatfield'</span> );
+0347             <span class="comment">% also write to log file</span>
+0348             <a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">':   '</span> coordtxt] );
+0349         <span class="keyword">end</span>
+0350     <span class="keyword">end</span>
+0351 
+0352     <span class="comment">% create a plot with deviating pixels</span>
+0353     <span class="comment">% create figure</span>
+0354     quiet = true;
+0355     <span class="keyword">if</span> quiet 
+0356         fig_visible = <span class="string">'off'</span>;
+0357     <span class="keyword">else</span>
+0358         fig_visible = <span class="string">'on'</span>;
+0359     <span class="keyword">end</span>
+0360 
+0361     hFig = figure( <span class="string">'Visible'</span>, fig_visible, <span class="string">'MenuBar'</span>, <span class="string">'none'</span>, <span class="string">'Name'</span>, <span class="string">'Deviating Pixels'</span> );
+0362     <span class="comment">%hFig = figure( 'Visible', fig_visible, 'Name', 'Deviating Pixels' );</span>
+0363     colormap(gray);
+0364     <span class="comment">% display image</span>
+0365     <span class="comment">% - reduce image size: show only one in imDispPx pixels</span>
+0366     <span class="comment">% - with +/- 4 SD full scale mapping</span>
+0367     imDispPx = 5;
+0368     imshow( img(1:imDispPx:<span class="keyword">end</span>,1:imDispPx:end), [theMean-4*SD theMean+4*SD] );
+0369     axis image
+0370     axis square
+0371     axis off
+0372     title([<span class="string">'series '</span> num2str(sSeries.number) <span class="string">' - image '</span> num2str(sSeries.instance(ci).number) <span class="string">' (1 in '</span> num2str(imDispPx.^2) <span class="string">' pixels displayed)'</span>], <span class="string">'Interpreter'</span>, <span class="string">'none'</span>);
+0373     hold on
+0374     
+0375     <span class="comment">% overlay of deviating ROIs</span>
+0376     <span class="keyword">if</span> SNRthreshold &gt; 0
+0377         <span class="keyword">for</span> i=1:numDeviatingRoi
+0378             rectangle(<span class="string">'Position'</span>, [ roiSNRsx( roiSNRrow(i), roiSNRcol(i) ), <span class="keyword">...</span>
+0379                                     roiSNRsy( roiSNRrow(i), roiSNRcol(i) ), <span class="keyword">...</span>
+0380                                     szROIX_px, szROIY_px ] ./ imDispPx, <span class="string">'LineWidth'</span>,1, <span class="string">'EdgeColor'</span>,<span class="string">'b'</span> )
+0381         <span class="keyword">end</span>
+0382     <span class="keyword">end</span>
+0383     
+0384     <span class="comment">% overlay of deviating pixels</span>
+0385     plot( sievedDevPixX/imDispPx, sievedDevPixY/imDispPx, <span class="string">'r.'</span>, <span class="string">'MarkerSize'</span>, 20 )
+0386 
+0387     <span class="comment">% flatfield figure is a primary result</span>
+0388     <a href="../WAD/WAD_resultsAppendFigure.html" class="code" title="function WAD_resultsAppendFigure( level, handle, tag, description )">WAD_resultsAppendFigure</a>( 1, hFig, <span class="string">'flatfield'</span>, <span class="string">'Flatfield'</span> );
+0389     <span class="keyword">if</span> quiet
+0390         <span class="comment">% delete non-visible image</span>
+0391         delete( hFig );
+0392     <span class="keyword">end</span>
+0393     
+0394 <span class="keyword">else</span> <span class="comment">% deviating pixels were not calculated...</span>
+0395     <a href="../WAD/WAD_resultsAppendString.html" class="code" title="function WAD_resultsAppendString( level, value, description )">WAD_resultsAppendString</a>( 2, <span class="string">'Threshold for deviating pixels was not defined, no deviating pixels calculated.'</span>, <span class="string">'Flatfield'</span> );
+0396 <span class="keyword">end</span>
+0397 
+0398 
+0399 <span class="keyword">if</span> SNRthreshold &gt; 0
+0400     <a href="../WAD/WAD_resultsAppendString.html" class="code" title="function WAD_resultsAppendString( level, value, description )">WAD_resultsAppendString</a>( 2, [<span class="string">'Threshold for deviating ROIs set at '</span> num2str(SNRthreshold*100) <span class="string">'%.'</span>], <span class="string">'Flatfield'</span> );
+0401     <a href="../WAD/WAD_resultsAppendFloat.html" class="code" title="function WAD_resultsAppendFloat( level, value, variable, unit, description, limits, limits_field_name )">WAD_resultsAppendFloat</a>( 1, numDeviatingRoi, <span class="string">'Deviating'</span>, <span class="string">'ROIs'</span>, <span class="string">'Flatfield Deviation ROI'</span>, sLimits, <span class="string">'numDeviatingRoi'</span> );
+0402 <span class="keyword">else</span> <span class="comment">% deviating ROIs were not calculated...</span>
+0403     <a href="../WAD/WAD_resultsAppendString.html" class="code" title="function WAD_resultsAppendString( level, value, description )">WAD_resultsAppendString</a>( 2, <span class="string">'Threshold for deviating ROIs was not defined, no deviating ROIs calculated.'</span>, <span class="string">'Flatfield'</span> );
+0404 <span class="keyword">end</span>
+0405 
+0406 
+0407 
+0408 
+0409 <span class="comment">% -----------------------------------------------------------------------</span>
+0410 <span class="comment">% local funtion: calcFlatFieldRoi( pixdata, roi, mx_nPix )</span>
+0411 <span class="comment">%</span>
+0412 <span class="comment">% - calculates mean sum, variance and deviating pixels of pixdata</span>
+0413 <span class="comment">% - updates roi data structure</span>
+0414 <span class="comment">% -----------------------------------------------------------------------</span>
+0415 <a name="_sub1" href="#_subfunctions" class="code">function roi = calcFlatFieldRoi( pixdata, roi, mx_nPix )</a>
+0416 
+0417 roi.nRoi    = roi.nRoi + 1;
+0418 <span class="comment">% basic statistics</span>
+0419 roimean = mean2( pixdata );
+0420 roistd  = std2 ( pixdata );
+0421 roi.sumMean = roi.sumMean + roimean;
+0422 roi.sumVar  = roi.sumVar  + roistd.^2 ;
+0423 <span class="comment">% ROI SNR</span>
+0424 roi.SNR = roimean ./ roistd;
+0425 
+0426 
+0427 <span class="comment">% output first ROI (basic testing)</span>
+0428 <span class="comment">% if roi.nRoi == 1</span>
+0429 <span class="comment">%     roi.sx</span>
+0430 <span class="comment">%     roi.sy</span>
+0431 <span class="comment">%     roimean</span>
+0432 <span class="comment">%     sqrt( var( pixdata(:) ) )</span>
+0433 <span class="comment">%     %pixdata(:)</span>
+0434 <span class="comment">% end</span>
+0435 
+0436 <span class="keyword">if</span> roi.threshold &gt; 0
+0437     <span class="comment">% find deviating pixels</span>
+0438     thrhi = roimean * ( 1 + roi.threshold );
+0439     thrlo = roimean * ( 1 - roi.threshold );
+0440     <span class="comment">% above high threshold</span>
+0441     [row,col] = find( pixdata &gt; thrhi );
+0442     <span class="comment">% store coordinates of pixels</span>
+0443     <span class="keyword">for</span> i=1:length(row)
+0444         <span class="keyword">if</span> roi.nDevPix &gt;= mx_nPix, <span class="keyword">break</span>, <span class="keyword">end</span>
+0445         roi.nDevPix = roi.nDevPix + 1;
+0446         <span class="comment">% pixdata is a subset of image, so need to add ROI start coordinates</span>
+0447         roi.devPixX(roi.nDevPix) = col(i) + roi.sx - 1;
+0448         roi.devPixY(roi.nDevPix) = row(i) + roi.sy - 1;
+0449         roi.devPixValue(roi.nDevPix) = pixdata(row(i),col(i));
+0450         roi.devPixRoiMean(roi.nDevPix) = roimean;
+0451     <span class="keyword">end</span>
+0452     <span class="comment">% below low threshold</span>
+0453     [row,col] = find( pixdata &lt; thrlo );
+0454     <span class="comment">% store coordinates of pixels</span>
+0455     <span class="keyword">for</span> i=1:length(row)
+0456         <span class="keyword">if</span> roi.nDevPix &gt;= mx_nPix, <span class="keyword">break</span>, <span class="keyword">end</span>
+0457         roi.nDevPix = roi.nDevPix + 1;
+0458         <span class="comment">% pixdata is a subset of image, so need to add ROI start coordinates</span>
+0459         roi.devPixX(roi.nDevPix) = col(i) + roi.sx - 1;
+0460         roi.devPixY(roi.nDevPix) = row(i) + roi.sy - 1;
+0461         roi.devPixValue(roi.nDevPix) = pixdata(row(i),col(i));
+0462         roi.devPixRoiMean(roi.nDevPix) = roimean;
+0463     <span class="keyword">end</span>
+0464 <span class="keyword">end</span></pre></div>
+<hr><address>Generated on Wed 23-Oct-2013 14:08:22 by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" target="_parent">m2html</a></strong> &copy; 2005</address>
+</body>
+</html>

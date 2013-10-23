@@ -1,0 +1,190 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+                "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html>
+<head>
+  <title>Description of WAD_resultsAppendFloat</title>
+  <meta name="keywords" content="WAD_resultsAppendFloat">
+  <meta name="description" content="------------------------------------------------------------------------">
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+  <meta name="generator" content="m2html &copy; 2005 Guillaume Flandin">
+  <meta name="robots" content="index, follow">
+  <link type="text/css" rel="stylesheet" href="../m2html.css">
+  <script type="text/javascript">
+    if (top.frames.length == 0) { top.location = "../index.html"; };
+  </script>
+</head>
+<body>
+<a name="_top"></a>
+<!-- menu.html WAD -->
+<h1>WAD_resultsAppendFloat
+</h1>
+
+<h2><a name="_name"></a>PURPOSE <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="box"><strong>------------------------------------------------------------------------</strong></div>
+
+<h2><a name="_synopsis"></a>SYNOPSIS <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="box"><strong>function WAD_resultsAppendFloat( level, value, variable, unit, description, limits, limits_field_name ) </strong></div>
+
+<h2><a name="_description"></a>DESCRIPTION <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="fragment"><pre class="comment"> ------------------------------------------------------------------------
+ This WAD folder provides a &quot;library&quot; of helper functions written for IQC.
+ NVKF WAD IQC software is a framework for automatic analysis of DICOM objects.
+ 
+ Copyright 2012-2013  Joost Kuijer / jpa.kuijer@vumc.nl
+ 
+ 
+ This program is free software: you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation, either version 3 of the License, or
+ (at your option) any later version.
+ 
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+ 
+ You should have received a copy of the GNU General Public License
+ along with this program.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+ ------------------------------------------------------------------------</pre></div>
+
+<!-- crossreference -->
+<h2><a name="_cross"></a>CROSS-REFERENCE INFORMATION <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+This function calls:
+<ul style="list-style-image:url(../matlabicon.gif)">
+<li><a href="WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>	------------------------------------------------------------------------</li></ul>
+This function is called by:
+<ul style="list-style-image:url(../matlabicon.gif)">
+<li><a href="../WAD_MG/WAD_MG_AEC.html" class="code" title="function WAD_MG_AEC( i_iSeries, sSeries, sParams, sLimits )">WAD_MG_AEC</a>	------------------------------------------------------------------------</li><li><a href="../WAD_MG/WAD_MG_flatField.html" class="code" title="function WAD_MG_flatField( i_iSeries, sSeries, sParams, sLimits )">WAD_MG_flatField</a>	------------------------------------------------------------------------</li><li><a href="../WAD_MR/WAD_MR_B0_uniformity.html" class="code" title="function WAD_MR_B0_uniformity( i_iSeries, sSeries, sParams, sLimits )">WAD_MR_B0_uniformity</a>	------------------------------------------------------------------------</li><li><a href="../WAD_MR/WAD_MR_SNR.html" class="code" title="function WAD_MR_SNR( i_iSeries, sSeries, sParams, sLimits )">WAD_MR_SNR</a>	------------------------------------------------------------------------</li><li><a href="../WAD_MR/WAD_MR_SNR_MultiChannel.html" class="code" title="function WAD_MR_SNR_MultiChannel( i_iSeries, sSeries, sParams, sLimits )">WAD_MR_SNR_MultiChannel</a>	------------------------------------------------------------------------</li><li><a href="../WAD_MR/WAD_MR_TxAmplFreq.html" class="code" title="function WAD_MR_TxAmplFreq( i_iSeries, sSeries, sParams, sLimits )">WAD_MR_TxAmplFreq</a>	------------------------------------------------------------------------</li><li><a href="../WAD_MR/WAD_MR_geomXY.html" class="code" title="function WAD_MR_geomXY( i_iSeries, sSeries, sParams, sLimits )">WAD_MR_geomXY</a>	------------------------------------------------------------------------</li><li><a href="../WAD_MR/WAD_MR_geomZ.html" class="code" title="function WAD_MR_geomZ( i_iSeries, sSeries, sParams, sLimits )">WAD_MR_geomZ</a>	------------------------------------------------------------------------</li><li><a href="../WAD_demo/WAD_demo_actionTwo.html" class="code" title="function WAD_demo_actionTwo( i_iSeries, sSeries, sParams, sLimits )">WAD_demo_actionTwo</a>	------------------------------------------------------------------------</li></ul>
+<!-- crossreference -->
+
+
+
+<h2><a name="_source"></a>SOURCE CODE <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="fragment"><pre>0001 <span class="comment">% ------------------------------------------------------------------------</span>
+0002 <span class="comment">% This WAD folder provides a &quot;library&quot; of helper functions written for IQC.</span>
+0003 <span class="comment">% NVKF WAD IQC software is a framework for automatic analysis of DICOM objects.</span>
+0004 <span class="comment">%</span>
+0005 <span class="comment">% Copyright 2012-2013  Joost Kuijer / jpa.kuijer@vumc.nl</span>
+0006 <span class="comment">%</span>
+0007 <span class="comment">%</span>
+0008 <span class="comment">% This program is free software: you can redistribute it and/or modify</span>
+0009 <span class="comment">% it under the terms of the GNU General Public License as published by</span>
+0010 <span class="comment">% the Free Software Foundation, either version 3 of the License, or</span>
+0011 <span class="comment">% (at your option) any later version.</span>
+0012 <span class="comment">%</span>
+0013 <span class="comment">% This program is distributed in the hope that it will be useful,</span>
+0014 <span class="comment">% but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
+0015 <span class="comment">% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
+0016 <span class="comment">% GNU General Public License for more details.</span>
+0017 <span class="comment">%</span>
+0018 <span class="comment">% You should have received a copy of the GNU General Public License</span>
+0019 <span class="comment">% along with this program.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
+0020 <span class="comment">% ------------------------------------------------------------------------</span>
+0021 
+0022 <a name="_sub0" href="#_subfunctions" class="code">function WAD_resultsAppendFloat( level, value, variable, unit, description, limits, limits_field_name )</a>
+0023 <span class="comment">% Append number to WAD results object</span>
+0024 <span class="comment">%</span>
+0025 <span class="comment">% ------------------------------------------------------------------------</span>
+0026 <span class="comment">% WAD</span>
+0027 <span class="comment">% file: WAD_resultsAppendFloat</span>
+0028 <span class="comment">%</span>
+0029 <span class="comment">% Input: level    - 1 or 2</span>
+0030 <span class="comment">%                   1 is intended for primary results (&quot;front page table&quot;)</span>
+0031 <span class="comment">%                   2 for secondary (what went wrong with my analysis?)</span>
+0032 <span class="comment">%        value    - the result value (e.g. 94.6)</span>
+0033 <span class="comment">%        variable - what it is (e.g. 'diameter')</span>
+0034 <span class="comment">%        unit     - unit of the result (e.g. 'mm')</span>
+0035 <span class="comment">%        limits   - struct with action limits, passed from config file</span>
+0036 <span class="comment">%        limits_field_name - name of action limit, should match the limits struct</span>
+0037 <span class="comment">%                   (e.g. 'SNR' to access limits.SNR.acceptable.lower etc)</span>
+0038 <span class="comment">%</span>
+0039 <span class="comment">% Output: to WAD.out.resultaten_floating, at end of analysis to be exported as XML</span>
+0040 <span class="comment">%</span>
+0041 <span class="comment">% It is acceptable to have empty data for parameters variable, unit,</span>
+0042 <span class="comment">% limits, limits_field_name</span>
+0043 <span class="comment">%</span>
+0044 <span class="comment">% Note on action limits: in a future version of the WAD framework the</span>
+0045 <span class="comment">% action limit definitions should move to the web interface, and can then</span>
+0046 <span class="comment">% be removed from the configuration file.</span>
+0047 <span class="comment">%</span>
+0048 <span class="comment">% Limits XML template in configuration file, as part of &lt;action&gt;:</span>
+0049 <span class="comment">% &lt;!-- ACTION LIMITS TEMPLATE</span>
+0050 <span class="comment">%     &lt;limits&gt;</span>
+0051 <span class="comment">%       &lt;param_name&gt;</span>
+0052 <span class="comment">%         &lt;acceptable&gt;</span>
+0053 <span class="comment">%           &lt;lower&gt;&lt;/lower&gt;</span>
+0054 <span class="comment">%           &lt;upper&gt;&lt;/upper&gt;</span>
+0055 <span class="comment">%         &lt;/acceptable&gt;</span>
+0056 <span class="comment">%         &lt;critical&gt;</span>
+0057 <span class="comment">%           &lt;lower&gt;&lt;/lower&gt;</span>
+0058 <span class="comment">%           &lt;upper&gt;&lt;/upper&gt;</span>
+0059 <span class="comment">%         &lt;/critical&gt;</span>
+0060 <span class="comment">%         &lt;/param_name&gt;</span>
+0061 <span class="comment">%     &lt;/module_name&gt;</span>
+0062 <span class="comment">% --&gt;</span>
+0063 <span class="comment">%</span>
+0064 <span class="comment">% ------------------------------------------------------------------------</span>
+0065 <span class="comment">% VUmc, Amsterdam, NL / Joost Kuijer / jpa.kuijer@vumc.nl</span>
+0066 <span class="comment">% 2012-11-07 / JK</span>
+0067 <span class="comment">% first version</span>
+0068 <span class="comment">% ------------------------------------------------------------------------</span>
+0069 
+0070 <span class="comment">% For access to out.results struct</span>
+0071 <span class="keyword">global</span> WAD
+0072 
+0073 <span class="comment">% version info</span>
+0074 my.name = <span class="string">'WAD_resultsAppendFloat'</span>;
+0075 my.version = <span class="string">'1.0'</span>;
+0076 my.date = <span class="string">'20121107'</span>;
+0077 <span class="comment">% This module is called quite often, set verbose level 2</span>
+0078 <a href="WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [<span class="string">'Module '</span> my.name <span class="string">' Version '</span> my.version <span class="string">' ('</span> my.date <span class="string">')'</span>], 2 );
+0079 
+0080 
+0081 <span class="comment">% WAD XML object</span>
+0082 <span class="comment">% WAD XML object</span>
+0083 WAD.out.results{end+1} = []; <span class="comment">% new item</span>
+0084 <span class="comment">% increase index number</span>
+0085 WAD.results_index = WAD.results_index + 1;
+0086 WAD.out.results{end}.volgnummer = WAD.results_index;
+0087 WAD.out.results{end}.type     = <span class="string">'float'</span>;
+0088 WAD.out.results{end}.niveau   = level;
+0089 WAD.out.results{end}.waarde   = value;
+0090 
+0091 <span class="keyword">if</span> ~isempty( variable ), <span class="keyword">...</span>
+0092     WAD.out.results{end}.grootheid  = variable;
+0093 <span class="keyword">end</span>
+0094 
+0095 <span class="keyword">if</span> ~isempty( unit ), <span class="keyword">...</span>
+0096     WAD.out.results{end}.eenheid = unit;
+0097 <span class="keyword">end</span>
+0098 
+0099 <span class="keyword">if</span> ~isempty( description ), <span class="keyword">...</span>
+0100     WAD.out.results{end}.omschrijving = description;
+0101 <span class="keyword">end</span>
+0102 
+0103 
+0104 <span class="comment">% Action limits</span>
+0105 <span class="comment">% These should go to the web interface in a future version!!</span>
+0106 <span class="keyword">if</span> ~isempty( limits ) &amp;&amp; ~isempty( limits_field_name ) &amp;&amp; isfield( limits, limits_field_name )
+0107     lmts = limits.(limits_field_name);
+0108     <span class="keyword">if</span> isfield( lmts, <span class="string">'acceptable'</span> )
+0109         <span class="keyword">if</span> isfield( lmts.acceptable, <span class="string">'lower'</span> )
+0110             WAD.out.results{end}.grens_acceptabel_onder = lmts.acceptable.lower;
+0111         <span class="keyword">end</span>
+0112         <span class="keyword">if</span> isfield( lmts.acceptable, <span class="string">'upper'</span> )
+0113             WAD.out.results{end}.grens_acceptabel_boven = lmts.acceptable.upper;
+0114         <span class="keyword">end</span>
+0115     <span class="keyword">end</span>
+0116     <span class="keyword">if</span> isfield( lmts, <span class="string">'critical'</span> )
+0117         <span class="keyword">if</span> isfield( lmts.critical, <span class="string">'lower'</span> )
+0118             WAD.out.results{end}.grens_kritisch_onder = lmts.critical.lower;
+0119         <span class="keyword">end</span>
+0120         <span class="keyword">if</span> isfield( lmts.critical, <span class="string">'upper'</span> )
+0121             WAD.out.results{end}.grens_kritisch_boven = lmts.critical.upper;
+0122         <span class="keyword">end</span>
+0123     <span class="keyword">end</span>
+0124 <span class="keyword">end</span>
+0125</pre></div>
+<hr><address>Generated on Wed 23-Oct-2013 14:08:22 by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" target="_parent">m2html</a></strong> &copy; 2005</address>
+</body>
+</html>

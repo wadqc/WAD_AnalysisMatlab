@@ -1,0 +1,211 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+                "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html>
+<head>
+  <title>Description of gen_object2file</title>
+  <meta name="keywords" content="gen_object2file">
+  <meta name="description" content="">
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+  <meta name="generator" content="m2html &copy; 2005 Guillaume Flandin">
+  <meta name="robots" content="index, follow">
+  <link type="text/css" rel="stylesheet" href="../m2html.css">
+  <script type="text/javascript">
+    if (top.frames.length == 0) { top.location = "../index.html"; };
+  </script>
+</head>
+<body>
+<a name="_top"></a>
+<!-- menu.html xml_io_tools -->
+<h1>gen_object2file
+</h1>
+
+<h2><a name="_name"></a>PURPOSE <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="box"><strong></strong></div>
+
+<h2><a name="_synopsis"></a>SYNOPSIS <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="box"><strong>function gen_object2file( fid, obj_struct, indent ) </strong></div>
+
+<h2><a name="_description"></a>DESCRIPTION <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="fragment"><pre class="comment">
+ gen_object2file - general function to display an object's content
+
+ format:   gen_object2file( fid, obj_struct, indent )
+
+ input:    fid         - file ID
+           obj_struct  - a copy of the object stored inside a structure
+           indent      - amount of &quot;indent&quot; when printing to the screen
+
+ output:   to file
+
+ example:  gen_object2file( fid, struct( my_object_handle) );
+           gen_object2file( fid, ny_structure );
+
+ Correction History:
+  2006-11-01 - Jarek Tuszynski - added support for struct arrays
+  2012-09-06 - Joost Kuijer - write to file</pre></div>
+
+<!-- crossreference -->
+<h2><a name="_cross"></a>CROSS-REFERENCE INFORMATION <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+This function calls:
+<ul style="list-style-image:url(../matlabicon.gif)">
+<li><a href="gen_object2file.html" class="code" title="function gen_object2file( fid, obj_struct, indent )">gen_object2file</a>	</li></ul>
+This function is called by:
+<ul style="list-style-image:url(../matlabicon.gif)">
+<li><a href="../WAD/WAD_main.html" class="code" title="function WAD_main( wadInputFileXML )">WAD_main</a>	------------------------------------------------------------------------</li><li><a href="../WAD_demo/WAD_demo_actionOne.html" class="code" title="function WAD_demo_actionOne( i_iSeries, sSeries, sParams, sLimits )">WAD_demo_actionOne</a>	------------------------------------------------------------------------</li><li><a href="gen_object2file.html" class="code" title="function gen_object2file( fid, obj_struct, indent )">gen_object2file</a>	</li></ul>
+<!-- crossreference -->
+
+
+
+<h2><a name="_source"></a>SOURCE CODE <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="fragment"><pre>0001 <a name="_sub0" href="#_subfunctions" class="code">function gen_object2file( fid, obj_struct, indent )</a>
+0002 <span class="comment">%</span>
+0003 <span class="comment">% gen_object2file - general function to display an object's content</span>
+0004 <span class="comment">%</span>
+0005 <span class="comment">% format:   gen_object2file( fid, obj_struct, indent )</span>
+0006 <span class="comment">%</span>
+0007 <span class="comment">% input:    fid         - file ID</span>
+0008 <span class="comment">%           obj_struct  - a copy of the object stored inside a structure</span>
+0009 <span class="comment">%           indent      - amount of &quot;indent&quot; when printing to the screen</span>
+0010 <span class="comment">%</span>
+0011 <span class="comment">% output:   to file</span>
+0012 <span class="comment">%</span>
+0013 <span class="comment">% example:  gen_object2file( fid, struct( my_object_handle) );</span>
+0014 <span class="comment">%           gen_object2file( fid, ny_structure );</span>
+0015 <span class="comment">%</span>
+0016 <span class="comment">% Correction History:</span>
+0017 <span class="comment">%  2006-11-01 - Jarek Tuszynski - added support for struct arrays</span>
+0018 <span class="comment">%  2012-09-06 - Joost Kuijer - write to file</span>
+0019 
+0020 <span class="comment">%% handle insufficient input</span>
+0021 <span class="keyword">if</span> ( nargin &lt; 2 )
+0022   help <a href="gen_object2file.html" class="code" title="function gen_object2file( fid, obj_struct, indent )">gen_object2file</a>;
+0023   <span class="keyword">return</span>;
+0024 <span class="keyword">elseif</span> (nargin == 2)
+0025   indent = 1;
+0026 <span class="keyword">end</span>
+0027 
+0028 <span class="comment">%% check input for errors</span>
+0029 <span class="comment">% if ~isstruct( obj_struct )</span>
+0030 <span class="comment">%     fprintf( '\n\n\tMake sure that ''obj_struct'' is a struct type\n' );</span>
+0031 <span class="comment">%     return</span>
+0032 <span class="comment">% end</span>
+0033 
+0034 <span class="comment">% if (iscell( obj_struct ))</span>
+0035 <span class="comment">%   for i =1:length(obj_struct)</span>
+0036 <span class="comment">%     gen_object2file( fid, obj_struct{i},indent + 2 );</span>
+0037 <span class="comment">%   end</span>
+0038 <span class="comment">%   return</span>
+0039 <span class="comment">% end</span>
+0040 <span class="keyword">if</span> ~isstruct( obj_struct )
+0041   <span class="comment">% JK skipping this...</span>
+0042   <span class="comment">%space = sprintf( sprintf( '%%%ds',indent ),' ' );</span>
+0043   <span class="comment">%fprintf( '   %s', space);</span>
+0044   <span class="comment">%disp(obj_struct);</span>
+0045   <span class="keyword">return</span>
+0046 <span class="keyword">end</span>
+0047 
+0048 <span class="comment">% find the longest name</span>
+0049 field_list      = fieldnames( obj_struct );
+0050 max_strlen      = 0;
+0051 <span class="keyword">for</span> idx = 1:length( field_list )
+0052   max_strlen  = max( max_strlen,length(field_list{idx}) );
+0053 <span class="keyword">end</span>
+0054 
+0055 <span class="comment">%% setup the display format (spacing)</span>
+0056 space       = sprintf( sprintf( <span class="string">'%%%ds'</span>,indent ),<span class="string">' '</span> );
+0057 name_format = sprintf( <span class="string">'   %s%%%ds: '</span>, space, max_strlen );
+0058 name_format2= sprintf( <span class="string">'     %s%%%ds'</span>, space, max_strlen );
+0059 max_displen = 140 - max_strlen - indent; <span class="comment">% JK - increased from 110 to 140</span>
+0060 
+0061 <span class="comment">%% display each field, if it is not too long</span>
+0062 <span class="keyword">for</span> iItem = 1:length( obj_struct ) <span class="comment">% loop added  by JT</span>
+0063   <span class="keyword">for</span> idx = 1:length( field_list )
+0064     
+0065     <span class="comment">% prepare field name to be displayed</span>
+0066     name = sprintf( name_format,field_list{idx} );
+0067     <span class="comment">%temp = getfield( obj_struct,field_list{idx} ); % original by OG</span>
+0068     temp = obj_struct(iItem).(field_list{idx});    <span class="comment">% modification by JT</span>
+0069     
+0070     <span class="comment">% proceed according the variable's type</span>
+0071     <span class="keyword">switch</span> (1)
+0072       <span class="keyword">case</span> islogical( temp ), <span class="comment">% case added by JT</span>
+0073         <span class="keyword">if</span> isscalar(temp)
+0074           <span class="keyword">if</span> (temp)
+0075             fprintf( fid, <span class="string">'%strue\n'</span>,name );
+0076           <span class="keyword">else</span>
+0077             fprintf( fid, <span class="string">'%sfalse\n'</span>,name );
+0078           <span class="keyword">end</span>
+0079         <span class="keyword">else</span>
+0080           fprintf( fid, <span class="string">'%s[%dx%d logical]\n'</span>,name,size(temp,1),size(temp,2) );
+0081         <span class="keyword">end</span>
+0082       <span class="keyword">case</span> ischar( temp ),
+0083         <span class="keyword">if</span> (length(temp)&lt;max_displen )
+0084           fprintf( fid, <span class="string">'%s''%s''\n'</span>,name,temp' );
+0085         <span class="keyword">else</span>
+0086           fprintf( fid, <span class="string">'%s[%dx%d char]\n'</span>,name,size(temp,1),size(temp,2) );
+0087         <span class="keyword">end</span>
+0088       <span class="keyword">case</span> isnumeric( temp ),
+0089         <span class="keyword">if</span> (size( temp,1 )==1 )
+0090           temp_b = num2str( temp );
+0091           <span class="keyword">if</span> (length(temp_b)&lt;max_displen )
+0092             fprintf( fid, <span class="string">'%s[%s]\n'</span>,name,temp_b );
+0093           <span class="keyword">else</span>
+0094             fprintf( fid, <span class="string">'%s[%dx%d double]\n'</span>,name,size(temp,1),size(temp,2) );
+0095           <span class="keyword">end</span>
+0096         <span class="keyword">else</span>
+0097           fprintf( fid, <span class="string">'%s[%dx%d double]\n'</span>,name,size(temp,1),size(temp,2) );
+0098         <span class="keyword">end</span>
+0099       <span class="keyword">case</span> iscell( temp ),
+0100         <span class="keyword">if</span> (numel(temp)&lt;10 &amp;&amp; (isvector(temp) || isscalar(temp)))
+0101           fprintf( fid, <span class="string">'%s[%dx%d cell] = \n'</span>,name,size(temp,1),size(temp,2) );
+0102           <span class="comment">%disp(temp)</span>
+0103           <span class="keyword">for</span> r =1:numel(temp)
+0104             <a href="gen_object2file.html" class="code" title="function gen_object2file( fid, obj_struct, indent )">gen_object2file</a>( fid, temp{r},indent + max_strlen + 2 );
+0105             <span class="comment">% JK - removed</span>
+0106             <span class="comment">% fprintf( fid,'\n');</span>
+0107           <span class="keyword">end</span>
+0108         <span class="keyword">elseif</span> (numel(temp)&lt;10)
+0109           fprintf( fid, <span class="string">'%s[%dx%d cell] = \n'</span>,name,size(temp,1),size(temp,2) );
+0110           <span class="keyword">for</span> r =1:size(temp,1)
+0111             <a href="gen_object2file.html" class="code" title="function gen_object2file( fid, obj_struct, indent )">gen_object2file</a>( fid, temp(r,:),indent + max_strlen + 2 );
+0112           <span class="keyword">end</span>
+0113         <span class="keyword">else</span>
+0114           fprintf( fid, <span class="string">'%s[%dx%d cell]\n'</span>,name,size(temp,1),size(temp,2) );
+0115         <span class="keyword">end</span>
+0116       <span class="keyword">case</span> isstruct( temp ),  
+0117         fprintf( fid, <span class="string">'%s[%dx%d struct]\n'</span>,name,size(temp,1),size(temp,2) );
+0118         <span class="keyword">if</span> (indent&lt;80)
+0119           <span class="keyword">if</span> (numel(temp)&lt;10 &amp;&amp; (isvector(temp) || isscalar(temp))) 
+0120             <a href="gen_object2file.html" class="code" title="function gen_object2file( fid, obj_struct, indent )">gen_object2file</a>( fid, temp,indent + max_strlen + 2 );
+0121           <span class="keyword">elseif</span> (numel(temp)&lt;10)
+0122             name2 = sprintf( name_format2,field_list{idx} );
+0123             <span class="keyword">for</span> r =1:size(temp,1)
+0124               <span class="keyword">for</span> c =1:size(temp,2)
+0125                 fprintf( fid, <span class="string">'%s(%d,%d) =\n'</span>,name2,r,c );
+0126                 <a href="gen_object2file.html" class="code" title="function gen_object2file( fid, obj_struct, indent )">gen_object2file</a>( fid, temp(r,c),indent + max_strlen + 3 );
+0127               <span class="keyword">end</span>
+0128             <span class="keyword">end</span>
+0129           <span class="keyword">end</span>
+0130         <span class="keyword">end</span>
+0131       <span class="keyword">case</span> isobject( temp ),  fprintf( fid, <span class="string">'%s[inherent object]\n'</span>,name );
+0132         <span class="keyword">if</span> (indent&lt;80)
+0133           cmd = sprintf( <span class="string">'display( obj_struct.%s,%d );'</span>,field_list{idx},indent + max_strlen + 2 );
+0134           eval( cmd );
+0135         <span class="keyword">end</span>
+0136       <span class="keyword">otherwise</span>,
+0137         fprintf( fid, <span class="string">'%s'</span>,name );
+0138         <span class="keyword">try</span>
+0139           fprintf( fid, temp );
+0140         <span class="keyword">catch</span> <span class="comment">%#ok&lt;CTCH&gt;</span>
+0141           fprintf( fid, <span class="string">'[No method to display type]'</span> );
+0142         <span class="keyword">end</span>
+0143         <span class="comment">% JK - removed</span>
+0144         <span class="comment">% fprintf( fid, '\n' );</span>
+0145     <span class="keyword">end</span>
+0146   <span class="keyword">end</span>
+0147   <span class="comment">% JK - removed</span>
+0148   <span class="comment">%if (length(obj_struct)&gt;1), fprintf( fid,'\n'); end % added by JT</span>
+0149 <span class="keyword">end</span>                                             <span class="comment">% added by JT</span></pre></div>
+<hr><address>Generated on Wed 23-Oct-2013 14:08:22 by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" target="_parent">m2html</a></strong> &copy; 2005</address>
+</body>
+</html>

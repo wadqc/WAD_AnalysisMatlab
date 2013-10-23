@@ -1,0 +1,10 @@
+/* Created by mdot for Matlab */
+digraph m2html {
+  gen_object2file -> gen_object2file;
+  gen_object_display -> gen_object_display;
+
+  gen_object2file [URL="gen_object2file.html"];
+  gen_object_display [URL="gen_object_display.html"];
+  xml_read [URL="xml_read.html"];
+  xml_write [URL="xml_write.html"];
+}
