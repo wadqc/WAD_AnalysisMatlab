@@ -19,7 +19,7 @@
 % along with this program.  If not, see <http://www.gnu.org/licenses/>.
 % ------------------------------------------------------------------------
 
-function WAD_demo_actionTwo( i_iSeries, sSeries, sParams, sLimits )
+function WAD_demo_actionTwo( i_iSeries, sSeries, sParams )
 % Get some parameters from the DICOM header
 % 
 % Input
