@@ -19,7 +19,7 @@
 % along with this program.  If not, see <http://www.gnu.org/licenses/>.
 % ------------------------------------------------------------------------
 
-function WAD_demo_actionOne( i_iSeries, sSeries, sParams, sLimits )
+function WAD_demo_actionOne( i_iSeries, sSeries, sParams )
 % Get some parameters from the DICOM header
 % 
 % Input
@@ -45,11 +45,19 @@ function WAD_demo_actionOne( i_iSeries, sSeries, sParams, sLimits )
 % 2013-09-05 / JK
 % first version
 % ------------------------------------------------------------------------
+% VUmc, Amsterdam, NL / Joost Kuijer / jpa.kuijer@vumc.nl
+% 20131127 / JK
+% v1.1 implemented new style action limits
+%
+% To upgrade your own module to the new style:
+% - remove last two arguments from your calls to WAD_resultsAppendFloat(...)
+% - edit your module configuration file
+% ------------------------------------------------------------------------
 
 % version info
 my.name = 'WAD_demo_actionOne';
-my.version = '1.0';
-my.date = '20130905';
+my.version = '1.1';
+my.date = '20131127';
 
 % output to log file
 WAD_vbprint( ['Module ' my.name ' Version ' my.version ' (' my.date ')'] );

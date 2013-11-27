@@ -33,15 +33,16 @@ function WAD_demo( wadInputFileXML )
 % main routine (WAD_main.m)
 %
 % Provides a place for additional configs/defines/...
-
+% ------------------------------------------------------------------------
+% v1.1 20131127 updated for new (v1.1) style action limits
 
 % ----------------------
 % defines
 % ----------------------
 % version info
 my.name = 'WAD_demo';
-my.version = '1.0';
-my.date = '20130904';
+my.version = '1.1';
+my.date = '20131127';
 
 disp( ['Starting analysis module ' my.name '  Version ' my.version ' ' my.date] );
 

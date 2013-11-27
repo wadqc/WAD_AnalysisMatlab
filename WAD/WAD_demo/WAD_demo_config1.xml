@@ -12,7 +12,7 @@
     <description>WAD demo configuratie voor modaliteit X</description>
 
     <!-- versie / datum -->
-    <version>20130905</version>
+    <version>1.1 / 20131127</version>
         
     <!-- Logfile verbose options -->
     <logverbose>
@@ -21,6 +21,47 @@
 	<!-- level: 1 = normal, 2 = output series search -->
 	<level>1</level>
     </logverbose>
+
+
+    <!-- *** ACTIELIMIETEN *** -->
+
+    <grens>
+        <!-- SIGNAL MEAN: 150 +/- 10% en 20% -->
+	<omschrijving>Signal</omschrijving>
+	<grootheid>Mean</grootheid>
+	<grens_relatief_referentie>150</grens_relatief_referentie>
+	<grens_relatief_kritisch>20%</grens_relatief_kritisch>
+	<grens_relatief_acceptabel>10%</grens_relatief_acceptabel>
+
+	<!-- alternatieve formuleringen met zelfde resultaat
+	*** relatief verschil ***
+	NB: let op syntax verschil, hieronder wordt geen %-teken gebruikt!
+	<grens_relatief_referentie>150</grens_relatief_referentie>
+	<grens_relatief_kritisch>30</grens_relatief_kritisch>
+	<grens_relatief_acceptabel>15</grens_relatief_acceptabel>
+	
+	*** absolute grenzen ***
+	<grens_kritisch_onder>120</grens_kritisch_onder>
+	<grens_kritisch_boven>180</grens_kritisch_boven>
+	<grens_acceptabel_onder>135</grens_acceptabel_onder>
+	<grens_acceptabel_boven>165</grens_acceptabel_boven>
+	-->
+    </grens>
+
+
+    <grens>
+        <!-- SIGNAL SD: max 10 en 20 % (NB: eenheid is %, limieten absoluut (dus ook in %)) -->
+	<omschrijving>Signal</omschrijving>
+	<grootheid>Relative SD</grootheid>
+	<eenheid>%</eenheid>
+	<grens_kritisch_onder>0</grens_kritisch_onder>
+	<grens_kritisch_boven>20</grens_kritisch_boven>
+	<grens_acceptabel_onder>0</grens_acceptabel_onder>
+	<grens_acceptabel_boven>10</grens_acceptabel_boven>
+    </grens>
+
+
+
 
 <!--
     Lijst van analyses
@@ -38,6 +79,10 @@
     - optioneel: <params> configuratie parameters per funtie
     - optioneel: <limits> actielimieten per resultaat
 -->
+
+
+
+    <!-- *** ACTIES *** -->
 
     <action>
 	<!-- actionOne -->
@@ -64,28 +109,6 @@
 	    <Ymin>60</Ymin>
 	    <Ymax>80</Ymax>
 	</params>
-	<limits>
-	    <SignalMean>
-		<acceptable>
-		    <lower>100</lower>
-		    <upper>200</upper>
-		</acceptable>
-		<critical>		
-		    <lower>50</lower>
-		    <upper>250</upper>
-		</critical>
-	    </SignalMean>
-	    <SignalRelSD>
-		<acceptable>
-		    <lower>5</lower>
-		    <upper>10</upper>
-		</acceptable>
-		<critical>		
-		    <lower>0</lower>
-		    <upper>20</upper>
-		</critical>
-	    </SignalRelSD>
-	</limits>
     </action>
 
 </WAD_demo_config>

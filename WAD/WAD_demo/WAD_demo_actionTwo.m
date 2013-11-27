@@ -46,11 +46,20 @@ function WAD_demo_actionTwo( i_iSeries, sSeries, sParams, sLimits )
 % 2013-09-05 / JK
 % first version
 % ------------------------------------------------------------------------
+% VUmc, Amsterdam, NL / Joost Kuijer / jpa.kuijer@vumc.nl
+% 20131127 / JK
+% v1.1 implemented new style action limits
+%
+% To upgrade your own module to the new style:
+% - remove last two arguments from your calls to WAD_resultsAppendFloat(...)
+% - edit your module configuration file
+% ------------------------------------------------------------------------
+
 
 % version info
 my.name = 'WAD_demo_actionTwo';
-my.version = '1.0';
-my.date = '20130905';
+my.version = '1.1';
+my.date = '20131127';
 
 % output to log file (object at results level 2)
 WAD_vbprint( ['Module ' my.name ' Version ' my.version ' (' my.date ')'] );
@@ -91,37 +100,49 @@ WAD_resultsAppendString( 1, [], 'Image Statistics' );
 % WAD_resultsAppendFloat( level, value, variable, unit, description, limits, limits_field_name )
 % Note that the last argument refers to the field name in sLimits, and
 % should match the name in the action limit definition in the config XML.
-WAD_resultsAppendFloat( 1, meanSignal           , 'Mean'       , [] , 'Signal', sLimits, 'SignalMean'  );
-WAD_resultsAppendFloat( 1, relStdSignal_percent , 'Relative SD', '%', 'Signal', sLimits, 'SignalRelSD' );
+WAD_resultsAppendFloat( 1, meanSignal           , 'Mean'       , [] , 'Signal' );
+WAD_resultsAppendFloat( 1, relStdSignal_percent , 'Relative SD', '%', 'Signal' );
 
-% Action limit example for XML config:
-% 	<limits>
-% 	  <SignalMean>  <!-- This tag should match with the limits_field_name in WAD_resultsAppendFloat -->
-% 		<acceptable>
-% 		    <lower>100</lower>
-% 		    <upper>200</upper>
-% 		</acceptable>
-% 		<critical>		
-% 		    <lower>50</lower>
-% 		    <upper>250</upper>
-% 		</critical>
-% 	  </SignalMean>  <!-- This tag should match with the limits_field_name in WAD_resultsAppendFloat -->
-% 	  <SignalRelSD>  <!-- This tag should match with the limits_field_name in WAD_resultsAppendFloat -->
-% 		<acceptable>
-% 		    <lower>5</lower>
-% 		    <upper>10</upper>
-% 		</acceptable>
-% 		<critical>		
-% 		    <lower>0</lower>
-% 		    <upper>20</upper>
-% 		</critical>
-% 	  </SignalRelSD>  <!-- This tag should match with the limits_field_name in WAD_resultsAppendFloat -->
-% 	</limits>
+% Corresponding action limit definition in configuration file:
+%<grens>
+%   <!-- SIGNAL MEAN: 150 +/- 10% en 20% -->
+% 	<omschrijving>Signal</omschrijving>
+% 	<grootheid>Mean</grootheid>
+% 	<grens_relatief_referentie>150</grens_relatief_referentie>
+% 	<grens_relatief_kritisch>20%</grens_relatief_kritisch>
+% 	<grens_relatief_acceptabel>10%</grens_relatief_acceptabel>
+% 
+% 	<!-- alternatieve formuleringen met zelfde resultaat
+% 	*** relatief verschil ***
+% 	NB: let op syntax verschil, hieronder wordt geen %-teken gebruikt!
+% 	<grens_relatief_referentie>150</grens_relatief_referentie>
+% 	<grens_relatief_kritisch>30</grens_relatief_kritisch>
+% 	<grens_relatief_acceptabel>15</grens_relatief_acceptabel>
+% 	
+% 	*** absolute grenzen ***
+% 	<grens_kritisch_onder>120</grens_kritisch_onder>
+% 	<grens_kritisch_boven>180</grens_kritisch_boven>
+% 	<grens_acceptabel_onder>135</grens_acceptabel_onder>
+% 	<grens_acceptabel_boven>165</grens_acceptabel_boven>
+% 	-->
+%</grens>
+% 
+% 
+%<grens>
+%   <!-- SIGNAL SD: max 10 en 20 % (NB: eenheid is %, limieten absoluut (dus ook in %)) -->
+% 	<omschrijving>Signal</omschrijving>
+% 	<grootheid>Relative SD</grootheid>
+% 	<eenheid>%</eenheid>
+% 	<grens_kritisch_onder>0</grens_kritisch_onder>
+% 	<grens_kritisch_boven>20</grens_kritisch_boven>
+% 	<grens_acceptabel_onder>0</grens_acceptabel_onder>
+% 	<grens_acceptabel_boven>10</grens_acceptabel_boven>
+%</grens>
 
 
 % Just another example: result is simply a number
 aNumber = 42;
-WAD_resultsAppendFloat( 2, aNumber, 'Distance', 'mm', 'Phantom', [], [] );
+WAD_resultsAppendFloat( 2, aNumber, 'Distance', 'mm', 'Phantom' );
 
 
 % Include some figures as well
