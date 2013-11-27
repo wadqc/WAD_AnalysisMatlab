@@ -39,6 +39,10 @@ function WAD_runConfiguredAnalysis
 % 2013-09-06 / JK
 % V1.0: <match> is now optional. If not defined, action is always run.
 % ------------------------------------------------------------------------
+% VUmc, Amsterdam, NL / Joost Kuijer / jpa.kuijer@vumc.nl
+% 2013-09-06 / JK
+% V1.1: Produce message for v1.0 style action limits
+% ------------------------------------------------------------------------
 
 
 % ----------------------
@@ -48,8 +52,8 @@ global WAD
 
 % version info
 my.name = 'WAD_runConfiguredAnalysis';
-my.version = '1.0';
-my.date = '20121106';
+my.version = '1.1';
+my.date = '20131127';
 WAD_vbprint( ['Module ' my.name ' Version ' my.version ' (' my.date ')'], 2 );
 
 
@@ -118,9 +122,12 @@ for i_icAction = 1:i_nAction
 
     % --------------------
     % check "limits" field
+    % Note: not present for v1.1 style action limits
+    % Use of curAct.limits is depreciated from v1.1 onwards, remove
+    % next lines of code in future version.
     % --------------------
     if ~isfield( curAct, 'limits' )
-        % not considered an error, repair with empty limits
+        % v1.1: new style action limits are not defined within the action.
         curAct.limits = [];
     end
 

@@ -36,6 +36,14 @@ function WAD_findMatchingSeries( theStudy, theAction )
 % 2013-09-06 / JK
 % V1.0: <match> is now optional. If not defined, action is always run.
 % ------------------------------------------------------------------------
+% VUmc, Amsterdam, NL / Joost Kuijer / jpa.kuijer@vumc.nl
+% 2013-09-06 / JK
+% V1.1: implemented new type action limits
+% - action function may have three arguments (sLimits not needed, though it
+%   may be accessed by the action function from WAD.cfg)
+% - still compatible with old style limits defined within action
+%   definition, though this is intended to be removed lateron.
+% ------------------------------------------------------------------------
 
 
 % ----------------------
@@ -46,7 +54,7 @@ function WAD_findMatchingSeries( theStudy, theAction )
 
 % version info
 my.name = 'WAD_findMatchingSeries';
-my.version = '1.0';
+my.version = '1.1';
 my.date = '20130906';
 WAD_vbprint( ['Module ' my.name ' Version ' my.version ' (' my.date ')'], 2 );
 
@@ -120,12 +128,31 @@ for i_icSeries = 1:i_nSeries
             end % try / catch
         end
 
+        % Action function declaration must match one of these definitions:
+        % - v1.0 format (depreciated): actionName( seriesNumber, seriesStruct, paramStruct, limitsStruct )
+        % - v1.1 format              : actionName( seriesNumber, seriesStruct, paramStruct )
+        % Produce a warning message if old style action limits are defined
+        % for a new style action function.
+        hasOldStyleActionLimits = ~isempty( theAction.limits );
+        isOldStyleActionFunction = ( nargin( theAction.fh ) == 4 );
+        if isOldStyleActionFunction
+            WAD_vbprint( [my.name ': Depreciated: old (v1.0) style action function "' theAction.name '"; needs action limits defined within action.' ], 1 );
+        end        
+        if hasOldStyleActionLimits && ~isOldStyleActionFunction
+            WAD_vbprint( [my.name ': WARNING: old (v1.0) style action limits defined for V1.1 new style action function "' theAction.name '".' ], 1 );
+        end
+        
         % go run the action
         WAD_vbprint( [my.name ': Run action ' theAction.name ' on series ' num2str(i_icSeries) ' (DICOM series ' num2str(i_iDcmSeries) ' "' theStudy.series( i_icSeries ).description '")'], 1 );
         try
             % use the constructed function handle to call the fuction
-            % function declaration must match: actionName( seriesNumber, seriesStruct, paramStruct, limitsStruct )
-            theAction.fh( i_icSeries, theStudy.series( i_icSeries ), theAction.params, theAction.limits );
+            if isOldStyleActionFunction
+                % v1.0 style action limits (depreciated)
+                theAction.fh( i_icSeries, theStudy.series( i_icSeries ), theAction.params, theAction.limits );
+            else
+                % v1.1 style action limits are not passed to the action
+                theAction.fh( i_icSeries, theStudy.series( i_icSeries ), theAction.params );
+            end
         catch err
             WAD_ErrorMsg( my.name, ['ERROR running action ' theAction.name ' on series ' num2str(i_icSeries) ' (DICOM series ' num2str(i_iDcmSeries) ' "' theStudy.series( i_icSeries ).description '")'], err );
         end % try / catch
