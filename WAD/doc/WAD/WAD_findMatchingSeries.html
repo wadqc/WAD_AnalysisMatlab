@@ -100,144 +100,171 @@ This function is called by:
 0036 <span class="comment">% 2013-09-06 / JK</span>
 0037 <span class="comment">% V1.0: &lt;match&gt; is now optional. If not defined, action is always run.</span>
 0038 <span class="comment">% ------------------------------------------------------------------------</span>
-0039 
-0040 
-0041 <span class="comment">% ----------------------</span>
-0042 <span class="comment">% GLOBALS</span>
-0043 <span class="comment">% ----------------------</span>
-0044 <span class="comment">%global WAD</span>
-0045 
-0046 
-0047 <span class="comment">% version info</span>
-0048 my.name = <span class="string">'WAD_findMatchingSeries'</span>;
-0049 my.version = <span class="string">'1.0'</span>;
-0050 my.date = <span class="string">'20130906'</span>;
-0051 <a href="WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [<span class="string">'Module '</span> my.name <span class="string">' Version '</span> my.version <span class="string">' ('</span> my.date <span class="string">')'</span>], 2 );
-0052 
+0039 <span class="comment">% VUmc, Amsterdam, NL / Joost Kuijer / jpa.kuijer@vumc.nl</span>
+0040 <span class="comment">% 2013-09-06 / JK</span>
+0041 <span class="comment">% V1.1: implemented new type action limits</span>
+0042 <span class="comment">% - action function may have three arguments (sLimits not needed, though it</span>
+0043 <span class="comment">%   may be accessed by the action function from WAD.cfg)</span>
+0044 <span class="comment">% - still compatible with old style limits defined within action</span>
+0045 <span class="comment">%   definition, though this is intended to be removed lateron.</span>
+0046 <span class="comment">% ------------------------------------------------------------------------</span>
+0047 
+0048 
+0049 <span class="comment">% ----------------------</span>
+0050 <span class="comment">% GLOBALS</span>
+0051 <span class="comment">% ----------------------</span>
+0052 <span class="comment">%global WAD</span>
 0053 
-0054 <span class="comment">% ----------------------</span>
-0055 <span class="comment">% try to find series that matches with current action</span>
-0056 <span class="comment">% ----------------------</span>
-0057 <span class="comment">% loop over image series</span>
-0058 i_nSeries = length( theStudy.series );
-0059 <span class="keyword">for</span> i_icSeries = 1:i_nSeries
-0060     <a href="WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">': try a match with series '</span> num2str(i_icSeries) ], 2 )
-0061     curSeries = theStudy.series( i_icSeries );
-0062     i_iDcmSeries = curSeries.number;
-0063     <a href="WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">': --&gt; DICOM series '</span> num2str(i_iDcmSeries) <span class="string">' &quot;'</span> theStudy.series( i_icSeries ).description <span class="string">'&quot;'</span> ], 2 );
-0064 
-0065     <span class="comment">% ----------------------</span>
-0066     <span class="comment">% empty match definition is a match-all</span>
-0067     <span class="comment">% ----------------------</span>
-0068     <span class="keyword">if</span> isempty( theAction.match )
-0069         bMatch = true;
-0070     <span class="keyword">else</span>
-0071         <span class="comment">% ----------------------</span>
-0072         <span class="comment">% loop over fields to match for current action</span>
-0073         <span class="comment">% ----------------------</span>
-0074         bMatch = false; <span class="comment">% programming safety: if we forget to set bMatch in some case...</span>
-0075         i_nMatch = length( theAction.match );
-0076         <span class="keyword">for</span> i_icMatch = 1:i_nMatch
-0077             <span class="comment">% theAction.match is now always cell or struct</span>
-0078             <span class="keyword">if</span> iscell( theAction.match )
-0079                 curMatch = theAction.match{ i_icMatch };
-0080             <span class="keyword">else</span>
-0081                 curMatch = theAction.match( i_icMatch );
-0082             <span class="keyword">end</span>
-0083 
-0084             <span class="keyword">switch</span> curMatch.ATTRIBUTE.type
-0085                 <span class="keyword">case</span> <span class="string">'DCM4CHEE'</span>
-0086                     <span class="keyword">switch</span> curMatch.ATTRIBUTE.field
-0087                         <span class="keyword">case</span> <span class="string">'SeriesDescription'</span>
-0088                             bMatch = <a href="#_sub1" class="code" title="subfunction bMatch = matchSeriesDescription( curMatch, curSeries )">matchSeriesDescription</a>( curMatch, curSeries );
-0089                             <span class="keyword">if</span> ~bMatch, <span class="keyword">break</span>; <span class="keyword">end</span> <span class="comment">% break from match loop</span>
-0090                         <span class="keyword">case</span> <span class="string">'ImagesInSeries'</span>
-0091                             bMatch = <a href="#_sub2" class="code" title="subfunction bMatch = matchImagesInSeries( curMatch, curSeries )">matchImagesInSeries</a>( curMatch, curSeries );
-0092                             <span class="keyword">if</span> ~bMatch, <span class="keyword">break</span>; <span class="keyword">end</span> <span class="comment">% break from match loop</span>
-0093                         <span class="keyword">otherwise</span>
-0094                             <span class="comment">% should not happen...</span>
-0095                             <a href="WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">': Unexpected field content in switch/case for match type &quot;DCM4CHEE&quot;.'</span>], 1 );
-0096                             bMatch = false; <span class="keyword">break</span>; <span class="comment">% break from match loop</span>
-0097                     <span class="keyword">end</span> <span class="comment">% switch field</span>
-0098                 <span class="keyword">case</span> <span class="string">'DICOM'</span>
-0099                     bMatch = <a href="#_sub3" class="code" title="subfunction bMatch = matchDicomTag( curMatch, curSeries )">matchDicomTag</a>( curMatch, curSeries );
-0100                     <span class="keyword">if</span> ~bMatch, <span class="keyword">break</span>; <span class="keyword">end</span> <span class="comment">% break from match loop</span>
-0101                 <span class="keyword">otherwise</span>
-0102                     <a href="WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">': Unexpected type content in matching switch/case.'</span>], 1 );
-0103                     bMatch = false; <span class="keyword">break</span> <span class="comment">% break from match loop</span>
-0104             <span class="keyword">end</span> <span class="comment">% switch type</span>
-0105         <span class="keyword">end</span> <span class="comment">% loop over matches</span>
-0106     <span class="keyword">end</span> <span class="comment">% else (match not empty)</span>
-0107     
-0108     <span class="comment">% if we're here: all matches were positive</span>
-0109     <span class="keyword">if</span> bMatch
-0110         <span class="comment">% we have a match!</span>
-0111         <a href="WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">': match!'</span>], 2 );
-0112         
-0113         <span class="comment">% parse any auto comment fields if present</span>
-0114         <span class="keyword">if</span> isfield( theAction, <span class="string">'autoComment'</span> ) &amp;&amp; ~isempty( theAction.autoComment )
-0115             <a href="WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">': Parse autoComment of '</span> theAction.name <span class="string">' on series '</span> num2str(i_icSeries) <span class="string">' (DICOM series '</span> num2str(i_iDcmSeries) <span class="string">' &quot;'</span> theStudy.series( i_icSeries ).description <span class="string">'&quot;)'</span>], 1 );
-0116             <span class="keyword">try</span>
-0117                 <a href="WAD_parseAutoComment.html" class="code" title="function WAD_parseAutoComment( sSeries, sAutoComment )">WAD_parseAutoComment</a>( theStudy.series( i_icSeries ), theAction.autoComment );
-0118             <span class="keyword">catch</span> err
-0119                 <a href="WAD_ErrorMsg.html" class="code" title="function WAD_ErrorMsg( name, mymessage, err )">WAD_ErrorMsg</a>( my.name, [<span class="string">'ERROR parse autoComment '</span> theAction.name <span class="string">' on series '</span> num2str(i_icSeries) <span class="string">' (DICOM series '</span> num2str(i_iDcmSeries) <span class="string">' &quot;'</span> theStudy.series( i_icSeries ).description <span class="string">'&quot;)'</span>], err );
-0120             <span class="keyword">end</span> <span class="comment">% try / catch</span>
-0121         <span class="keyword">end</span>
-0122 
-0123         <span class="comment">% go run the action</span>
-0124         <a href="WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">': Run action '</span> theAction.name <span class="string">' on series '</span> num2str(i_icSeries) <span class="string">' (DICOM series '</span> num2str(i_iDcmSeries) <span class="string">' &quot;'</span> theStudy.series( i_icSeries ).description <span class="string">'&quot;)'</span>], 1 );
-0125         <span class="keyword">try</span>
-0126             <span class="comment">% use the constructed function handle to call the fuction</span>
-0127             <span class="comment">% function declaration must match: actionName( seriesNumber, seriesStruct, paramStruct, limitsStruct )</span>
-0128             theAction.fh( i_icSeries, theStudy.series( i_icSeries ), theAction.params, theAction.limits );
-0129         <span class="keyword">catch</span> err
-0130             <a href="WAD_ErrorMsg.html" class="code" title="function WAD_ErrorMsg( name, mymessage, err )">WAD_ErrorMsg</a>( my.name, [<span class="string">'ERROR running action '</span> theAction.name <span class="string">' on series '</span> num2str(i_icSeries) <span class="string">' (DICOM series '</span> num2str(i_iDcmSeries) <span class="string">' &quot;'</span> theStudy.series( i_icSeries ).description <span class="string">'&quot;)'</span>], err );
-0131         <span class="keyword">end</span> <span class="comment">% try / catch</span>
-0132     <span class="keyword">end</span> <span class="comment">% if bMatch</span>
-0133 <span class="keyword">end</span> <span class="comment">% loop over series</span>
-0134 
-0135 
-0136 
-0137 <span class="comment">% ------------------------------------------------------------------------</span>
-0138 <span class="comment">% Matching functions</span>
-0139 <span class="comment">% ------------------------------------------------------------------------</span>
-0140 <a name="_sub1" href="#_subfunctions" class="code">function bMatch = matchSeriesDescription( curMatch, curSeries )</a>
-0141 my.name = <span class="string">'WAD_MR_runConfiguredAnalysis:matchSeriesDescription'</span>;
-0142 <span class="comment">% compare action content with series description</span>
-0143 bMatch = isequal( curSeries.description, curMatch.CONTENT );
-0144 <a href="WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">': Compare SeriesDescription &quot;'</span> curSeries.description <span class="string">'&quot; with &quot;'</span> curMatch.CONTENT <span class="string">'&quot; Equal? &gt;&gt; '</span> num2str(bMatch) ], 2 );
-0145 
-0146 
-0147 <a name="_sub2" href="#_subfunctions" class="code">function bMatch = matchImagesInSeries( curMatch, curSeries )</a>
-0148 my.name = <span class="string">'WAD_MR_runConfiguredAnalysis:matchImagesInSeries'</span>;
-0149 <span class="comment">% compare action content with number of images</span>
-0150 bMatch = isequal( length( curSeries.instance ), curMatch.CONTENT );
-0151 <a href="WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">': Compare #images '</span> num2str( length( curSeries.instance ) ) <span class="string">' with '</span> num2str( curMatch.CONTENT ) <span class="string">'. Equal? &gt;&gt; '</span> num2str(bMatch) ], 2 );
-0152 
-0153 
-0154 <a name="_sub3" href="#_subfunctions" class="code">function bMatch = matchDicomTag( curMatch, curSeries )</a>
-0155 my.name = <span class="string">'WAD_MR_runConfiguredAnalysis:matchDicomTag'</span>;
-0156 <span class="comment">% compare action content with DICOM field</span>
-0157 <span class="keyword">try</span>
-0158     <span class="comment">% read DICOM header of first instance</span>
-0159     <a href="WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">': Reading DICOM file &quot;'</span> curSeries.instance(1).filename <span class="string">'&quot;'</span>], 2 );
-0160     dcminfo = dicominfo( curSeries.instance(1).filename );
-0161 <span class="keyword">catch</span> err
-0162     <a href="WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">': Error reading DICOM file &quot;'</span> curSeries.instance(1).filename <span class="string">'&quot;'</span>], 1 );
-0163     <a href="WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">': '</span> err.message ] );
-0164 <span class="keyword">end</span>
-0165 
-0166 <span class="comment">% check if configured field exists</span>
-0167 dcmFieldName = curMatch.ATTRIBUTE.field;
-0168 <span class="keyword">if</span> isfield( dcminfo, dcmFieldName )
-0169     <span class="comment">% compare action content with DICOM field</span>
-0170     <span class="comment">% statement below should work for both number and string type fields</span>
-0171     bMatch = isequal( dcminfo.(dcmFieldName), curMatch.CONTENT );
-0172     <a href="WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">': Compare DICOM field &quot;'</span> dcmFieldName <span class="string">'&quot; content &quot;'</span> dcminfo.(dcmFieldName) <span class="string">'&quot; with &quot;'</span> curMatch.CONTENT <span class="string">'&quot; Equal? &gt;&gt; '</span> num2str(bMatch) ], 2 );
-0173 <span class="keyword">else</span>
-0174     bMatch = false;
-0175     <a href="WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">': DICOM field &quot;'</span> dcmFieldName <span class="string">'&quot; is not defined.'</span>], 2 );
-0176 <span class="keyword">end</span></pre></div>
-<hr><address>Generated on Wed 23-Oct-2013 14:08:22 by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" target="_parent">m2html</a></strong> &copy; 2005</address>
+0054 
+0055 <span class="comment">% version info</span>
+0056 my.name = <span class="string">'WAD_findMatchingSeries'</span>;
+0057 my.version = <span class="string">'1.1'</span>;
+0058 my.date = <span class="string">'20130906'</span>;
+0059 <a href="WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [<span class="string">'Module '</span> my.name <span class="string">' Version '</span> my.version <span class="string">' ('</span> my.date <span class="string">')'</span>], 2 );
+0060 
+0061 
+0062 <span class="comment">% ----------------------</span>
+0063 <span class="comment">% try to find series that matches with current action</span>
+0064 <span class="comment">% ----------------------</span>
+0065 <span class="comment">% loop over image series</span>
+0066 i_nSeries = length( theStudy.series );
+0067 <span class="keyword">for</span> i_icSeries = 1:i_nSeries
+0068     <a href="WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">': try a match with series '</span> num2str(i_icSeries) ], 2 )
+0069     curSeries = theStudy.series( i_icSeries );
+0070     i_iDcmSeries = curSeries.number;
+0071     <a href="WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">': --&gt; DICOM series '</span> num2str(i_iDcmSeries) <span class="string">' &quot;'</span> theStudy.series( i_icSeries ).description <span class="string">'&quot;'</span> ], 2 );
+0072 
+0073     <span class="comment">% ----------------------</span>
+0074     <span class="comment">% empty match definition is a match-all</span>
+0075     <span class="comment">% ----------------------</span>
+0076     <span class="keyword">if</span> isempty( theAction.match )
+0077         bMatch = true;
+0078     <span class="keyword">else</span>
+0079         <span class="comment">% ----------------------</span>
+0080         <span class="comment">% loop over fields to match for current action</span>
+0081         <span class="comment">% ----------------------</span>
+0082         bMatch = false; <span class="comment">% programming safety: if we forget to set bMatch in some case...</span>
+0083         i_nMatch = length( theAction.match );
+0084         <span class="keyword">for</span> i_icMatch = 1:i_nMatch
+0085             <span class="comment">% theAction.match is now always cell or struct</span>
+0086             <span class="keyword">if</span> iscell( theAction.match )
+0087                 curMatch = theAction.match{ i_icMatch };
+0088             <span class="keyword">else</span>
+0089                 curMatch = theAction.match( i_icMatch );
+0090             <span class="keyword">end</span>
+0091 
+0092             <span class="keyword">switch</span> curMatch.ATTRIBUTE.type
+0093                 <span class="keyword">case</span> <span class="string">'DCM4CHEE'</span>
+0094                     <span class="keyword">switch</span> curMatch.ATTRIBUTE.field
+0095                         <span class="keyword">case</span> <span class="string">'SeriesDescription'</span>
+0096                             bMatch = <a href="#_sub1" class="code" title="subfunction bMatch = matchSeriesDescription( curMatch, curSeries )">matchSeriesDescription</a>( curMatch, curSeries );
+0097                             <span class="keyword">if</span> ~bMatch, <span class="keyword">break</span>; <span class="keyword">end</span> <span class="comment">% break from match loop</span>
+0098                         <span class="keyword">case</span> <span class="string">'ImagesInSeries'</span>
+0099                             bMatch = <a href="#_sub2" class="code" title="subfunction bMatch = matchImagesInSeries( curMatch, curSeries )">matchImagesInSeries</a>( curMatch, curSeries );
+0100                             <span class="keyword">if</span> ~bMatch, <span class="keyword">break</span>; <span class="keyword">end</span> <span class="comment">% break from match loop</span>
+0101                         <span class="keyword">otherwise</span>
+0102                             <span class="comment">% should not happen...</span>
+0103                             <a href="WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">': Unexpected field content in switch/case for match type &quot;DCM4CHEE&quot;.'</span>], 1 );
+0104                             bMatch = false; <span class="keyword">break</span>; <span class="comment">% break from match loop</span>
+0105                     <span class="keyword">end</span> <span class="comment">% switch field</span>
+0106                 <span class="keyword">case</span> <span class="string">'DICOM'</span>
+0107                     bMatch = <a href="#_sub3" class="code" title="subfunction bMatch = matchDicomTag( curMatch, curSeries )">matchDicomTag</a>( curMatch, curSeries );
+0108                     <span class="keyword">if</span> ~bMatch, <span class="keyword">break</span>; <span class="keyword">end</span> <span class="comment">% break from match loop</span>
+0109                 <span class="keyword">otherwise</span>
+0110                     <a href="WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">': Unexpected type content in matching switch/case.'</span>], 1 );
+0111                     bMatch = false; <span class="keyword">break</span> <span class="comment">% break from match loop</span>
+0112             <span class="keyword">end</span> <span class="comment">% switch type</span>
+0113         <span class="keyword">end</span> <span class="comment">% loop over matches</span>
+0114     <span class="keyword">end</span> <span class="comment">% else (match not empty)</span>
+0115     
+0116     <span class="comment">% if we're here: all matches were positive</span>
+0117     <span class="keyword">if</span> bMatch
+0118         <span class="comment">% we have a match!</span>
+0119         <a href="WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">': match!'</span>], 2 );
+0120         
+0121         <span class="comment">% parse any auto comment fields if present</span>
+0122         <span class="keyword">if</span> isfield( theAction, <span class="string">'autoComment'</span> ) &amp;&amp; ~isempty( theAction.autoComment )
+0123             <a href="WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">': Parse autoComment of '</span> theAction.name <span class="string">' on series '</span> num2str(i_icSeries) <span class="string">' (DICOM series '</span> num2str(i_iDcmSeries) <span class="string">' &quot;'</span> theStudy.series( i_icSeries ).description <span class="string">'&quot;)'</span>], 1 );
+0124             <span class="keyword">try</span>
+0125                 <a href="WAD_parseAutoComment.html" class="code" title="function WAD_parseAutoComment( sSeries, sAutoComment )">WAD_parseAutoComment</a>( theStudy.series( i_icSeries ), theAction.autoComment );
+0126             <span class="keyword">catch</span> err
+0127                 <a href="WAD_ErrorMsg.html" class="code" title="function WAD_ErrorMsg( name, mymessage, err )">WAD_ErrorMsg</a>( my.name, [<span class="string">'ERROR parse autoComment '</span> theAction.name <span class="string">' on series '</span> num2str(i_icSeries) <span class="string">' (DICOM series '</span> num2str(i_iDcmSeries) <span class="string">' &quot;'</span> theStudy.series( i_icSeries ).description <span class="string">'&quot;)'</span>], err );
+0128             <span class="keyword">end</span> <span class="comment">% try / catch</span>
+0129         <span class="keyword">end</span>
+0130 
+0131         <span class="comment">% Action function declaration must match one of these definitions:</span>
+0132         <span class="comment">% - v1.0 format (depreciated): actionName( seriesNumber, seriesStruct, paramStruct, limitsStruct )</span>
+0133         <span class="comment">% - v1.1 format              : actionName( seriesNumber, seriesStruct, paramStruct )</span>
+0134         <span class="comment">% Produce a warning message if old style action limits are defined</span>
+0135         <span class="comment">% for a new style action function.</span>
+0136         hasOldStyleActionLimits = ~isempty( theAction.limits );
+0137         isOldStyleActionFunction = ( nargin( theAction.fh ) == 4 );
+0138         <span class="keyword">if</span> isOldStyleActionFunction
+0139             <a href="WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">': Depreciated: old (v1.0) style action function &quot;'</span> theAction.name <span class="string">'&quot;; needs action limits defined within action.'</span> ], 1 );
+0140         <span class="keyword">end</span>        
+0141         <span class="keyword">if</span> hasOldStyleActionLimits &amp;&amp; ~isOldStyleActionFunction
+0142             <a href="WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">': WARNING: old (v1.0) style action limits defined for V1.1 new style action function &quot;'</span> theAction.name <span class="string">'&quot;.'</span> ], 1 );
+0143         <span class="keyword">end</span>
+0144         
+0145         <span class="comment">% go run the action</span>
+0146         <a href="WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">': Run action '</span> theAction.name <span class="string">' on series '</span> num2str(i_icSeries) <span class="string">' (DICOM series '</span> num2str(i_iDcmSeries) <span class="string">' &quot;'</span> theStudy.series( i_icSeries ).description <span class="string">'&quot;)'</span>], 1 );
+0147         <span class="keyword">try</span>
+0148             <span class="comment">% use the constructed function handle to call the fuction</span>
+0149             <span class="keyword">if</span> isOldStyleActionFunction
+0150                 <span class="comment">% v1.0 style action limits (depreciated)</span>
+0151                 theAction.fh( i_icSeries, theStudy.series( i_icSeries ), theAction.params, theAction.limits );
+0152             <span class="keyword">else</span>
+0153                 <span class="comment">% v1.1 style action limits are not passed to the action</span>
+0154                 theAction.fh( i_icSeries, theStudy.series( i_icSeries ), theAction.params );
+0155             <span class="keyword">end</span>
+0156         <span class="keyword">catch</span> err
+0157             <a href="WAD_ErrorMsg.html" class="code" title="function WAD_ErrorMsg( name, mymessage, err )">WAD_ErrorMsg</a>( my.name, [<span class="string">'ERROR running action '</span> theAction.name <span class="string">' on series '</span> num2str(i_icSeries) <span class="string">' (DICOM series '</span> num2str(i_iDcmSeries) <span class="string">' &quot;'</span> theStudy.series( i_icSeries ).description <span class="string">'&quot;)'</span>], err );
+0158         <span class="keyword">end</span> <span class="comment">% try / catch</span>
+0159     <span class="keyword">end</span> <span class="comment">% if bMatch</span>
+0160 <span class="keyword">end</span> <span class="comment">% loop over series</span>
+0161 
+0162 
+0163 
+0164 <span class="comment">% ------------------------------------------------------------------------</span>
+0165 <span class="comment">% Matching functions</span>
+0166 <span class="comment">% ------------------------------------------------------------------------</span>
+0167 <a name="_sub1" href="#_subfunctions" class="code">function bMatch = matchSeriesDescription( curMatch, curSeries )</a>
+0168 my.name = <span class="string">'WAD_MR_runConfiguredAnalysis:matchSeriesDescription'</span>;
+0169 <span class="comment">% compare action content with series description</span>
+0170 bMatch = isequal( curSeries.description, curMatch.CONTENT );
+0171 <a href="WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">': Compare SeriesDescription &quot;'</span> curSeries.description <span class="string">'&quot; with &quot;'</span> curMatch.CONTENT <span class="string">'&quot; Equal? &gt;&gt; '</span> num2str(bMatch) ], 2 );
+0172 
+0173 
+0174 <a name="_sub2" href="#_subfunctions" class="code">function bMatch = matchImagesInSeries( curMatch, curSeries )</a>
+0175 my.name = <span class="string">'WAD_MR_runConfiguredAnalysis:matchImagesInSeries'</span>;
+0176 <span class="comment">% compare action content with number of images</span>
+0177 bMatch = isequal( length( curSeries.instance ), curMatch.CONTENT );
+0178 <a href="WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">': Compare #images '</span> num2str( length( curSeries.instance ) ) <span class="string">' with '</span> num2str( curMatch.CONTENT ) <span class="string">'. Equal? &gt;&gt; '</span> num2str(bMatch) ], 2 );
+0179 
+0180 
+0181 <a name="_sub3" href="#_subfunctions" class="code">function bMatch = matchDicomTag( curMatch, curSeries )</a>
+0182 my.name = <span class="string">'WAD_MR_runConfiguredAnalysis:matchDicomTag'</span>;
+0183 <span class="comment">% compare action content with DICOM field</span>
+0184 <span class="keyword">try</span>
+0185     <span class="comment">% read DICOM header of first instance</span>
+0186     <a href="WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">': Reading DICOM file &quot;'</span> curSeries.instance(1).filename <span class="string">'&quot;'</span>], 2 );
+0187     dcminfo = dicominfo( curSeries.instance(1).filename );
+0188 <span class="keyword">catch</span> err
+0189     <a href="WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">': Error reading DICOM file &quot;'</span> curSeries.instance(1).filename <span class="string">'&quot;'</span>], 1 );
+0190     <a href="WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">': '</span> err.message ] );
+0191 <span class="keyword">end</span>
+0192 
+0193 <span class="comment">% check if configured field exists</span>
+0194 dcmFieldName = curMatch.ATTRIBUTE.field;
+0195 <span class="keyword">if</span> isfield( dcminfo, dcmFieldName )
+0196     <span class="comment">% compare action content with DICOM field</span>
+0197     <span class="comment">% statement below should work for both number and string type fields</span>
+0198     bMatch = isequal( dcminfo.(dcmFieldName), curMatch.CONTENT );
+0199     <a href="WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">': Compare DICOM field &quot;'</span> dcmFieldName <span class="string">'&quot; content &quot;'</span> dcminfo.(dcmFieldName) <span class="string">'&quot; with &quot;'</span> curMatch.CONTENT <span class="string">'&quot; Equal? &gt;&gt; '</span> num2str(bMatch) ], 2 );
+0200 <span class="keyword">else</span>
+0201     bMatch = false;
+0202     <a href="WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">': DICOM field &quot;'</span> dcmFieldName <span class="string">'&quot; is not defined.'</span>], 2 );
+0203 <span class="keyword">end</span></pre></div>
+<hr><address>Generated on Wed 27-Nov-2013 17:42:16 by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" target="_parent">m2html</a></strong> &copy; 2005</address>
 </body>
 </html>

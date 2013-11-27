@@ -1,7 +1,0 @@
-/* Created by mdot for Matlab */
-digraph m2html {
-
-  WAD_MG [URL="WAD_MG.html"];
-  WAD_MG_AEC [URL="WAD_MG_AEC.html"];
-  WAD_MG_flatField [URL="WAD_MG_flatField.html"];
-}

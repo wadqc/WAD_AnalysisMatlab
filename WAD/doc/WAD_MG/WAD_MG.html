@@ -88,48 +88,52 @@ This function is called by:
 0026 <span class="comment">% main routine.</span>
 0027 <span class="comment">%</span>
 0028 <span class="comment">% Provides a place for additional configs/defines/...</span>
-0029 
-0030 
-0031 <span class="comment">% ----------------------</span>
-0032 <span class="comment">% defines</span>
-0033 <span class="comment">% ----------------------</span>
-0034 <span class="comment">% version info</span>
-0035 my.name = <span class="string">'WAD_MG'</span>;
-0036 my.version = <span class="string">'0.95'</span>;
-0037 my.date = <span class="string">'20121105'</span>;
-0038 
-0039 disp( [<span class="string">'Starting analysis module '</span> my.name <span class="string">'  Version '</span> my.version <span class="string">' '</span> my.date] );
-0040 
-0041 
-0042 <span class="comment">% ----------------------</span>
-0043 <span class="comment">% check input arguments</span>
-0044 <span class="comment">% ----------------------</span>
-0045 <span class="keyword">if</span> nargin &lt; 1
-0046     disp( [<span class="string">'ERROR in '</span> my.name <span class="string">' main program: missing WAD XML input file.'</span>] );
-0047     disp( [<span class="string">'Usage: '</span> my.name <span class="string">' &lt;XMLInputFile&gt;'</span>] );
-0048     disp( [<span class="string">'Aborting '</span> my.name <span class="string">' main program.'</span>] );
-0049     <span class="keyword">return</span>
-0050 <span class="keyword">end</span>
-0051 
-0052 
-0053 <span class="comment">% ----------------------</span>
-0054 <span class="comment">% GLOBALS</span>
-0055 <span class="comment">% ----------------------</span>
-0056 clear <span class="keyword">global</span> WAD
-0057 <span class="keyword">global</span> WAD
-0058 
-0059 
-0060 <span class="comment">% ----------------------</span>
-0061 <span class="comment">% initialize modality-specific constants</span>
-0062 <span class="comment">% ----------------------</span>
-0063 <span class="comment">% define global const here...</span>
-0064 <span class="comment">% WAD.const.yourNameHere = 'theConstant';</span>
-0065 
-0066 
-0067 <span class="comment">% ----------------------</span>
-0068 <span class="comment">% call main function</span>
-0069 <span class="comment">% ----------------------</span>
-0070 <a href="../WAD/WAD_main.html" class="code" title="function WAD_main( wadInputFileXML )">WAD_main</a>( wadInputFileXML );</pre></div>
-<hr><address>Generated on Wed 23-Oct-2013 14:08:22 by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" target="_parent">m2html</a></strong> &copy; 2005</address>
+0029 <span class="comment">% ------------------------------------------------------------------------</span>
+0030 <span class="comment">% 20131127 / JK / v1.1</span>
+0031 <span class="comment">% Support new (v1.1) style action limits</span>
+0032 <span class="comment">% ------------------------------------------------------------------------</span>
+0033 
+0034 
+0035 <span class="comment">% ----------------------</span>
+0036 <span class="comment">% defines</span>
+0037 <span class="comment">% ----------------------</span>
+0038 <span class="comment">% version info</span>
+0039 my.name = <span class="string">'WAD_MG'</span>;
+0040 my.version = <span class="string">'1.1'</span>;
+0041 my.date = <span class="string">'20131127'</span>;
+0042 
+0043 disp( [<span class="string">'Starting analysis module '</span> my.name <span class="string">'  Version '</span> my.version <span class="string">' '</span> my.date] );
+0044 
+0045 
+0046 <span class="comment">% ----------------------</span>
+0047 <span class="comment">% check input arguments</span>
+0048 <span class="comment">% ----------------------</span>
+0049 <span class="keyword">if</span> nargin &lt; 1
+0050     disp( [<span class="string">'ERROR in '</span> my.name <span class="string">' main program: missing WAD XML input file.'</span>] );
+0051     disp( [<span class="string">'Usage: '</span> my.name <span class="string">' &lt;XMLInputFile&gt;'</span>] );
+0052     disp( [<span class="string">'Aborting '</span> my.name <span class="string">' main program.'</span>] );
+0053     <span class="keyword">return</span>
+0054 <span class="keyword">end</span>
+0055 
+0056 
+0057 <span class="comment">% ----------------------</span>
+0058 <span class="comment">% GLOBALS</span>
+0059 <span class="comment">% ----------------------</span>
+0060 clear <span class="keyword">global</span> WAD
+0061 <span class="keyword">global</span> WAD
+0062 
+0063 
+0064 <span class="comment">% ----------------------</span>
+0065 <span class="comment">% initialize modality-specific constants</span>
+0066 <span class="comment">% ----------------------</span>
+0067 <span class="comment">% define global const here...</span>
+0068 <span class="comment">% WAD.const.yourNameHere = 'theConstant';</span>
+0069 
+0070 
+0071 <span class="comment">% ----------------------</span>
+0072 <span class="comment">% call main function</span>
+0073 <span class="comment">% ----------------------</span>
+0074 <a href="../WAD/WAD_main.html" class="code" title="function WAD_main( wadInputFileXML )">WAD_main</a>( wadInputFileXML );</pre></div>
+<hr><address>Generated on Wed 27-Nov-2013 17:42:16 by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" target="_parent">m2html</a></strong> &copy; 2005</address>
 </body>
 </html>

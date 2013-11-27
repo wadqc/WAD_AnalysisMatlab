@@ -23,7 +23,7 @@
 <div class="box"><strong>------------------------------------------------------------------------</strong></div>
 
 <h2><a name="_synopsis"></a>SYNOPSIS <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
-<div class="box"><strong>function WAD_resultsAppendFloat( level, value, variable, unit, description, limits, limits_field_name ) </strong></div>
+<div class="box"><strong>function WAD_resultsAppendFloat( level, value, variable, unit, description, sLimits, limits_field_name ) </strong></div>
 
 <h2><a name="_description"></a>DESCRIPTION <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
 <div class="fragment"><pre class="comment"> ------------------------------------------------------------------------
@@ -54,10 +54,12 @@ This function calls:
 <li><a href="WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>	------------------------------------------------------------------------</li></ul>
 This function is called by:
 <ul style="list-style-image:url(../matlabicon.gif)">
-<li><a href="../WAD_MG/WAD_MG_AEC.html" class="code" title="function WAD_MG_AEC( i_iSeries, sSeries, sParams, sLimits )">WAD_MG_AEC</a>	------------------------------------------------------------------------</li><li><a href="../WAD_MG/WAD_MG_flatField.html" class="code" title="function WAD_MG_flatField( i_iSeries, sSeries, sParams, sLimits )">WAD_MG_flatField</a>	------------------------------------------------------------------------</li><li><a href="../WAD_MR/WAD_MR_B0_uniformity.html" class="code" title="function WAD_MR_B0_uniformity( i_iSeries, sSeries, sParams, sLimits )">WAD_MR_B0_uniformity</a>	------------------------------------------------------------------------</li><li><a href="../WAD_MR/WAD_MR_SNR.html" class="code" title="function WAD_MR_SNR( i_iSeries, sSeries, sParams, sLimits )">WAD_MR_SNR</a>	------------------------------------------------------------------------</li><li><a href="../WAD_MR/WAD_MR_SNR_MultiChannel.html" class="code" title="function WAD_MR_SNR_MultiChannel( i_iSeries, sSeries, sParams, sLimits )">WAD_MR_SNR_MultiChannel</a>	------------------------------------------------------------------------</li><li><a href="../WAD_MR/WAD_MR_TxAmplFreq.html" class="code" title="function WAD_MR_TxAmplFreq( i_iSeries, sSeries, sParams, sLimits )">WAD_MR_TxAmplFreq</a>	------------------------------------------------------------------------</li><li><a href="../WAD_MR/WAD_MR_geomXY.html" class="code" title="function WAD_MR_geomXY( i_iSeries, sSeries, sParams, sLimits )">WAD_MR_geomXY</a>	------------------------------------------------------------------------</li><li><a href="../WAD_MR/WAD_MR_geomZ.html" class="code" title="function WAD_MR_geomZ( i_iSeries, sSeries, sParams, sLimits )">WAD_MR_geomZ</a>	------------------------------------------------------------------------</li><li><a href="../WAD_demo/WAD_demo_actionTwo.html" class="code" title="function WAD_demo_actionTwo( i_iSeries, sSeries, sParams, sLimits )">WAD_demo_actionTwo</a>	------------------------------------------------------------------------</li></ul>
+<li><a href="../WAD_MG/WAD_MG_AEC.html" class="code" title="function WAD_MG_AEC( i_iSeries, sSeries, sParams )">WAD_MG_AEC</a>	------------------------------------------------------------------------</li><li><a href="../WAD_MG/WAD_MG_flatField.html" class="code" title="function WAD_MG_flatField( i_iSeries, sSeries, sParams )">WAD_MG_flatField</a>	------------------------------------------------------------------------</li><li><a href="../WAD_MR/WAD_MR_B0_uniformity.html" class="code" title="function WAD_MR_B0_uniformity( i_iSeries, sSeries, sParams )">WAD_MR_B0_uniformity</a>	------------------------------------------------------------------------</li><li><a href="../WAD_MR/WAD_MR_SNR.html" class="code" title="function WAD_MR_SNR( i_iSeries, sSeries, sParams )">WAD_MR_SNR</a>	------------------------------------------------------------------------</li><li><a href="../WAD_MR/WAD_MR_SNR_MultiChannel.html" class="code" title="function WAD_MR_SNR_MultiChannel( i_iSeries, sSeries, sParams )">WAD_MR_SNR_MultiChannel</a>	------------------------------------------------------------------------</li><li><a href="../WAD_MR/WAD_MR_TxAmplFreq.html" class="code" title="function WAD_MR_TxAmplFreq( i_iSeries, sSeries, sParams )">WAD_MR_TxAmplFreq</a>	------------------------------------------------------------------------</li><li><a href="../WAD_MR/WAD_MR_geomXY.html" class="code" title="function WAD_MR_geomXY( i_iSeries, sSeries, sParams )">WAD_MR_geomXY</a>	------------------------------------------------------------------------</li><li><a href="../WAD_MR/WAD_MR_geomZ.html" class="code" title="function WAD_MR_geomZ( i_iSeries, sSeries, sParams )">WAD_MR_geomZ</a>	------------------------------------------------------------------------</li><li><a href="../WAD_demo/WAD_demo_actionTwo.html" class="code" title="function WAD_demo_actionTwo( i_iSeries, sSeries, sParams, sLimits )">WAD_demo_actionTwo</a>	------------------------------------------------------------------------</li></ul>
 <!-- crossreference -->
 
-
+<h2><a name="_subfunctions"></a>SUBFUNCTIONS <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<ul style="list-style-image:url(../matlabicon.gif)">
+<li><a href="#_sub1" class="code">function i_iLim = findLimits( limitsFieldName, variable, unit, description )</a></li><li><a href="#_sub2" class="code">function limits = parseRelativeLimit( theLimit, theReference )</a></li></ul>
 
 <h2><a name="_source"></a>SOURCE CODE <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
 <div class="fragment"><pre>0001 <span class="comment">% ------------------------------------------------------------------------</span>
@@ -81,110 +83,254 @@ This function is called by:
 0019 <span class="comment">% along with this program.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
 0020 <span class="comment">% ------------------------------------------------------------------------</span>
 0021 
-0022 <a name="_sub0" href="#_subfunctions" class="code">function WAD_resultsAppendFloat( level, value, variable, unit, description, limits, limits_field_name )</a>
+0022 <a name="_sub0" href="#_subfunctions" class="code">function WAD_resultsAppendFloat( level, value, variable, unit, description, sLimits, limits_field_name )</a>
 0023 <span class="comment">% Append number to WAD results object</span>
-0024 <span class="comment">%</span>
-0025 <span class="comment">% ------------------------------------------------------------------------</span>
-0026 <span class="comment">% WAD</span>
-0027 <span class="comment">% file: WAD_resultsAppendFloat</span>
-0028 <span class="comment">%</span>
-0029 <span class="comment">% Input: level    - 1 or 2</span>
-0030 <span class="comment">%                   1 is intended for primary results (&quot;front page table&quot;)</span>
-0031 <span class="comment">%                   2 for secondary (what went wrong with my analysis?)</span>
-0032 <span class="comment">%        value    - the result value (e.g. 94.6)</span>
-0033 <span class="comment">%        variable - what it is (e.g. 'diameter')</span>
-0034 <span class="comment">%        unit     - unit of the result (e.g. 'mm')</span>
-0035 <span class="comment">%        limits   - struct with action limits, passed from config file</span>
-0036 <span class="comment">%        limits_field_name - name of action limit, should match the limits struct</span>
-0037 <span class="comment">%                   (e.g. 'SNR' to access limits.SNR.acceptable.lower etc)</span>
-0038 <span class="comment">%</span>
-0039 <span class="comment">% Output: to WAD.out.resultaten_floating, at end of analysis to be exported as XML</span>
-0040 <span class="comment">%</span>
-0041 <span class="comment">% It is acceptable to have empty data for parameters variable, unit,</span>
-0042 <span class="comment">% limits, limits_field_name</span>
+0024 <span class="comment">% V1.1: arguments sLimits and limits_field_name is optional, if omitted the action</span>
+0025 <span class="comment">% limits must be defined in new (V1.1) style in the module config file,</span>
+0026 <span class="comment">% see template below.</span>
+0027 <span class="comment">%</span>
+0028 <span class="comment">% ------------------------------------------------------------------------</span>
+0029 <span class="comment">% WAD</span>
+0030 <span class="comment">% file: WAD_resultsAppendFloat</span>
+0031 <span class="comment">%</span>
+0032 <span class="comment">% Input: level    - 1 or 2</span>
+0033 <span class="comment">%                   1 is intended for primary results (&quot;front page table&quot;)</span>
+0034 <span class="comment">%                   2 for secondary (what went wrong with my analysis?)</span>
+0035 <span class="comment">%        value    - the result value (e.g. 94.6)</span>
+0036 <span class="comment">%        variable - what it is (e.g. 'diameter')</span>
+0037 <span class="comment">%        unit     - unit of the result (e.g. 'mm')</span>
+0038 <span class="comment">% OPTIONAL inputs from V1.1 onwards</span>
+0039 <span class="comment">%        sLimits   - struct with action limits, passed from config file</span>
+0040 <span class="comment">%        limits_field_name - name of action limit, should match the sLimits struct</span>
+0041 <span class="comment">%                   (e.g. 'SNR' to access sLimits.SNR.acceptable.lower etc)</span>
+0042 <span class="comment">%</span>
 0043 <span class="comment">%</span>
-0044 <span class="comment">% Note on action limits: in a future version of the WAD framework the</span>
-0045 <span class="comment">% action limit definitions should move to the web interface, and can then</span>
-0046 <span class="comment">% be removed from the configuration file.</span>
-0047 <span class="comment">%</span>
-0048 <span class="comment">% Limits XML template in configuration file, as part of &lt;action&gt;:</span>
-0049 <span class="comment">% &lt;!-- ACTION LIMITS TEMPLATE</span>
-0050 <span class="comment">%     &lt;limits&gt;</span>
-0051 <span class="comment">%       &lt;param_name&gt;</span>
-0052 <span class="comment">%         &lt;acceptable&gt;</span>
-0053 <span class="comment">%           &lt;lower&gt;&lt;/lower&gt;</span>
-0054 <span class="comment">%           &lt;upper&gt;&lt;/upper&gt;</span>
-0055 <span class="comment">%         &lt;/acceptable&gt;</span>
-0056 <span class="comment">%         &lt;critical&gt;</span>
-0057 <span class="comment">%           &lt;lower&gt;&lt;/lower&gt;</span>
-0058 <span class="comment">%           &lt;upper&gt;&lt;/upper&gt;</span>
-0059 <span class="comment">%         &lt;/critical&gt;</span>
-0060 <span class="comment">%         &lt;/param_name&gt;</span>
-0061 <span class="comment">%     &lt;/module_name&gt;</span>
-0062 <span class="comment">% --&gt;</span>
-0063 <span class="comment">%</span>
-0064 <span class="comment">% ------------------------------------------------------------------------</span>
-0065 <span class="comment">% VUmc, Amsterdam, NL / Joost Kuijer / jpa.kuijer@vumc.nl</span>
-0066 <span class="comment">% 2012-11-07 / JK</span>
-0067 <span class="comment">% first version</span>
-0068 <span class="comment">% ------------------------------------------------------------------------</span>
-0069 
-0070 <span class="comment">% For access to out.results struct</span>
-0071 <span class="keyword">global</span> WAD
-0072 
-0073 <span class="comment">% version info</span>
-0074 my.name = <span class="string">'WAD_resultsAppendFloat'</span>;
-0075 my.version = <span class="string">'1.0'</span>;
-0076 my.date = <span class="string">'20121107'</span>;
-0077 <span class="comment">% This module is called quite often, set verbose level 2</span>
-0078 <a href="WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [<span class="string">'Module '</span> my.name <span class="string">' Version '</span> my.version <span class="string">' ('</span> my.date <span class="string">')'</span>], 2 );
-0079 
-0080 
-0081 <span class="comment">% WAD XML object</span>
-0082 <span class="comment">% WAD XML object</span>
-0083 WAD.out.results{end+1} = []; <span class="comment">% new item</span>
-0084 <span class="comment">% increase index number</span>
-0085 WAD.results_index = WAD.results_index + 1;
-0086 WAD.out.results{end}.volgnummer = WAD.results_index;
-0087 WAD.out.results{end}.type     = <span class="string">'float'</span>;
-0088 WAD.out.results{end}.niveau   = level;
-0089 WAD.out.results{end}.waarde   = value;
-0090 
-0091 <span class="keyword">if</span> ~isempty( variable ), <span class="keyword">...</span>
-0092     WAD.out.results{end}.grootheid  = variable;
-0093 <span class="keyword">end</span>
-0094 
-0095 <span class="keyword">if</span> ~isempty( unit ), <span class="keyword">...</span>
-0096     WAD.out.results{end}.eenheid = unit;
-0097 <span class="keyword">end</span>
-0098 
-0099 <span class="keyword">if</span> ~isempty( description ), <span class="keyword">...</span>
-0100     WAD.out.results{end}.omschrijving = description;
-0101 <span class="keyword">end</span>
-0102 
-0103 
-0104 <span class="comment">% Action limits</span>
-0105 <span class="comment">% These should go to the web interface in a future version!!</span>
-0106 <span class="keyword">if</span> ~isempty( limits ) &amp;&amp; ~isempty( limits_field_name ) &amp;&amp; isfield( limits, limits_field_name )
-0107     lmts = limits.(limits_field_name);
-0108     <span class="keyword">if</span> isfield( lmts, <span class="string">'acceptable'</span> )
-0109         <span class="keyword">if</span> isfield( lmts.acceptable, <span class="string">'lower'</span> )
-0110             WAD.out.results{end}.grens_acceptabel_onder = lmts.acceptable.lower;
-0111         <span class="keyword">end</span>
-0112         <span class="keyword">if</span> isfield( lmts.acceptable, <span class="string">'upper'</span> )
-0113             WAD.out.results{end}.grens_acceptabel_boven = lmts.acceptable.upper;
-0114         <span class="keyword">end</span>
-0115     <span class="keyword">end</span>
-0116     <span class="keyword">if</span> isfield( lmts, <span class="string">'critical'</span> )
-0117         <span class="keyword">if</span> isfield( lmts.critical, <span class="string">'lower'</span> )
-0118             WAD.out.results{end}.grens_kritisch_onder = lmts.critical.lower;
-0119         <span class="keyword">end</span>
-0120         <span class="keyword">if</span> isfield( lmts.critical, <span class="string">'upper'</span> )
-0121             WAD.out.results{end}.grens_kritisch_boven = lmts.critical.upper;
-0122         <span class="keyword">end</span>
-0123     <span class="keyword">end</span>
-0124 <span class="keyword">end</span>
-0125</pre></div>
-<hr><address>Generated on Wed 23-Oct-2013 14:08:22 by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" target="_parent">m2html</a></strong> &copy; 2005</address>
+0044 <span class="comment">% Output: to WAD.out.resultaten_floating, at end of analysis to be exported as XML</span>
+0045 <span class="comment">%</span>
+0046 <span class="comment">% It is acceptable to have empty data for parameters variable, unit,</span>
+0047 <span class="comment">% sLimits, limits_field_name</span>
+0048 <span class="comment">%</span>
+0049 <span class="comment">% Note on action limits: in a future version of the WAD framework the</span>
+0050 <span class="comment">% action limit definitions should move to the web interface, and can then</span>
+0051 <span class="comment">% be removed from the configuration file.</span>
+0052 <span class="comment">%</span>
+0053 <span class="comment">% Limits XML template in configuration file, as part of &lt;action&gt;:</span>
+0054 <span class="comment">% &lt;!-- ACTION LIMITS TEMPLATE OLD STYLE V1.0</span>
+0055 <span class="comment">%     &lt;limits&gt;</span>
+0056 <span class="comment">%       &lt;param_name&gt;</span>
+0057 <span class="comment">%         &lt;acceptable&gt;</span>
+0058 <span class="comment">%           &lt;lower&gt;&lt;/lower&gt;</span>
+0059 <span class="comment">%           &lt;upper&gt;&lt;/upper&gt;</span>
+0060 <span class="comment">%         &lt;/acceptable&gt;</span>
+0061 <span class="comment">%         &lt;critical&gt;</span>
+0062 <span class="comment">%           &lt;lower&gt;&lt;/lower&gt;</span>
+0063 <span class="comment">%           &lt;upper&gt;&lt;/upper&gt;</span>
+0064 <span class="comment">%         &lt;/critical&gt;</span>
+0065 <span class="comment">%         &lt;/param_name&gt;</span>
+0066 <span class="comment">%     &lt;/module_name&gt;</span>
+0067 <span class="comment">% --&gt;</span>
+0068 <span class="comment">%</span>
+0069 <span class="comment">% ------------------------------------------------------------------------</span>
+0070 <span class="comment">% NEW action limit template</span>
+0071 <span class="comment">% Defined at root level, NOT as part of &lt;action&gt;</span>
+0072 <span class="comment">% Version 1.1</span>
+0073 <span class="comment">% New: relative definition of limits now also possible.</span>
+0074 <span class="comment">% ------------------------------------------------------------------------</span>
+0075 <span class="comment">%     &lt;grens&gt;</span>
+0076 <span class="comment">%         &lt;omschrijving&gt;Combined coils&lt;/omschrijving&gt;</span>
+0077 <span class="comment">%         &lt;grootheid&gt;SNR&lt;/grootheid&gt;</span>
+0078 <span class="comment">%         &lt;grens_relatief_referentie&gt;614&lt;/grens_relatief_referentie&gt;</span>
+0079 <span class="comment">%         &lt;grens_relatief_kritisch&gt;20%&lt;/grens_relatief_kritisch&gt;</span>
+0080 <span class="comment">%         &lt;grens_relatief_acceptabel&gt;10%&lt;/grens_relatief_acceptabel&gt;</span>
+0081 <span class="comment">%     &lt;/grens&gt;</span>
+0082 <span class="comment">%     &lt;grens&gt;</span>
+0083 <span class="comment">%         &lt;omschrijving&gt;Row&lt;/omschrijving&gt;</span>
+0084 <span class="comment">%         &lt;grootheid&gt;Ghosting&lt;/grootheid&gt;</span>
+0085 <span class="comment">%         &lt;eenheid&gt;%&lt;/eenheid&gt;</span>
+0086 <span class="comment">%         &lt;grens_kritisch_onder&gt;0&lt;/grens_kritisch_onder&gt;</span>
+0087 <span class="comment">%         &lt;grens_kritisch_boven&gt;1&lt;/grens_kritisch_boven&gt;</span>
+0088 <span class="comment">%         &lt;grens_acceptabel_onder&gt;0&lt;/grens_acceptabel_onder&gt;</span>
+0089 <span class="comment">%         &lt;grens_acceptabel_boven&gt;0.5&lt;/grens_acceptabel_boven&gt;</span>
+0090 <span class="comment">%     &lt;/grens&gt;</span>
+0091 <span class="comment">%</span>
+0092 <span class="comment">%</span>
+0093 <span class="comment">% ------------------------------------------------------------------------</span>
+0094 <span class="comment">% VUmc, Amsterdam, NL / Joost Kuijer / jpa.kuijer@vumc.nl</span>
+0095 <span class="comment">% 2012-11-07 / JK</span>
+0096 <span class="comment">% first version</span>
+0097 <span class="comment">% ------------------------------------------------------------------------</span>
+0098 <span class="comment">% ------------------------------------------------------------------------</span>
+0099 <span class="comment">% VUmc, Amsterdam, NL / Joost Kuijer / jpa.kuijer@vumc.nl</span>
+0100 <span class="comment">% 2013-11-26 / JK</span>
+0101 <span class="comment">% V1.1 New style XML definition of action limit in config file.</span>
+0102 <span class="comment">% Old style definition still supported.</span>
+0103 <span class="comment">% ------------------------------------------------------------------------</span>
+0104 
+0105 <span class="comment">% optional argument limits_field_name for backward compatibility V1.0</span>
+0106 <span class="keyword">if</span> nargin &lt; 6
+0107     limits_field_name = [];
+0108     sLimits = [];
+0109     limitStyleOld = false;
+0110 <span class="keyword">else</span>
+0111     limitStyleOld = true;
+0112 <span class="keyword">end</span>
+0113 
+0114 <span class="comment">% For access to out.results and V1.1 action limits struct</span>
+0115 <span class="keyword">global</span> WAD
+0116 
+0117 <span class="comment">% Field name of array with action limits in config file</span>
+0118 limitsFieldName = <span class="string">'grens'</span>;
+0119 
+0120 <span class="comment">% version info</span>
+0121 my.name = <span class="string">'WAD_resultsAppendFloat'</span>;
+0122 my.version = <span class="string">'1.0'</span>;
+0123 my.date = <span class="string">'20121107'</span>;
+0124 <span class="comment">% This module is called quite often, set verbose level 2</span>
+0125 <a href="WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [<span class="string">'Module '</span> my.name <span class="string">' Version '</span> my.version <span class="string">' ('</span> my.date <span class="string">')'</span>], 2 );
+0126 
+0127 
+0128 <span class="comment">% WAD XML object</span>
+0129 <span class="comment">% WAD XML object</span>
+0130 WAD.out.results{end+1} = []; <span class="comment">% new item</span>
+0131 <span class="comment">% increase index number</span>
+0132 WAD.results_index = WAD.results_index + 1;
+0133 WAD.out.results{end}.volgnummer = WAD.results_index;
+0134 WAD.out.results{end}.type     = <span class="string">'float'</span>;
+0135 WAD.out.results{end}.niveau   = level;
+0136 WAD.out.results{end}.waarde   = value;
+0137 
+0138 <span class="keyword">if</span> ~isempty( variable ), <span class="keyword">...</span>
+0139     WAD.out.results{end}.grootheid  = variable;
+0140 <span class="keyword">end</span>
+0141 
+0142 <span class="keyword">if</span> ~isempty( unit ), <span class="keyword">...</span>
+0143     WAD.out.results{end}.eenheid = unit;
+0144 <span class="keyword">end</span>
+0145 
+0146 <span class="keyword">if</span> ~isempty( description ), <span class="keyword">...</span>
+0147     WAD.out.results{end}.omschrijving = description;
+0148 <span class="keyword">end</span>
+0149 
+0150 
+0151 <span class="keyword">if</span> limitStyleOld
+0152     <span class="comment">% Action limits V1.0</span>
+0153     <span class="comment">% These should go to the web interface in a future version!!</span>
+0154     <span class="keyword">if</span> ~isempty( sLimits ) &amp;&amp; ~isempty( limits_field_name ) &amp;&amp; isfield( sLimits, limits_field_name )
+0155         lmts = sLimits.(limits_field_name);
+0156         <span class="keyword">if</span> isfield( lmts, <span class="string">'acceptable'</span> )
+0157             <span class="keyword">if</span> isfield( lmts.acceptable, <span class="string">'lower'</span> )
+0158                 WAD.out.results{end}.grens_acceptabel_onder = lmts.acceptable.lower;
+0159             <span class="keyword">end</span>
+0160             <span class="keyword">if</span> isfield( lmts.acceptable, <span class="string">'upper'</span> )
+0161                 WAD.out.results{end}.grens_acceptabel_boven = lmts.acceptable.upper;
+0162             <span class="keyword">end</span>
+0163         <span class="keyword">end</span>
+0164         <span class="keyword">if</span> isfield( lmts, <span class="string">'critical'</span> )
+0165             <span class="keyword">if</span> isfield( lmts.critical, <span class="string">'lower'</span> )
+0166                 WAD.out.results{end}.grens_kritisch_onder = lmts.critical.lower;
+0167             <span class="keyword">end</span>
+0168             <span class="keyword">if</span> isfield( lmts.critical, <span class="string">'upper'</span> )
+0169                 WAD.out.results{end}.grens_kritisch_boven = lmts.critical.upper;
+0170             <span class="keyword">end</span>
+0171         <span class="keyword">end</span>
+0172     <span class="keyword">end</span>
+0173 
+0174 <span class="keyword">else</span>
+0175     <span class="comment">% Action limits V1.1</span>
+0176     i_iLim = <a href="#_sub1" class="code" title="subfunction i_iLim = findLimits( limitsFieldName, variable, unit, description )">findLimits</a>( limitsFieldName, variable, unit, description );
+0177     <span class="keyword">if</span> ~isempty( i_iLim )
+0178         <span class="comment">% We have a match, use the first match...</span>
+0179         lmts = WAD.cfg.(limitsFieldName)( i_iLim(1) );
+0180         
+0181         <span class="comment">% Check if relative action limits are defined</span>
+0182         <span class="keyword">if</span> isfield( lmts, <span class="string">'grens_relatief_referentie'</span> ) &amp;&amp; ~isempty( lmts.grens_relatief_referentie )
+0183             <span class="keyword">if</span> isfield( lmts, <span class="string">'grens_relatief_acceptabel'</span> ) &amp;&amp; ~isempty( lmts.grens_relatief_acceptabel )
+0184                  relLim = <a href="#_sub2" class="code" title="subfunction limits = parseRelativeLimit( theLimit, theReference )">parseRelativeLimit</a>( lmts.grens_relatief_acceptabel, lmts.grens_relatief_referentie );
+0185                  WAD.out.results{end}.grens_acceptabel_onder = relLim(1);
+0186                  WAD.out.results{end}.grens_acceptabel_boven = relLim(2);
+0187             <span class="keyword">end</span>
+0188             <span class="keyword">if</span> isfield( lmts, <span class="string">'grens_relatief_kritisch'</span> ) &amp;&amp; ~isempty( lmts.grens_relatief_kritisch )
+0189                  relLim = <a href="#_sub2" class="code" title="subfunction limits = parseRelativeLimit( theLimit, theReference )">parseRelativeLimit</a>( lmts.grens_relatief_kritisch, lmts.grens_relatief_referentie );
+0190                  WAD.out.results{end}.grens_kritisch_onder = relLim(1);
+0191                  WAD.out.results{end}.grens_kritisch_boven = relLim(2);
+0192             <span class="keyword">end</span>
+0193         <span class="keyword">end</span>
+0194                 
+0195         <span class="comment">% Write any existing action limits to results (overwrites relative limits)</span>
+0196         <span class="keyword">if</span> isfield( lmts, <span class="string">'grens_acceptabel_onder'</span> ) &amp;&amp; ~isempty( lmts.grens_acceptabel_onder )
+0197             WAD.out.results{end}.grens_acceptabel_onder = lmts.grens_acceptabel_onder;
+0198         <span class="keyword">end</span>
+0199         <span class="keyword">if</span> isfield( lmts, <span class="string">'grens_acceptabel_boven'</span> ) &amp;&amp; ~isempty( lmts.grens_acceptabel_boven )
+0200             WAD.out.results{end}.grens_acceptabel_boven = lmts.grens_acceptabel_boven;
+0201         <span class="keyword">end</span>
+0202         <span class="keyword">if</span> isfield( lmts, <span class="string">'grens_kritisch_onder'</span> ) &amp;&amp; ~isempty( lmts.grens_kritisch_onder )
+0203             WAD.out.results{end}.grens_kritisch_onder = lmts.grens_kritisch_onder;
+0204         <span class="keyword">end</span>
+0205         <span class="keyword">if</span> isfield( lmts, <span class="string">'grens_kritisch_boven'</span> ) &amp;&amp; ~isempty( lmts.grens_kritisch_boven )
+0206             WAD.out.results{end}.grens_kritisch_boven = lmts.grens_kritisch_boven;
+0207         <span class="keyword">end</span>
+0208     <span class="keyword">end</span>
+0209 <span class="keyword">end</span>
+0210 <span class="keyword">end</span> <span class="comment">% function</span>
+0211 
+0212 
+0213 
+0214 <span class="comment">% Local helper functions</span>
+0215 <a name="_sub1" href="#_subfunctions" class="code">function i_iLim = findLimits( limitsFieldName, variable, unit, description )</a>
+0216 <span class="comment">% Find configured limits matching variable / unit / description of current result</span>
+0217 
+0218     <span class="keyword">global</span> WAD <span class="comment">% for access to WAD.cfg</span>
+0219 
+0220     <span class="comment">% Check if any limits defined</span>
+0221     i_iLim = [];
+0222     <span class="keyword">if</span> ~isempty( WAD.cfg ) &amp;&amp; isfield( WAD.cfg, limitsFieldName ) &amp;&amp; ~isempty( WAD.cfg.(limitsFieldName) )
+0223 
+0224         <span class="comment">% We should have some limits defined...</span>
+0225         sLimits = WAD.cfg.(limitsFieldName);
+0226 
+0227         <span class="comment">% Another check: need at least one item defined of variable / unit / description</span>
+0228         <span class="keyword">if</span> ( isfield( sLimits, <span class="string">'grootheid'</span> ) || isfield( sLimits, <span class="string">'eenheid'</span> ) || isfield( sLimits, <span class="string">'omschrijving'</span> ) ) <span class="keyword">...</span>
+0229             &amp;&amp; ( ~isempty( variable ) || ~isempty( unit ) || ~isempty( description ) )
+0230 
+0231             <span class="comment">% Find match of grootheid/eenheid/omschrijving with action limit</span>
+0232             <span class="keyword">if</span> ~isempty( variable ) &amp;&amp; isfield( sLimits, <span class="string">'grootheid'</span> )
+0233                 cmp1 = strcmp( variable, {sLimits.grootheid} );
+0234             <span class="keyword">else</span>
+0235                 cmp1 = true;
+0236             <span class="keyword">end</span>
+0237 
+0238             <span class="keyword">if</span> ~isempty( unit ) &amp;&amp; isfield( sLimits, <span class="string">'eenheid'</span> )
+0239                 cmp2 = strcmp( unit, {sLimits.eenheid} );
+0240             <span class="keyword">else</span>
+0241                 cmp2 = true;
+0242             <span class="keyword">end</span>
+0243 
+0244             <span class="keyword">if</span> ~isempty( description ) &amp;&amp; isfield( sLimits, <span class="string">'omschrijving'</span> )
+0245                 cmp3 = strcmp( description, {sLimits.omschrijving} );
+0246             <span class="keyword">else</span>
+0247                 cmp3 = true;
+0248             <span class="keyword">end</span>
+0249 
+0250             i_iLim = find( cmp1 &amp; cmp2 &amp; cmp3 );
+0251         <span class="keyword">end</span>
+0252     <span class="keyword">end</span>
+0253 <span class="keyword">end</span> <span class="comment">% findLimits( )</span>
+0254 
+0255 
+0256 <a name="_sub2" href="#_subfunctions" class="code">function limits = parseRelativeLimit( theLimit, theReference )</a>
+0257 <span class="comment">% Parse relative limit, formatted as percentage (10%) or offset (number)</span>
+0258     
+0259     <span class="comment">% check for '%' character</span>
+0260     <span class="keyword">if</span> strfind( theLimit, <span class="string">'%'</span>)
+0261         tmp = textscan( theLimit, <span class="string">'%f'</span>, <span class="string">'delimiter'</span>, <span class="string">'%'</span> );
+0262         relLim = tmp{1} / 100.0;
+0263         limits(1) = ( 1.0 - relLim ) .* theReference;
+0264         limits(2) = ( 1.0 + relLim ) .* theReference;
+0265     <span class="keyword">else</span>
+0266         limits(1) = theReference - theLimit;
+0267         limits(2) = theReference + theLimit;
+0268     <span class="keyword">end</span>
+0269 <span class="keyword">end</span> <span class="comment">% parseRelativeLimit( )</span></pre></div>
+<hr><address>Generated on Wed 27-Nov-2013 17:42:16 by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" target="_parent">m2html</a></strong> &copy; 2005</address>
 </body>
 </html>

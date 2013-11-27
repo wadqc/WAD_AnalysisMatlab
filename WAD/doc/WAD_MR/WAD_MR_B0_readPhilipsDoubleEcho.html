@@ -23,7 +23,7 @@
 <div class="box"><strong>------------------------------------------------------------------------</strong></div>
 
 <h2><a name="_synopsis"></a>SYNOPSIS <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
-<div class="box"><strong>function [magnitude, phase] = WAD_MR_B0_readPhilipsDoubleEcho( i_iSeries, sSeries, sParams, sLimits ) </strong></div>
+<div class="box"><strong>function [magnitude, phase] = WAD_MR_B0_readPhilipsDoubleEcho( i_iSeries, sSeries, sParams ) </strong></div>
 
 <h2><a name="_description"></a>DESCRIPTION <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
 <div class="fragment"><pre class="comment"> ------------------------------------------------------------------------
@@ -81,7 +81,7 @@ This function is called by:
 0019 <span class="comment">% along with this program.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
 0020 <span class="comment">% ------------------------------------------------------------------------</span>
 0021 
-0022 <a name="_sub0" href="#_subfunctions" class="code">function [magnitude, phase] = WAD_MR_B0_readPhilipsDoubleEcho( i_iSeries, sSeries, sParams, sLimits )</a>
+0022 <a name="_sub0" href="#_subfunctions" class="code">function [magnitude, phase] = WAD_MR_B0_readPhilipsDoubleEcho( i_iSeries, sSeries, sParams )</a>
 0023 <span class="comment">% Import function for BO uniformity Philips double echo FFE images.</span>
 0024 <span class="comment">% Acquisition must be single slice, with magnitude and phase images.</span>
 0025 <span class="comment">%</span>
@@ -112,93 +112,97 @@ This function is called by:
 0050 <span class="comment">%   through the &lt;type&gt; parameter. The actual function name gets a prefix</span>
 0051 <span class="comment">%   &quot;WAD_MR_B0_read&quot;.</span>
 0052 <span class="comment">% ------------------------------------------------------------------------</span>
-0053 
-0054 
-0055 <span class="comment">% ----------------------</span>
-0056 <span class="comment">% GLOBALS</span>
-0057 <span class="comment">% ----------------------</span>
-0058 <span class="comment">%global WAD</span>
-0059 
-0060 <span class="comment">% version info</span>
-0061 my.name = <span class="string">'WAD_MR_B0_readPhilipsDoubleEcho'</span>;
-0062 my.version = <span class="string">'0.95'</span>;
-0063 my.date = <span class="string">'20120813'</span>;
-0064 <a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [<span class="string">'Module '</span> my.name <span class="string">' Version '</span> my.version <span class="string">' ('</span> my.date <span class="string">')'</span>] );
-0065 
-0066 
-0067 <span class="comment">% output arguments</span>
-0068 magnitude = [];
-0069 phase = [];
+0053 <span class="comment">% 20131127 / JK</span>
+0054 <span class="comment">% V1.1</span>
+0055 <span class="comment">% - new (v1.1) style action limits</span>
+0056 <span class="comment">% ------------------------------------------------------------------------</span>
+0057 
+0058 
+0059 <span class="comment">% ----------------------</span>
+0060 <span class="comment">% GLOBALS</span>
+0061 <span class="comment">% ----------------------</span>
+0062 <span class="comment">%global WAD</span>
+0063 
+0064 <span class="comment">% version info</span>
+0065 my.name = <span class="string">'WAD_MR_B0_readPhilipsDoubleEcho'</span>;
+0066 my.version = <span class="string">'1.1'</span>;
+0067 my.date = <span class="string">'20131127'</span>;
+0068 <a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [<span class="string">'Module '</span> my.name <span class="string">' Version '</span> my.version <span class="string">' ('</span> my.date <span class="string">')'</span>] );
+0069 
 0070 
-0071 
-0072 <span class="comment">% ----------------------------------------------------</span>
-0073 <span class="comment">% check image type, get dicom header of first file</span>
-0074 <span class="comment">% ----------------------------------------------------</span>
-0075 fname = sSeries.instance( 1 ).filename;
-0076 <a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">':   Check type of B0 map... reading DICOM header of file '</span> fname ] );
-0077 info = dicominfo( fname );
-0078 
-0079 
-0080 <span class="keyword">if</span> isfield( info, <span class="string">'Private_2001_1020'</span> ) &amp;&amp;  strfind( info.Private_2001_1020, <span class="string">'FFE'</span> )
-0081     <span class="comment">% Philips product FFE sequence (hopefully with double echo and phase images)</span>
-0082     <a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">':   Detected Philips double echo FFE.'</span>] );
-0083 <span class="keyword">else</span>
-0084     <a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">':   Could not detect Philips double echo FFE. Private_2001_1020 not equal to &quot;FFE&quot;'</span>] );
-0085     error( <span class="string">'Error during import of phase images.'</span> )
-0086 <span class="keyword">end</span>
-0087 
-0088 <a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">':   Setting type of B0 map to Philips double echo with phase images.'</span>] );
-0089 <span class="comment">% Philips puts all imagese in one series:</span>
-0090 <span class="comment">% - first the 2 magnitude images</span>
-0091 <span class="comment">% - then the 2 phase images</span>
-0092 <span class="keyword">if</span> length( sSeries.instance ) ~= 4
-0093     <a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">':   ERROR: B0 map series does not have 4 images. Skipping analysis'</span>] );
-0094     error( <span class="string">'Error during import of phase images.'</span> )
-0095 <span class="keyword">end</span>
-0096 
-0097 <span class="comment">% magnitude series / image</span>
-0098 mci = 1;
-0099 <span class="comment">% phase series / image</span>
-0100 pci = 3; pci2 = 4; <span class="comment">% image number of phase images of first and second echo</span>
-0101 
-0102 
-0103 <span class="comment">% ----------------------------------------------------</span>
-0104 <span class="comment">% read DICOM images</span>
-0105 <span class="comment">% ----------------------------------------------------</span>
-0106 magnitude.filename = sSeries.instance( mci ).filename;
-0107 magnitude.info  = dicominfo( magnitude.filename );
-0108 magnitude.image = double( dicomread( magnitude.info ) );
-0109 
-0110 phase.filename  = sSeries.instance( pci ).filename;
-0111 phase.info      = dicominfo( phase.filename );
-0112 phase.image     = double( dicomread( phase.info ) );
+0071 <span class="comment">% output arguments</span>
+0072 magnitude = [];
+0073 phase = [];
+0074 
+0075 
+0076 <span class="comment">% ----------------------------------------------------</span>
+0077 <span class="comment">% check image type, get dicom header of first file</span>
+0078 <span class="comment">% ----------------------------------------------------</span>
+0079 fname = sSeries.instance( 1 ).filename;
+0080 <a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">':   Check type of B0 map... reading DICOM header of file '</span> fname ] );
+0081 info = dicominfo( fname );
+0082 
+0083 
+0084 <span class="keyword">if</span> isfield( info, <span class="string">'Private_2001_1020'</span> ) &amp;&amp;  strfind( info.Private_2001_1020, <span class="string">'FFE'</span> )
+0085     <span class="comment">% Philips product FFE sequence (hopefully with double echo and phase images)</span>
+0086     <a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">':   Detected Philips double echo FFE.'</span>] );
+0087 <span class="keyword">else</span>
+0088     <a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">':   Could not detect Philips double echo FFE. Private_2001_1020 not equal to &quot;FFE&quot;'</span>] );
+0089     error( <span class="string">'Error during import of phase images.'</span> )
+0090 <span class="keyword">end</span>
+0091 
+0092 <a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">':   Setting type of B0 map to Philips double echo with phase images.'</span>] );
+0093 <span class="comment">% Philips puts all imagese in one series:</span>
+0094 <span class="comment">% - first the 2 magnitude images</span>
+0095 <span class="comment">% - then the 2 phase images</span>
+0096 <span class="keyword">if</span> length( sSeries.instance ) ~= 4
+0097     <a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">':   ERROR: B0 map series does not have 4 images. Skipping analysis'</span>] );
+0098     error( <span class="string">'Error during import of phase images.'</span> )
+0099 <span class="keyword">end</span>
+0100 
+0101 <span class="comment">% magnitude series / image</span>
+0102 mci = 1;
+0103 <span class="comment">% phase series / image</span>
+0104 pci = 3; pci2 = 4; <span class="comment">% image number of phase images of first and second echo</span>
+0105 
+0106 
+0107 <span class="comment">% ----------------------------------------------------</span>
+0108 <span class="comment">% read DICOM images</span>
+0109 <span class="comment">% ----------------------------------------------------</span>
+0110 magnitude.filename = sSeries.instance( mci ).filename;
+0111 magnitude.info  = dicominfo( magnitude.filename );
+0112 magnitude.image = double( dicomread( magnitude.info ) );
 0113 
-0114 <span class="comment">% read second phase image, we need it for the scaling factor</span>
-0115 phase2.filename  = sSeries.instance( pci2 ).filename;
-0116 phase2.info      = dicominfo( phase2.filename );
-0117 phase2.image     = double( dicomread( phase2.info ) );
-0118 
-0119 <span class="comment">% conversion phase map from pixel values to radians</span>
-0120 <span class="comment">% Philips has the RescaleSlope field defined, and needs an</span>
-0121 <span class="comment">% additional factor 1000</span>
-0122 <span class="keyword">if</span> isfield( phase2.info, <span class="string">'RescaleSlope'</span> )
-0123     factor = phase2.info.RescaleSlope / 1000.0;
-0124     offset = 0; <span class="comment">% matlab reads the offset already from RescaleIntercept</span>
-0125 <span class="keyword">else</span>
-0126     <span class="comment">% don't know what to do without the rescale slope...</span>
-0127     <a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">':   ERROR: phase image does not have RescaleIntercept defined. Skipping analysis'</span>] );
-0128     error( <span class="string">'Error during import of phase images.'</span> )
-0129 <span class="keyword">end</span>
-0130 
-0131 <span class="comment">% subtract the first image</span>
-0132 phase.image = phase2.image - phase.image;
-0133 
-0134 <span class="comment">% convert from phase image from pixel values to radians</span>
-0135 phase.dPhi_rad = phase.image * factor - offset;
-0136 
-0137 <span class="comment">% get delta-TE from header of both phase images</span>
-0138 phase.dTE = phase2.info.EchoTime - phase.info.EchoTime;
-0139 <a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">':   Getting delta-TE from phase images: '</span> num2str(phase.dTE) <span class="string">' ms'</span>] );</pre></div>
-<hr><address>Generated on Wed 23-Oct-2013 14:08:22 by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" target="_parent">m2html</a></strong> &copy; 2005</address>
+0114 phase.filename  = sSeries.instance( pci ).filename;
+0115 phase.info      = dicominfo( phase.filename );
+0116 phase.image     = double( dicomread( phase.info ) );
+0117 
+0118 <span class="comment">% read second phase image, we need it for the scaling factor</span>
+0119 phase2.filename  = sSeries.instance( pci2 ).filename;
+0120 phase2.info      = dicominfo( phase2.filename );
+0121 phase2.image     = double( dicomread( phase2.info ) );
+0122 
+0123 <span class="comment">% conversion phase map from pixel values to radians</span>
+0124 <span class="comment">% Philips has the RescaleSlope field defined, and needs an</span>
+0125 <span class="comment">% additional factor 1000</span>
+0126 <span class="keyword">if</span> isfield( phase2.info, <span class="string">'RescaleSlope'</span> )
+0127     factor = phase2.info.RescaleSlope / 1000.0;
+0128     offset = 0; <span class="comment">% matlab reads the offset already from RescaleIntercept</span>
+0129 <span class="keyword">else</span>
+0130     <span class="comment">% don't know what to do without the rescale slope...</span>
+0131     <a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">':   ERROR: phase image does not have RescaleIntercept defined. Skipping analysis'</span>] );
+0132     error( <span class="string">'Error during import of phase images.'</span> )
+0133 <span class="keyword">end</span>
+0134 
+0135 <span class="comment">% subtract the first image</span>
+0136 phase.image = phase2.image - phase.image;
+0137 
+0138 <span class="comment">% convert from phase image from pixel values to radians</span>
+0139 phase.dPhi_rad = phase.image * factor - offset;
+0140 
+0141 <span class="comment">% get delta-TE from header of both phase images</span>
+0142 phase.dTE = phase2.info.EchoTime - phase.info.EchoTime;
+0143 <a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">':   Getting delta-TE from phase images: '</span> num2str(phase.dTE) <span class="string">' ms'</span>] );</pre></div>
+<hr><address>Generated on Wed 27-Nov-2013 17:42:16 by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" target="_parent">m2html</a></strong> &copy; 2005</address>
 </body>
 </html>

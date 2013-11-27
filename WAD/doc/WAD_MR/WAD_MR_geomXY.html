@@ -23,7 +23,7 @@
 <div class="box"><strong>------------------------------------------------------------------------</strong></div>
 
 <h2><a name="_synopsis"></a>SYNOPSIS <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
-<div class="box"><strong>function WAD_MR_geomXY( i_iSeries, sSeries, sParams, sLimits ) </strong></div>
+<div class="box"><strong>function WAD_MR_geomXY( i_iSeries, sSeries, sParams ) </strong></div>
 
 <h2><a name="_description"></a>DESCRIPTION <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
 <div class="fragment"><pre class="comment"> ------------------------------------------------------------------------
@@ -51,7 +51,7 @@
 <h2><a name="_cross"></a>CROSS-REFERENCE INFORMATION <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
 This function calls:
 <ul style="list-style-image:url(../matlabicon.gif)">
-<li><a href="../WAD/WAD_ErrorMsg.html" class="code" title="function WAD_ErrorMsg( name, mymessage, err )">WAD_ErrorMsg</a>	------------------------------------------------------------------------</li><li><a href="../WAD/WAD_resultsAppendFigure.html" class="code" title="function WAD_resultsAppendFigure( level, handle, tag, description )">WAD_resultsAppendFigure</a>	------------------------------------------------------------------------</li><li><a href="../WAD/WAD_resultsAppendFloat.html" class="code" title="function WAD_resultsAppendFloat( level, value, variable, unit, description, limits, limits_field_name )">WAD_resultsAppendFloat</a>	------------------------------------------------------------------------</li><li><a href="../WAD/WAD_resultsAppendString.html" class="code" title="function WAD_resultsAppendString( level, value, description )">WAD_resultsAppendString</a>	------------------------------------------------------------------------</li><li><a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>	------------------------------------------------------------------------</li><li><a href="../WAD/myErrordlg.html" class="code" title="function h = myErrordlg(isInteractive,varargin)">myErrordlg</a>	------------------------------------------------------------------------</li><li><a href="WAD_MR_privateSizePos_pix.html" class="code" title="function [diameter_pix, centre_pix, figureHandle ] = WAD_MR_privateSizePos_pix( sImage, sParams, quiet )">WAD_MR_privateSizePos_pix</a>	------------------------------------------------------------------------</li></ul>
+<li><a href="../WAD/WAD_ErrorMsg.html" class="code" title="function WAD_ErrorMsg( name, mymessage, err )">WAD_ErrorMsg</a>	------------------------------------------------------------------------</li><li><a href="../WAD/WAD_resultsAppendFigure.html" class="code" title="function WAD_resultsAppendFigure( level, handle, tag, description )">WAD_resultsAppendFigure</a>	------------------------------------------------------------------------</li><li><a href="../WAD/WAD_resultsAppendFloat.html" class="code" title="function WAD_resultsAppendFloat( level, value, variable, unit, description, sLimits, limits_field_name )">WAD_resultsAppendFloat</a>	------------------------------------------------------------------------</li><li><a href="../WAD/WAD_resultsAppendString.html" class="code" title="function WAD_resultsAppendString( level, value, description )">WAD_resultsAppendString</a>	------------------------------------------------------------------------</li><li><a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>	------------------------------------------------------------------------</li><li><a href="../WAD/myErrordlg.html" class="code" title="function h = myErrordlg(isInteractive,varargin)">myErrordlg</a>	------------------------------------------------------------------------</li><li><a href="WAD_MR_privateSizePos_pix.html" class="code" title="function [diameter_pix, centre_pix, figureHandle ] = WAD_MR_privateSizePos_pix( sImage, sParams, quiet )">WAD_MR_privateSizePos_pix</a>	------------------------------------------------------------------------</li></ul>
 This function is called by:
 <ul style="list-style-image:url(../matlabicon.gif)">
 </ul>
@@ -81,7 +81,7 @@ This function is called by:
 0019 <span class="comment">% along with this program.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
 0020 <span class="comment">% ------------------------------------------------------------------------</span>
 0021 
-0022 <a name="_sub0" href="#_subfunctions" class="code">function WAD_MR_geomXY( i_iSeries, sSeries, sParams, sLimits )</a>
+0022 <a name="_sub0" href="#_subfunctions" class="code">function WAD_MR_geomXY( i_iSeries, sSeries, sParams )</a>
 0023 <span class="comment">% Calculate the diameter along horizontal and vertical axis of a plain water image</span>
 0024 <span class="comment">% ------------------------------------------------------------------------</span>
 0025 <span class="comment">% WAD MR</span>
@@ -194,14 +194,14 @@ This function is called by:
 0132     delete( hFigGeomXY );
 0133 <span class="keyword">end</span>
 0134 
-0135 <a href="../WAD/WAD_resultsAppendFloat.html" class="code" title="function WAD_resultsAppendFloat( level, value, variable, unit, description, limits, limits_field_name )">WAD_resultsAppendFloat</a>( 1, diameterX_mm, <span class="string">'Diameter'</span>, <span class="string">'mm'</span>, <span class="string">'Geometrie X'</span>, sLimits, <span class="string">'diameterX_mm'</span> );
-0136 <a href="../WAD/WAD_resultsAppendFloat.html" class="code" title="function WAD_resultsAppendFloat( level, value, variable, unit, description, limits, limits_field_name )">WAD_resultsAppendFloat</a>( 1, diameterY_mm, <span class="string">'Diameter'</span>, <span class="string">'mm'</span>, <span class="string">'Geometrie Y'</span>, sLimits, <span class="string">'diameterY_mm'</span> );
+0135 <a href="../WAD/WAD_resultsAppendFloat.html" class="code" title="function WAD_resultsAppendFloat( level, value, variable, unit, description, sLimits, limits_field_name )">WAD_resultsAppendFloat</a>( 1, diameterX_mm, <span class="string">'Diameter'</span>, <span class="string">'mm'</span>, <span class="string">'Geometrie X'</span> );
+0136 <a href="../WAD/WAD_resultsAppendFloat.html" class="code" title="function WAD_resultsAppendFloat( level, value, variable, unit, description, sLimits, limits_field_name )">WAD_resultsAppendFloat</a>( 1, diameterY_mm, <span class="string">'Diameter'</span>, <span class="string">'mm'</span>, <span class="string">'Geometrie Y'</span> );
 0137 
 0138 
 0139 <span class="comment">% close waitbar in interactive mode</span>
 0140 <span class="keyword">if</span> isInteractive, close( h ), <span class="keyword">end</span>
 0141 
 0142 <span class="keyword">return</span></pre></div>
-<hr><address>Generated on Wed 23-Oct-2013 14:08:22 by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" target="_parent">m2html</a></strong> &copy; 2005</address>
+<hr><address>Generated on Wed 27-Nov-2013 17:42:16 by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" target="_parent">m2html</a></strong> &copy; 2005</address>
 </body>
 </html>

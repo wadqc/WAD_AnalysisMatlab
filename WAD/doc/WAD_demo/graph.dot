@@ -1,7 +1,0 @@
-/* Created by mdot for Matlab */
-digraph m2html {
-
-  WAD_demo [URL="WAD_demo.html"];
-  WAD_demo_actionOne [URL="WAD_demo_actionOne.html"];
-  WAD_demo_actionTwo [URL="WAD_demo_actionTwo.html"];
-}

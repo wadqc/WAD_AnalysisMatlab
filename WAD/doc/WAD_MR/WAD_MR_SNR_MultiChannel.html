@@ -23,7 +23,7 @@
 <div class="box"><strong>------------------------------------------------------------------------</strong></div>
 
 <h2><a name="_synopsis"></a>SYNOPSIS <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
-<div class="box"><strong>function WAD_MR_SNR_MultiChannel( i_iSeries, sSeries, sParams, sLimits ) </strong></div>
+<div class="box"><strong>function WAD_MR_SNR_MultiChannel( i_iSeries, sSeries, sParams ) </strong></div>
 
 <h2><a name="_description"></a>DESCRIPTION <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
 <div class="fragment"><pre class="comment"> ------------------------------------------------------------------------
@@ -51,7 +51,7 @@
 <h2><a name="_cross"></a>CROSS-REFERENCE INFORMATION <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
 This function calls:
 <ul style="list-style-image:url(../matlabicon.gif)">
-<li><a href="../WAD/WAD_resultsAppendFloat.html" class="code" title="function WAD_resultsAppendFloat( level, value, variable, unit, description, limits, limits_field_name )">WAD_resultsAppendFloat</a>	------------------------------------------------------------------------</li><li><a href="../WAD/WAD_resultsAppendString.html" class="code" title="function WAD_resultsAppendString( level, value, description )">WAD_resultsAppendString</a>	------------------------------------------------------------------------</li><li><a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>	------------------------------------------------------------------------</li><li><a href="../WAD/myErrordlg.html" class="code" title="function h = myErrordlg(isInteractive,varargin)">myErrordlg</a>	------------------------------------------------------------------------</li><li><a href="WAD_MR_privateSNR_ghost.html" class="code" title="function [SNR, ghostRow_percent, ghostCol_percent, PIU, figureHandle] = WAD_MR_privateSNR_ghost( image, centrePos_pix, sParams, quiet )">WAD_MR_privateSNR_ghost</a>	*******************************************************************************</li><li><a href="WAD_MR_privateSizePos_pix.html" class="code" title="function [diameter_pix, centre_pix, figureHandle ] = WAD_MR_privateSizePos_pix( sImage, sParams, quiet )">WAD_MR_privateSizePos_pix</a>	------------------------------------------------------------------------</li></ul>
+<li><a href="../WAD/WAD_resultsAppendFloat.html" class="code" title="function WAD_resultsAppendFloat( level, value, variable, unit, description, sLimits, limits_field_name )">WAD_resultsAppendFloat</a>	------------------------------------------------------------------------</li><li><a href="../WAD/WAD_resultsAppendString.html" class="code" title="function WAD_resultsAppendString( level, value, description )">WAD_resultsAppendString</a>	------------------------------------------------------------------------</li><li><a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>	------------------------------------------------------------------------</li><li><a href="../WAD/myErrordlg.html" class="code" title="function h = myErrordlg(isInteractive,varargin)">myErrordlg</a>	------------------------------------------------------------------------</li><li><a href="WAD_MR_privateSNR_ghost.html" class="code" title="function [SNR, ghostRow_percent, ghostCol_percent, PIU, figureHandle] = WAD_MR_privateSNR_ghost( image, centrePos_pix, sParams, quiet )">WAD_MR_privateSNR_ghost</a>	*******************************************************************************</li><li><a href="WAD_MR_privateSizePos_pix.html" class="code" title="function [diameter_pix, centre_pix, figureHandle ] = WAD_MR_privateSizePos_pix( sImage, sParams, quiet )">WAD_MR_privateSizePos_pix</a>	------------------------------------------------------------------------</li></ul>
 This function is called by:
 <ul style="list-style-image:url(../matlabicon.gif)">
 </ul>
@@ -81,7 +81,7 @@ This function is called by:
 0019 <span class="comment">% along with this program.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
 0020 <span class="comment">% ------------------------------------------------------------------------</span>
 0021 
-0022 <a name="_sub0" href="#_subfunctions" class="code">function WAD_MR_SNR_MultiChannel( i_iSeries, sSeries, sParams, sLimits )</a>
+0022 <a name="_sub0" href="#_subfunctions" class="code">function WAD_MR_SNR_MultiChannel( i_iSeries, sSeries, sParams )</a>
 0023 <span class="comment">% Evaluate SNR on uncombined images of the central slice</span>
 0024 <span class="comment">%</span>
 0025 <span class="comment">% Related config entries:</span>
@@ -114,7 +114,7 @@ This function is called by:
 0052 <span class="comment">% version info</span>
 0053 my.name = <span class="string">'WAD_MR_SNR_MultiChannel'</span>;
 0054 my.version = <span class="string">'1.1'</span>;
-0055 my.date = <span class="string">'20130904'</span>;
+0055 my.date = <span class="string">'20131127'</span>;
 0056 <a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [<span class="string">'Module '</span> my.name <span class="string">' Version '</span> my.version <span class="string">' ('</span> my.date <span class="string">')'</span>] );
 0057 
 0058 
@@ -306,13 +306,13 @@ This function is called by:
 0244         <a href="../WAD/WAD_resultsAppendString.html" class="code" title="function WAD_resultsAppendString( level, value, description )">WAD_resultsAppendString</a>( 2, [<span class="string">'Multichannel SNR on series: '</span> num2str(sSeries.number)], <span class="string">'SNR multi-channel'</span> );
 0245     <span class="keyword">end</span>
 0246     <span class="comment">% TO DO: how to handle action limits for MC coils...?</span>
-0247     <a href="../WAD/WAD_resultsAppendFloat.html" class="code" title="function WAD_resultsAppendFloat( level, value, variable, unit, description, limits, limits_field_name )">WAD_resultsAppendFloat</a>( 1, SNR_henk, <span class="string">'SNR'</span>, [], [<span class="string">'Coil '</span> num2str(inum)], [], [] );
+0247     <a href="../WAD/WAD_resultsAppendFloat.html" class="code" title="function WAD_resultsAppendFloat( level, value, variable, unit, description, sLimits, limits_field_name )">WAD_resultsAppendFloat</a>( 1, SNR_henk, <span class="string">'SNR'</span>, [], [<span class="string">'Coil '</span> num2str(inum)] );
 0248 <span class="keyword">end</span>
 0249 
 0250 <span class="comment">% close waitbar in interactive mode</span>
 0251 <span class="keyword">if</span> isInteractive, close(h), <span class="keyword">end</span>
 0252 
 0253 <span class="keyword">return</span></pre></div>
-<hr><address>Generated on Wed 23-Oct-2013 14:08:22 by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" target="_parent">m2html</a></strong> &copy; 2005</address>
+<hr><address>Generated on Wed 27-Nov-2013 17:42:16 by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" target="_parent">m2html</a></strong> &copy; 2005</address>
 </body>
 </html>

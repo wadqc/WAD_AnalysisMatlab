@@ -23,7 +23,7 @@
 <div class="box"><strong>------------------------------------------------------------------------</strong></div>
 
 <h2><a name="_synopsis"></a>SYNOPSIS <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
-<div class="box"><strong>function WAD_MG_AEC( i_iSeries, sSeries, sParams, sLimits ) </strong></div>
+<div class="box"><strong>function WAD_MG_AEC( i_iSeries, sSeries, sParams ) </strong></div>
 
 <h2><a name="_description"></a>DESCRIPTION <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
 <div class="fragment"><pre class="comment"> ------------------------------------------------------------------------
@@ -51,7 +51,7 @@
 <h2><a name="_cross"></a>CROSS-REFERENCE INFORMATION <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
 This function calls:
 <ul style="list-style-image:url(../matlabicon.gif)">
-<li><a href="../WAD/WAD_ErrorMsg.html" class="code" title="function WAD_ErrorMsg( name, mymessage, err )">WAD_ErrorMsg</a>	------------------------------------------------------------------------</li><li><a href="../WAD/WAD_resultsAppendFloat.html" class="code" title="function WAD_resultsAppendFloat( level, value, variable, unit, description, limits, limits_field_name )">WAD_resultsAppendFloat</a>	------------------------------------------------------------------------</li><li><a href="../WAD/WAD_resultsAppendString.html" class="code" title="function WAD_resultsAppendString( level, value, description )">WAD_resultsAppendString</a>	------------------------------------------------------------------------</li><li><a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>	------------------------------------------------------------------------</li><li><a href="../WAD/myErrordlg.html" class="code" title="function h = myErrordlg(isInteractive,varargin)">myErrordlg</a>	------------------------------------------------------------------------</li></ul>
+<li><a href="../WAD/WAD_ErrorMsg.html" class="code" title="function WAD_ErrorMsg( name, mymessage, err )">WAD_ErrorMsg</a>	------------------------------------------------------------------------</li><li><a href="../WAD/WAD_resultsAppendFloat.html" class="code" title="function WAD_resultsAppendFloat( level, value, variable, unit, description, sLimits, limits_field_name )">WAD_resultsAppendFloat</a>	------------------------------------------------------------------------</li><li><a href="../WAD/WAD_resultsAppendString.html" class="code" title="function WAD_resultsAppendString( level, value, description )">WAD_resultsAppendString</a>	------------------------------------------------------------------------</li><li><a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>	------------------------------------------------------------------------</li><li><a href="../WAD/myErrordlg.html" class="code" title="function h = myErrordlg(isInteractive,varargin)">myErrordlg</a>	------------------------------------------------------------------------</li></ul>
 This function is called by:
 <ul style="list-style-image:url(../matlabicon.gif)">
 </ul>
@@ -83,7 +83,7 @@ This function is called by:
 0019 <span class="comment">% along with this program.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
 0020 <span class="comment">% ------------------------------------------------------------------------</span>
 0021 
-0022 <a name="_sub0" href="#_subfunctions" class="code">function WAD_MG_AEC( i_iSeries, sSeries, sParams, sLimits )</a>
+0022 <a name="_sub0" href="#_subfunctions" class="code">function WAD_MG_AEC( i_iSeries, sSeries, sParams )</a>
 0023 <span class="comment">% Get the AEC related parameters from the DICOM header.</span>
 0024 <span class="comment">% mAs, exposure index, ExposureTime, kVp, filtration,</span>
 0025 <span class="comment">% ExposureControlModeDescription (=position of the AEC field)</span>
@@ -100,146 +100,149 @@ This function is called by:
 0036 <span class="comment">% 2012-08-14 / JK</span>
 0037 <span class="comment">% Adapted to WAD framework</span>
 0038 <span class="comment">% ------------------------------------------------------------------------</span>
-0039 
-0040 <span class="comment">% ----------------------</span>
-0041 <span class="comment">% GLOBALS</span>
-0042 <span class="comment">% ----------------------</span>
-0043 <span class="comment">%global WAD</span>
-0044 
-0045 <span class="comment">% version info</span>
-0046 my.name = <span class="string">'WAD_MG_AEC'</span>;
-0047 my.version = <span class="string">'1.0'</span>;
-0048 my.date = <span class="string">'20120814'</span>;
-0049 <a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [<span class="string">'Module '</span> my.name <span class="string">' Version '</span> my.version <span class="string">' ('</span> my.date <span class="string">')'</span>] );
-0050 
-0051 
-0052 isInteractive = false;
+0039 <span class="comment">% 20131127 / JK</span>
+0040 <span class="comment">% Support new (v1.1) style action limits</span>
+0041 <span class="comment">% ------------------------------------------------------------------------</span>
+0042 
+0043 <span class="comment">% ----------------------</span>
+0044 <span class="comment">% GLOBALS</span>
+0045 <span class="comment">% ----------------------</span>
+0046 <span class="comment">%global WAD</span>
+0047 
+0048 <span class="comment">% version info</span>
+0049 my.name = <span class="string">'WAD_MG_AEC'</span>;
+0050 my.version = <span class="string">'1.1'</span>;
+0051 my.date = <span class="string">'20131127'</span>;
+0052 <a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [<span class="string">'Module '</span> my.name <span class="string">' Version '</span> my.version <span class="string">' ('</span> my.date <span class="string">')'</span>] );
 0053 
-0054 <span class="comment">% read dicom header of first image of currently selected series</span>
-0055 fname = sSeries.instance(1).filename;
+0054 
+0055 isInteractive = false;
 0056 
-0057 <a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">':   reading DICOM image: '</span> fname ] );
-0058 
-0059 <span class="keyword">try</span>
-0060     dicomheader = dicominfo( fname );
-0061 <span class="keyword">catch</span> err
-0062     <a href="../WAD/WAD_ErrorMsg.html" class="code" title="function WAD_ErrorMsg( name, mymessage, err )">WAD_ErrorMsg</a>( [my.name, <span class="string">'ERROR reading DICOM file &quot;'</span> fname <span class="string">'&quot;'</span>, err] );
-0063     <span class="keyword">return</span>
-0064 <span class="keyword">end</span>
-0065 
-0066 <span class="comment">% ----------------------------</span>
-0067 <span class="comment">% mAs</span>
-0068 <span class="comment">% ----------------------------</span>
-0069 <span class="comment">% mAs should be defined, but check anyway...</span>
-0070 [value, status] = <a href="#_sub1" class="code" title="subfunction [value, status] = getFieldFromDicomHdr( hdr, fieldname )">getFieldFromDicomHdr</a>( dicomheader, <span class="string">'ExposureInuAs'</span> );
-0071 <span class="keyword">if</span> status
-0072     <a href="../WAD/WAD_resultsAppendFloat.html" class="code" title="function WAD_resultsAppendFloat( level, value, variable, unit, description, limits, limits_field_name )">WAD_resultsAppendFloat</a>( 1, double(value) / 1000.0, <span class="string">'Exposure'</span>, <span class="string">'mAs'</span>, <span class="string">'AEC'</span>, sLimits, <span class="string">'Exposure'</span> );
-0073 <span class="keyword">else</span>
-0074     [value, status] = <a href="#_sub1" class="code" title="subfunction [value, status] = getFieldFromDicomHdr( hdr, fieldname )">getFieldFromDicomHdr</a>( dicomheader, <span class="string">'Exposure'</span> );
-0075     <span class="keyword">if</span> status
-0076         <a href="../WAD/WAD_resultsAppendFloat.html" class="code" title="function WAD_resultsAppendFloat( level, value, variable, unit, description, limits, limits_field_name )">WAD_resultsAppendFloat</a>( 1, double(value), <span class="string">'Exposure'</span>, <span class="string">'mAs'</span>, <span class="string">'AEC'</span>, sLimits, <span class="string">'Exposure'</span> );
-0077     <span class="keyword">else</span>
-0078         <a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">':   ERROR: neither ExposureInuAs nor Exposure field are defined in DICOM header.'</span>] );
-0079     <span class="keyword">end</span>
-0080 <span class="keyword">end</span>
-0081 
-0082 
-0083 <span class="comment">% ----------------------------</span>
-0084 <span class="comment">% Exposure Index</span>
-0085 <span class="comment">% ----------------------------</span>
-0086 <span class="comment">% check if field is defined in config file ...</span>
-0087 <span class="keyword">if</span> isfield( sParams, <span class="string">'EI_field'</span> ) &amp;&amp; ~isempty( sParams.EI_field )
-0088     [value, status] = <a href="#_sub1" class="code" title="subfunction [value, status] = getFieldFromDicomHdr( hdr, fieldname )">getFieldFromDicomHdr</a>( dicomheader, sParams.EI_field );
-0089     <span class="keyword">if</span> status
-0090         <a href="../WAD/WAD_resultsAppendFloat.html" class="code" title="function WAD_resultsAppendFloat( level, value, variable, unit, description, limits, limits_field_name )">WAD_resultsAppendFloat</a>( 1, double(value), <span class="string">'Exposure Index'</span>, [], <span class="string">'AEC'</span>, sLimits, <span class="string">'ExposureIndex'</span> );
-0091     <span class="keyword">end</span>
-0092 <span class="keyword">else</span>
-0093     <a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">':   Error: no parameter for EI_field containing the DICOM field name for exposure index.'</span>] );
-0094     <a href="../WAD/myErrordlg.html" class="code" title="function h = myErrordlg(isInteractive,varargin)">myErrordlg</a>( isInteractive, <span class="keyword">...</span>
-0095         {<span class="string">'The config has no parameter EI_field defined containing the DICOM field name for exposure index.'</span>,<span class="string">'Please check the SQVID.config file.'</span>}, <span class="keyword">...</span>
-0096         <span class="string">'Error getting Exposure Index'</span>, <span class="string">'on'</span> );
-0097 <span class="keyword">end</span>
-0098 
-0099 
-0100 <span class="comment">% ----------------------------</span>
-0101 <span class="comment">% exposure time</span>
-0102 <span class="comment">% ----------------------------</span>
-0103 [value, status] = <a href="#_sub1" class="code" title="subfunction [value, status] = getFieldFromDicomHdr( hdr, fieldname )">getFieldFromDicomHdr</a>( dicomheader, <span class="string">'ExposureTime'</span> );
-0104 <span class="keyword">if</span> status
-0105     <a href="../WAD/WAD_resultsAppendFloat.html" class="code" title="function WAD_resultsAppendFloat( level, value, variable, unit, description, limits, limits_field_name )">WAD_resultsAppendFloat</a>( 1, double(value), <span class="string">'Exposure Time'</span>, [], <span class="string">'AEC'</span>, sLimits, <span class="string">'ExposureTime'</span> );
-0106 <span class="keyword">end</span>
-0107 
-0108 
-0109 <span class="comment">% ----------------------------</span>
-0110 <span class="comment">% organ dose</span>
-0111 <span class="comment">% ----------------------------</span>
-0112 [value, status] = <a href="#_sub1" class="code" title="subfunction [value, status] = getFieldFromDicomHdr( hdr, fieldname )">getFieldFromDicomHdr</a>( dicomheader, <span class="string">'OrganDose'</span> );
-0113 <span class="keyword">if</span> status
-0114     <a href="../WAD/WAD_resultsAppendFloat.html" class="code" title="function WAD_resultsAppendFloat( level, value, variable, unit, description, limits, limits_field_name )">WAD_resultsAppendFloat</a>( 1, double(value), <span class="string">'Organ Dose'</span>, [], <span class="string">'AEC'</span>, sLimits, <span class="string">'OrganDose'</span> );
-0115 <span class="keyword">end</span>
-0116 
-0117 
-0118 <span class="comment">% ----------------------------</span>
-0119 <span class="comment">% entrance dose</span>
-0120 <span class="comment">% ----------------------------</span>
-0121 [value, status] = <a href="#_sub1" class="code" title="subfunction [value, status] = getFieldFromDicomHdr( hdr, fieldname )">getFieldFromDicomHdr</a>( dicomheader, <span class="string">'EntranceDoseInmGy'</span> );
-0122 <span class="keyword">if</span> status
-0123     <a href="../WAD/WAD_resultsAppendFloat.html" class="code" title="function WAD_resultsAppendFloat( level, value, variable, unit, description, limits, limits_field_name )">WAD_resultsAppendFloat</a>( 1, double(value), <span class="string">'EntranceDose'</span>, <span class="string">'mGy'</span>, <span class="string">'AEC'</span>, sLimits, <span class="string">'EntranceDose'</span> );
-0124 <span class="keyword">end</span>
-0125 
-0126 
-0127 <span class="comment">% ----------------------------</span>
-0128 <span class="comment">% kVp</span>
-0129 <span class="comment">% ----------------------------</span>
-0130 [value, status] = <a href="#_sub1" class="code" title="subfunction [value, status] = getFieldFromDicomHdr( hdr, fieldname )">getFieldFromDicomHdr</a>( dicomheader, <span class="string">'KVP'</span> );
-0131 <span class="keyword">if</span> status
-0132     <a href="../WAD/WAD_resultsAppendFloat.html" class="code" title="function WAD_resultsAppendFloat( level, value, variable, unit, description, limits, limits_field_name )">WAD_resultsAppendFloat</a>( 1, double(value), <span class="string">'kVp'</span>, [], [], sLimits, <span class="string">'kVp'</span> );
-0133 <span class="keyword">end</span>
-0134 
-0135 
-0136 <span class="comment">% ----------------------------</span>
-0137 <span class="comment">% anode target material</span>
-0138 <span class="comment">% ----------------------------</span>
-0139 [value, status] = <a href="#_sub1" class="code" title="subfunction [value, status] = getFieldFromDicomHdr( hdr, fieldname )">getFieldFromDicomHdr</a>( dicomheader, <span class="string">'AnodeTargetMaterial'</span> );
-0140 <span class="keyword">if</span> status
-0141     <a href="../WAD/WAD_resultsAppendString.html" class="code" title="function WAD_resultsAppendString( level, value, description )">WAD_resultsAppendString</a>( 1, value, <span class="string">'AEC Anode Target Material'</span> );
-0142 <span class="keyword">end</span>
-0143 
-0144 
-0145 <span class="comment">% ----------------------------</span>
-0146 <span class="comment">% filter material</span>
-0147 <span class="comment">% ----------------------------</span>
-0148 [value, status] = <a href="#_sub1" class="code" title="subfunction [value, status] = getFieldFromDicomHdr( hdr, fieldname )">getFieldFromDicomHdr</a>( dicomheader, <span class="string">'FilterMaterial'</span> );
-0149 <span class="keyword">if</span> status
-0150     <a href="../WAD/WAD_resultsAppendString.html" class="code" title="function WAD_resultsAppendString( level, value, description )">WAD_resultsAppendString</a>( 1, value, <span class="string">'AEC Filter Material'</span> );
-0151 <span class="keyword">end</span>
-0152 
-0153 
-0154 <span class="comment">% ----------------------------</span>
-0155 <span class="comment">% ExposureControlModeDescription</span>
-0156 <span class="comment">% gives position of AEC sensor</span>
+0057 <span class="comment">% read dicom header of first image of currently selected series</span>
+0058 fname = sSeries.instance(1).filename;
+0059 
+0060 <a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">':   reading DICOM image: '</span> fname ] );
+0061 
+0062 <span class="keyword">try</span>
+0063     dicomheader = dicominfo( fname );
+0064 <span class="keyword">catch</span> err
+0065     <a href="../WAD/WAD_ErrorMsg.html" class="code" title="function WAD_ErrorMsg( name, mymessage, err )">WAD_ErrorMsg</a>( [my.name, <span class="string">'ERROR reading DICOM file &quot;'</span> fname <span class="string">'&quot;'</span>, err] );
+0066     <span class="keyword">return</span>
+0067 <span class="keyword">end</span>
+0068 
+0069 <span class="comment">% ----------------------------</span>
+0070 <span class="comment">% mAs</span>
+0071 <span class="comment">% ----------------------------</span>
+0072 <span class="comment">% mAs should be defined, but check anyway...</span>
+0073 [value, status] = <a href="#_sub1" class="code" title="subfunction [value, status] = getFieldFromDicomHdr( hdr, fieldname )">getFieldFromDicomHdr</a>( dicomheader, <span class="string">'ExposureInuAs'</span> );
+0074 <span class="keyword">if</span> status
+0075     <a href="../WAD/WAD_resultsAppendFloat.html" class="code" title="function WAD_resultsAppendFloat( level, value, variable, unit, description, sLimits, limits_field_name )">WAD_resultsAppendFloat</a>( 1, double(value) / 1000.0, <span class="string">'Exposure'</span>, <span class="string">'mAs'</span>, <span class="string">'AEC'</span> );
+0076 <span class="keyword">else</span>
+0077     [value, status] = <a href="#_sub1" class="code" title="subfunction [value, status] = getFieldFromDicomHdr( hdr, fieldname )">getFieldFromDicomHdr</a>( dicomheader, <span class="string">'Exposure'</span> );
+0078     <span class="keyword">if</span> status
+0079         <a href="../WAD/WAD_resultsAppendFloat.html" class="code" title="function WAD_resultsAppendFloat( level, value, variable, unit, description, sLimits, limits_field_name )">WAD_resultsAppendFloat</a>( 1, double(value), <span class="string">'Exposure'</span>, <span class="string">'mAs'</span>, <span class="string">'AEC'</span> );
+0080     <span class="keyword">else</span>
+0081         <a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">':   ERROR: neither ExposureInuAs nor Exposure field are defined in DICOM header.'</span>] );
+0082     <span class="keyword">end</span>
+0083 <span class="keyword">end</span>
+0084 
+0085 
+0086 <span class="comment">% ----------------------------</span>
+0087 <span class="comment">% Exposure Index</span>
+0088 <span class="comment">% ----------------------------</span>
+0089 <span class="comment">% check if field is defined in config file ...</span>
+0090 <span class="keyword">if</span> isfield( sParams, <span class="string">'EI_field'</span> ) &amp;&amp; ~isempty( sParams.EI_field )
+0091     [value, status] = <a href="#_sub1" class="code" title="subfunction [value, status] = getFieldFromDicomHdr( hdr, fieldname )">getFieldFromDicomHdr</a>( dicomheader, sParams.EI_field );
+0092     <span class="keyword">if</span> status
+0093         <a href="../WAD/WAD_resultsAppendFloat.html" class="code" title="function WAD_resultsAppendFloat( level, value, variable, unit, description, sLimits, limits_field_name )">WAD_resultsAppendFloat</a>( 1, double(value), <span class="string">'Exposure Index'</span>, [], <span class="string">'AEC'</span> );
+0094     <span class="keyword">end</span>
+0095 <span class="keyword">else</span>
+0096     <a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">':   Error: no parameter for EI_field containing the DICOM field name for exposure index.'</span>] );
+0097     <a href="../WAD/myErrordlg.html" class="code" title="function h = myErrordlg(isInteractive,varargin)">myErrordlg</a>( isInteractive, <span class="keyword">...</span>
+0098         {<span class="string">'The config has no parameter EI_field defined containing the DICOM field name for exposure index.'</span>,<span class="string">'Please check the SQVID.config file.'</span>}, <span class="keyword">...</span>
+0099         <span class="string">'Error getting Exposure Index'</span>, <span class="string">'on'</span> );
+0100 <span class="keyword">end</span>
+0101 
+0102 
+0103 <span class="comment">% ----------------------------</span>
+0104 <span class="comment">% exposure time</span>
+0105 <span class="comment">% ----------------------------</span>
+0106 [value, status] = <a href="#_sub1" class="code" title="subfunction [value, status] = getFieldFromDicomHdr( hdr, fieldname )">getFieldFromDicomHdr</a>( dicomheader, <span class="string">'ExposureTime'</span> );
+0107 <span class="keyword">if</span> status
+0108     <a href="../WAD/WAD_resultsAppendFloat.html" class="code" title="function WAD_resultsAppendFloat( level, value, variable, unit, description, sLimits, limits_field_name )">WAD_resultsAppendFloat</a>( 1, double(value), <span class="string">'Exposure Time'</span>, [], <span class="string">'AEC'</span> );
+0109 <span class="keyword">end</span>
+0110 
+0111 
+0112 <span class="comment">% ----------------------------</span>
+0113 <span class="comment">% organ dose</span>
+0114 <span class="comment">% ----------------------------</span>
+0115 [value, status] = <a href="#_sub1" class="code" title="subfunction [value, status] = getFieldFromDicomHdr( hdr, fieldname )">getFieldFromDicomHdr</a>( dicomheader, <span class="string">'OrganDose'</span> );
+0116 <span class="keyword">if</span> status
+0117     <a href="../WAD/WAD_resultsAppendFloat.html" class="code" title="function WAD_resultsAppendFloat( level, value, variable, unit, description, sLimits, limits_field_name )">WAD_resultsAppendFloat</a>( 1, double(value), <span class="string">'Organ Dose'</span>, [], <span class="string">'AEC'</span> );
+0118 <span class="keyword">end</span>
+0119 
+0120 
+0121 <span class="comment">% ----------------------------</span>
+0122 <span class="comment">% entrance dose</span>
+0123 <span class="comment">% ----------------------------</span>
+0124 [value, status] = <a href="#_sub1" class="code" title="subfunction [value, status] = getFieldFromDicomHdr( hdr, fieldname )">getFieldFromDicomHdr</a>( dicomheader, <span class="string">'EntranceDoseInmGy'</span> );
+0125 <span class="keyword">if</span> status
+0126     <a href="../WAD/WAD_resultsAppendFloat.html" class="code" title="function WAD_resultsAppendFloat( level, value, variable, unit, description, sLimits, limits_field_name )">WAD_resultsAppendFloat</a>( 1, double(value), <span class="string">'EntranceDose'</span>, <span class="string">'mGy'</span>, <span class="string">'AEC'</span> );
+0127 <span class="keyword">end</span>
+0128 
+0129 
+0130 <span class="comment">% ----------------------------</span>
+0131 <span class="comment">% kVp</span>
+0132 <span class="comment">% ----------------------------</span>
+0133 [value, status] = <a href="#_sub1" class="code" title="subfunction [value, status] = getFieldFromDicomHdr( hdr, fieldname )">getFieldFromDicomHdr</a>( dicomheader, <span class="string">'KVP'</span> );
+0134 <span class="keyword">if</span> status
+0135     <a href="../WAD/WAD_resultsAppendFloat.html" class="code" title="function WAD_resultsAppendFloat( level, value, variable, unit, description, sLimits, limits_field_name )">WAD_resultsAppendFloat</a>( 1, double(value), <span class="string">'kVp'</span>, [], [] );
+0136 <span class="keyword">end</span>
+0137 
+0138 
+0139 <span class="comment">% ----------------------------</span>
+0140 <span class="comment">% anode target material</span>
+0141 <span class="comment">% ----------------------------</span>
+0142 [value, status] = <a href="#_sub1" class="code" title="subfunction [value, status] = getFieldFromDicomHdr( hdr, fieldname )">getFieldFromDicomHdr</a>( dicomheader, <span class="string">'AnodeTargetMaterial'</span> );
+0143 <span class="keyword">if</span> status
+0144     <a href="../WAD/WAD_resultsAppendString.html" class="code" title="function WAD_resultsAppendString( level, value, description )">WAD_resultsAppendString</a>( 1, value, <span class="string">'AEC Anode Target Material'</span> );
+0145 <span class="keyword">end</span>
+0146 
+0147 
+0148 <span class="comment">% ----------------------------</span>
+0149 <span class="comment">% filter material</span>
+0150 <span class="comment">% ----------------------------</span>
+0151 [value, status] = <a href="#_sub1" class="code" title="subfunction [value, status] = getFieldFromDicomHdr( hdr, fieldname )">getFieldFromDicomHdr</a>( dicomheader, <span class="string">'FilterMaterial'</span> );
+0152 <span class="keyword">if</span> status
+0153     <a href="../WAD/WAD_resultsAppendString.html" class="code" title="function WAD_resultsAppendString( level, value, description )">WAD_resultsAppendString</a>( 1, value, <span class="string">'AEC Filter Material'</span> );
+0154 <span class="keyword">end</span>
+0155 
+0156 
 0157 <span class="comment">% ----------------------------</span>
-0158 [value, status] = <a href="#_sub1" class="code" title="subfunction [value, status] = getFieldFromDicomHdr( hdr, fieldname )">getFieldFromDicomHdr</a>( dicomheader, <span class="string">'ExposureControlModeDescription'</span> );
-0159 <span class="keyword">if</span> status
-0160     <a href="../WAD/WAD_resultsAppendString.html" class="code" title="function WAD_resultsAppendString( level, value, description )">WAD_resultsAppendString</a>( 1, value, <span class="string">'AEC Sensor'</span> );
-0161 <span class="keyword">end</span>
-0162 
-0163 
-0164 
-0165 <a name="_sub1" href="#_subfunctions" class="code">function [value, status] = getFieldFromDicomHdr( hdr, fieldname )</a>
-0166 <span class="comment">% local function returns value of dicom field, status true when valid.</span>
-0167 my.name = <span class="string">'WAD_MG_AEC:getFieldFromDicomHdr'</span>;
-0168 status = false;
-0169 value  = 0;
-0170 
-0171 <span class="comment">% check existence of field in header, and get value</span>
-0172 <span class="keyword">if</span> isfield( hdr, fieldname )
-0173     <a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">':   Getting &quot;'</span> fieldname <span class="string">'&quot; from header...'</span>], 2 );
-0174     value = hdr.(fieldname);
-0175     status = true;
-0176 <span class="keyword">else</span>
-0177     <a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">':   Field &quot;'</span> fieldname <span class="string">'&quot; not defined in DICOM header.'</span>] );
-0178 <span class="keyword">end</span></pre></div>
-<hr><address>Generated on Wed 23-Oct-2013 14:08:22 by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" target="_parent">m2html</a></strong> &copy; 2005</address>
+0158 <span class="comment">% ExposureControlModeDescription</span>
+0159 <span class="comment">% gives position of AEC sensor</span>
+0160 <span class="comment">% ----------------------------</span>
+0161 [value, status] = <a href="#_sub1" class="code" title="subfunction [value, status] = getFieldFromDicomHdr( hdr, fieldname )">getFieldFromDicomHdr</a>( dicomheader, <span class="string">'ExposureControlModeDescription'</span> );
+0162 <span class="keyword">if</span> status
+0163     <a href="../WAD/WAD_resultsAppendString.html" class="code" title="function WAD_resultsAppendString( level, value, description )">WAD_resultsAppendString</a>( 1, value, <span class="string">'AEC Sensor'</span> );
+0164 <span class="keyword">end</span>
+0165 
+0166 
+0167 
+0168 <a name="_sub1" href="#_subfunctions" class="code">function [value, status] = getFieldFromDicomHdr( hdr, fieldname )</a>
+0169 <span class="comment">% local function returns value of dicom field, status true when valid.</span>
+0170 my.name = <span class="string">'WAD_MG_AEC:getFieldFromDicomHdr'</span>;
+0171 status = false;
+0172 value  = 0;
+0173 
+0174 <span class="comment">% check existence of field in header, and get value</span>
+0175 <span class="keyword">if</span> isfield( hdr, fieldname )
+0176     <a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">':   Getting &quot;'</span> fieldname <span class="string">'&quot; from header...'</span>], 2 );
+0177     value = hdr.(fieldname);
+0178     status = true;
+0179 <span class="keyword">else</span>
+0180     <a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">':   Field &quot;'</span> fieldname <span class="string">'&quot; not defined in DICOM header.'</span>] );
+0181 <span class="keyword">end</span></pre></div>
+<hr><address>Generated on Wed 27-Nov-2013 17:42:16 by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" target="_parent">m2html</a></strong> &copy; 2005</address>
 </body>
 </html>
