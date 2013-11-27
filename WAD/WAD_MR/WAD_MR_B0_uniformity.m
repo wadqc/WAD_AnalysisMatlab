@@ -19,7 +19,7 @@
 % along with this program.  If not, see <http://www.gnu.org/licenses/>.
 % ------------------------------------------------------------------------
 
-function WAD_MR_B0_uniformity( i_iSeries, sSeries, sParams, sLimits )
+function WAD_MR_B0_uniformity( i_iSeries, sSeries, sParams )
 % Calculate BO uniformity from a double echo phase difference.
 % Acquisition must be single slice.
 %
@@ -54,6 +54,10 @@ function WAD_MR_B0_uniformity( i_iSeries, sSeries, sParams, sLimits )
 %   through the <type> parameter. The actual function name gets a prefix
 %   "WAD_MR_B0_read".
 % ------------------------------------------------------------------------
+% 20131127 / JK
+% V1.1
+% - new (v1.1) style action limits
+% ------------------------------------------------------------------------
 
 % ----------------------
 % GLOBALS
@@ -62,8 +66,8 @@ function WAD_MR_B0_uniformity( i_iSeries, sSeries, sParams, sLimits )
 
 % version info
 my.name = 'WAD_MR_B0_uniformity';
-my.version = '0.95';
-my.date = '20120813';
+my.version = '1.1';
+my.date = '20131127';
 WAD_vbprint( ['Module ' my.name ' Version ' my.version ' (' my.date ')'] );
 
 
@@ -109,7 +113,7 @@ importfh = str2func( importFuncName );
 
 % import images
 try
-    [magnitude, phase] = importfh( i_iSeries, sSeries, sParams, sLimits );
+    [magnitude, phase] = importfh( i_iSeries, sSeries, sParams );
 catch err
     WAD_ErrorMsg( my.name, 'ERROR during reading/conversion of phase map.', err );
     return
@@ -234,7 +238,7 @@ if isInteractive, waitbar( 1.0, h ); end
 % final result: difference in ppm
 % ----------------------------------------------------
 B0_uniformity_ppm = ( largest-smallest ) / magnet_T * 1000000; % in ppm
-WAD_resultsAppendFloat( 1, B0_uniformity_ppm, 'Uniformity', 'ppm', 'B0', sLimits, 'B0_uniformity_ppm' );
+WAD_resultsAppendFloat( 1, B0_uniformity_ppm, 'Uniformity', 'ppm', 'B0' );
 
 % log file
 WAD_vbprint( [my.name ':   B0 uniformity = ' num2str(B0_uniformity_ppm) ' ppm'] );

@@ -19,7 +19,7 @@
 % along with this program.  If not, see <http://www.gnu.org/licenses/>.
 % ------------------------------------------------------------------------
 
-function WAD_MR_geomXY( i_iSeries, sSeries, sParams, sLimits )
+function WAD_MR_geomXY( i_iSeries, sSeries, sParams )
 % Calculate the diameter along horizontal and vertical axis of a plain water image
 % ------------------------------------------------------------------------
 % WAD MR
@@ -132,8 +132,8 @@ if quiet
     delete( hFigGeomXY );
 end
 
-WAD_resultsAppendFloat( 1, diameterX_mm, 'Diameter', 'mm', 'Geometrie X', sLimits, 'diameterX_mm' );
-WAD_resultsAppendFloat( 1, diameterY_mm, 'Diameter', 'mm', 'Geometrie Y', sLimits, 'diameterY_mm' );
+WAD_resultsAppendFloat( 1, diameterX_mm, 'Diameter', 'mm', 'Geometrie X' );
+WAD_resultsAppendFloat( 1, diameterY_mm, 'Diameter', 'mm', 'Geometrie Y' );
 
 
 % close waitbar in interactive mode

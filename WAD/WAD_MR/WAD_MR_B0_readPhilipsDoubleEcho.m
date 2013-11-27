@@ -19,7 +19,7 @@
 % along with this program.  If not, see <http://www.gnu.org/licenses/>.
 % ------------------------------------------------------------------------
 
-function [magnitude, phase] = WAD_MR_B0_readPhilipsDoubleEcho( i_iSeries, sSeries, sParams, sLimits )
+function [magnitude, phase] = WAD_MR_B0_readPhilipsDoubleEcho( i_iSeries, sSeries, sParams )
 % Import function for BO uniformity Philips double echo FFE images. 
 % Acquisition must be single slice, with magnitude and phase images.
 %
@@ -50,6 +50,10 @@ function [magnitude, phase] = WAD_MR_B0_readPhilipsDoubleEcho( i_iSeries, sSerie
 %   through the <type> parameter. The actual function name gets a prefix
 %   "WAD_MR_B0_read".
 % ------------------------------------------------------------------------
+% 20131127 / JK
+% V1.1
+% - new (v1.1) style action limits
+% ------------------------------------------------------------------------
 
 
 % ----------------------
@@ -59,8 +63,8 @@ function [magnitude, phase] = WAD_MR_B0_readPhilipsDoubleEcho( i_iSeries, sSerie
 
 % version info
 my.name = 'WAD_MR_B0_readPhilipsDoubleEcho';
-my.version = '0.95';
-my.date = '20120813';
+my.version = '1.1';
+my.date = '20131127';
 WAD_vbprint( ['Module ' my.name ' Version ' my.version ' (' my.date ')'] );
 
 

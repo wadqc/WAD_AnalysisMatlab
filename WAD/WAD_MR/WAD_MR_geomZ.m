@@ -19,7 +19,7 @@
 % along with this program.  If not, see <http://www.gnu.org/licenses/>.
 % ------------------------------------------------------------------------
 
-function WAD_MR_geomZ( i_iSeries, sSeries, sParams, sLimits )
+function WAD_MR_geomZ( i_iSeries, sSeries, sParams )
 % Evaluate length of phantom in head-feet direction on mid-saggital slice (the actual length is 148 mm)
 %
 % Input: SAG series on ACR phantom, for best results tilt 2 - 5 degrees (edge pixel subsampling)
@@ -94,6 +94,8 @@ function WAD_MR_geomZ( i_iSeries, sSeries, sParams, sLimits )
 % ------------------------------------------------------------------------
 % JK - 20120807 v2.1: adapted to WAD framework
 % ------------------------------------------------------------------------
+% JK - 20120807 v2.2: new (v1.1) style action limits
+% ------------------------------------------------------------------------
 
 % produce a figure on the screen or be quiet...
 quiet = true;
@@ -101,8 +103,8 @@ isInteractive = false;
 
 % version info
 my.name = 'WAD_MR_geomZ';
-my.version = '2.1';
-my.date = '20120807';
+my.version = '2.2';
+my.date = '20131127';
 WAD_vbprint( ['Module ' my.name ' Version ' my.version ' (' my.date ')'] );
 
 %gen_object_display( sSeries );
@@ -271,8 +273,8 @@ Zsize_pix = UpperDistance_pix - LowerDistance_pix;
 lengthZ_mm = Zsize_pix * pixelspacing;
 rotationSAG_deg = 0.5 .* (Theta_Upper_deg + Theta_Lower_deg) - 90;
 
-WAD_resultsAppendFloat( 1, lengthZ_mm, 'Lengte', 'mm', 'Geometrie Z', sLimits, 'lengthZ_mm' );
-WAD_resultsAppendFloat( 1, rotationSAG_deg, 'Rotatie', 'graden', 'Geometrie Z', sLimits, 'rotationSAG_deg' );
+WAD_resultsAppendFloat( 1, lengthZ_mm, 'Lengte', 'mm', 'Geometrie Z' );
+WAD_resultsAppendFloat( 1, rotationSAG_deg, 'Rotatie', 'graden', 'Geometrie Z' );
 
 %handles.results.lengthZ_mm
 

@@ -19,7 +19,7 @@
 % along with this program.  If not, see <http://www.gnu.org/licenses/>.
 % ------------------------------------------------------------------------
 
-function WAD_MR_SNR_MultiChannel( i_iSeries, sSeries, sParams, sLimits )
+function WAD_MR_SNR_MultiChannel( i_iSeries, sSeries, sParams )
 % Evaluate SNR on uncombined images of the central slice
 %
 % Related config entries:
@@ -52,7 +52,7 @@ global WAD
 % version info
 my.name = 'WAD_MR_SNR_MultiChannel';
 my.version = '1.1';
-my.date = '20130904';
+my.date = '20131127';
 WAD_vbprint( ['Module ' my.name ' Version ' my.version ' (' my.date ')'] );
 
 
@@ -244,7 +244,7 @@ for inum = 1:ninum
         WAD_resultsAppendString( 2, ['Multichannel SNR on series: ' num2str(sSeries.number)], 'SNR multi-channel' );
     end
     % TO DO: how to handle action limits for MC coils...?
-    WAD_resultsAppendFloat( 1, SNR_henk, 'SNR', [], ['Coil ' num2str(inum)], [], [] );
+    WAD_resultsAppendFloat( 1, SNR_henk, 'SNR', [], ['Coil ' num2str(inum)] );
 end
 
 % close waitbar in interactive mode

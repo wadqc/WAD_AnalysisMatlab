@@ -19,7 +19,7 @@
 % along with this program.  If not, see <http://www.gnu.org/licenses/>.
 % ------------------------------------------------------------------------
 
-function [magnitude, phase] = WAD_MR_B0_readSiemensServiceStimEcho( i_iSeries, sSeries, sParams, sLimits )
+function [magnitude, phase] = WAD_MR_B0_readSiemensServiceStimEcho( i_iSeries, sSeries, sParams )
 % Display the image of Siemens service sequence with stimulated echo.
 % Acquisition must be single slice.
 %
@@ -40,6 +40,10 @@ function [magnitude, phase] = WAD_MR_B0_readSiemensServiceStimEcho( i_iSeries, s
 % 2010-04-20 / JK
 % V0.94: added support for Philips double-echo GRE
 % ------------------------------------------------------------------------
+% 20131127 / JK
+% V1.1
+% - new (v1.1) style action limits
+% ------------------------------------------------------------------------
 
 
 % output arguments
@@ -54,8 +58,8 @@ phase = [];
 
 % version info
 my.name = 'WAD_MR_B0_readSiemensServiceStimEcho';
-my.version = '0.94';
-my.date = '20121105';
+my.version = '1.1';
+my.date = '20131127';
 WAD_vbprint( ['Module ' my.name ' Version ' my.version ' (' my.date ')'] );
 
 

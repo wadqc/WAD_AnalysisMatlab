@@ -19,7 +19,7 @@
 % along with this program.  If not, see <http://www.gnu.org/licenses/>.
 % ------------------------------------------------------------------------
 
-function WAD_MR_SNR( i_iSeries, sSeries, sParams, sLimits )
+function WAD_MR_SNR( i_iSeries, sSeries, sParams )
 % Evaluate SNR, ghosting and image uniformity of the central slice
 %
 % ------------------------------------------------------------------------
@@ -149,9 +149,9 @@ if isInteractive, waitbar( 0.5, h ); end
 % be ~0.70
 SNR_henk = SNR * 0.655;
 
-WAD_resultsAppendFloat( 1, SNR_henk, 'SNR', [], 'Combined coils', sLimits, 'SNR' );
-WAD_resultsAppendFloat( 1, ghostRow_percent, 'Ghosting', '%', 'Row', sLimits, 'ghostRow_percent' );
-WAD_resultsAppendFloat( 1, ghostCol_percent, 'Ghosting', '%', 'Col', sLimits, 'ghostCol_percent' );
+WAD_resultsAppendFloat( 1, SNR_henk, 'SNR', [], 'Combined coils' );
+WAD_resultsAppendFloat( 1, ghostRow_percent, 'Ghosting', '%', 'Row' );
+WAD_resultsAppendFloat( 1, ghostCol_percent, 'Ghosting', '%', 'Col' );
 % present results together with phase encoding direction
 try
     info = dicominfo( sSeries.instance(ci).filename );
@@ -163,7 +163,7 @@ catch err
 end
     
 % image uniformity
-WAD_resultsAppendFloat( 1, imageUniformity_percent, 'Uniformity', '%', 'Image', sLimits, 'imageUniformity_percent' );
+WAD_resultsAppendFloat( 1, imageUniformity_percent, 'Uniformity', '%', 'Image' );
 WAD_resultsAppendString( 2, ['SNR on series: ' num2str(sSeries.number) ' / image: ' num2str(inum)], 'SNR' );
 
 WAD_resultsAppendFigure( 2, hFigSNR, 'SNR_ROI', 'ROIs for SNR and ghosting' );
