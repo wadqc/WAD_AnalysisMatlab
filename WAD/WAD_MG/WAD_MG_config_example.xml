@@ -12,7 +12,7 @@
     <description>WAD MG configuratie voor VUmc Hologic Selenia</description>
 
     <!-- versie / datum -->
-    <version>20120814</version>
+    <version>1.1.0 / 20131127</version>
         
     <!-- Logfile verbose options -->
     <logverbose>
@@ -21,6 +21,82 @@
 	<!-- level: 1 = normal, 2 = output series search -->
 	<level>1</level>
     </logverbose>
+
+
+<!-- *** ACTIE LIMIETEN *** -->
+    <grens>
+	<!-- EXPOSURE: 54 +/- 5% en 8% -->
+	<grootheid>Exposure</grootheid>
+	<eenheid>mAs</eenheid>
+	<omschrijving>AEC</omschrijving>
+	<grens_relatief_referentie>54</grens_relatief_referentie>
+	<grens_relatief_kritisch>8%</grens_relatief_kritisch>
+	<grens_relatief_acceptabel>5%</grens_relatief_acceptabel>
+    </grens>
+    <grens>
+        <!-- EXPOSURE INDEX: 413 +/- 5% en 8% -->
+	<grootheid>Exposure Index</grootheid>
+	<omschrijving>AEC</omschrijving>
+	<grens_relatief_referentie>413</grens_relatief_referentie>
+	<grens_relatief_kritisch>8%</grens_relatief_kritisch>
+	<grens_relatief_acceptabel>5%</grens_relatief_acceptabel>
+    </grens>
+    <grens>
+	<!-- EXPOSURE TIME: 640.4 +/- 20% en 30% -->
+	<grootheid>Exposure Time</grootheid>
+	<omschrijving>AEC</omschrijving>
+	<grens_relatief_referentie>640.4</grens_relatief_referentie>
+	<grens_relatief_kritisch>30%</grens_relatief_kritisch>
+	<grens_relatief_acceptabel>20%</grens_relatief_acceptabel>
+    </grens>
+    <grens>
+	<!-- ORGAN DOSE: 0.01 +/- 50% en 60% -->
+	<grootheid>Organ Dose</grootheid>
+	<omschrijving>AEC</omschrijving>
+	<grens_relatief_referentie>0.01</grens_relatief_referentie>
+	<grens_relatief_kritisch>60%</grens_relatief_kritisch>
+	<grens_relatief_acceptabel>50%</grens_relatief_acceptabel>
+    </grens>
+    <grens>
+	<!-- ENTRANCE DOSE: 11.8 +/- 50% en 60% -->
+	<grootheid>EntranceDose</grootheid>
+	<eenheid>mGy</eenheid>
+	<omschrijving>AEC</omschrijving>
+	<grens_relatief_referentie>11.8</grens_relatief_referentie>
+	<grens_relatief_kritisch>60%</grens_relatief_kritisch>
+	<grens_relatief_acceptabel>50%</grens_relatief_acceptabel>
+    </grens>
+    <grens>
+	<!-- KVP: 28 -->
+	<grootheid>kVp</grootheid>
+	<grens_kritisch_onder>28</grens_kritisch_onder>
+	<grens_kritisch_boven>28</grens_kritisch_boven>
+	<grens_acceptabel_onder>28</grens_acceptabel_onder>
+	<grens_acceptabel_boven>28</grens_acceptabel_boven>
+    </grens>
+
+
+    <grens>
+	<!-- MEAN: 580 +/- 10% en 15% -->
+	<grootheid>Mean</grootheid>
+	<omschrijving>Flatfield Global</omschrijving>
+	<grens_relatief_referentie>580</grens_relatief_referentie>
+	<grens_relatief_kritisch>15%</grens_relatief_kritisch>
+	<grens_relatief_acceptabel>10%</grens_relatief_acceptabel>
+    </grens>
+    <grens>
+	<!-- ROI SNR: 54.1 +/- 10% en 15% -->
+	<grootheid>SNR</grootheid>
+	<omschrijving>Flatfield ROI</omschrijving>
+	<grens_relatief_referentie>54.1</grens_relatief_referentie>
+	<grens_relatief_kritisch>15%</grens_relatief_kritisch>
+	<grens_relatief_acceptabel>10%</grens_relatief_acceptabel>
+    </grens>
+
+
+
+
+<!-- *** ACTIES *** -->
 
 <!--
     Lijst van analyses
@@ -33,10 +109,10 @@
       <match type="DICOM" field="SequenceName"> DICOM veld inhoud: indien gelijk wordt de functie gestart
       Valide "DCM4CHEE" velden (uit de DCM4CHEE database) zijn SeriesDescription en ImagesInSeries (aantal beelden in serie).
       NB: test op DICOM veld is trager dan "interne" velden.
-    - optioneel: <autoComment> kopieer een tekst of float DICOM veld naar resultaten, bijv StudyComment
     - optioneel: <params> configuratie parameters per funtie
     - optioneel: <limits> actielimieten per resultaat
 -->
+
 
     <action>
 	<!-- AEC -->
@@ -53,73 +129,6 @@
 	    <!-- where to find the exposure index -->
 	    <EI_field>RelativeXrayExposure</EI_field>
 	</params>
-	<limits>
-	    <Exposure>
-		<!-- 54 +/- 5% en 8% -->
-		<acceptable>
-		    <lower>51.30</lower>
-		    <upper>56.70</upper>
-		</acceptable>
-		<critical>		
-		    <lower>49.70</lower>
-		    <upper>58.30</upper>
-		</critical>
-	    </Exposure>
-	    <ExposureIndex>
-		<!-- 413 +/- 5% en 8% -->
-		<acceptable>
-		    <lower>392.00</lower>
-		    <upper>434.00</upper>
-		</acceptable>
-		<critical>		
-		    <lower>380.00</lower>
-		    <upper>446.00</upper>
-		</critical>
-	    </ExposureIndex>
-	    <ExposureTime>
-		<!-- 640.4, 20% en 30% -->
-		<acceptable>
-		    <lower>512.30</lower>
-		    <upper>768.50</upper>
-		</acceptable>
-		<critical>		
-		    <lower>448.30</lower>
-		    <upper>832.50</upper>
-		</critical>
-	    </ExposureTime>
-	    <OrganDose>
-	        <!-- 0.01 +/- 50% en 60% -->
-		<acceptable>
-		    <lower>0.005</lower>
-		    <upper>0.015</upper>
-		</acceptable>
-		<critical>		
-		    <lower>0.004</lower>
-		    <upper>0.016</upper>
-		</critical>
-	    </OrganDose>
-	    <EntranceDose>
-		<!-- 11.8 +/- 50% en 60% -->
-		<acceptable>
-		    <lower>5.90</lower>
-		    <upper>17.70</upper>
-		</acceptable>
-		<critical>		
-		    <lower>4.72</lower>
-		    <upper>18.80</upper>
-		</critical>
-	    </EntranceDose>
-	    <kVp>
-		<acceptable>
-		    <lower>28</lower>
-		    <upper>28</upper>
-		</acceptable>
-		<critical>		
-		    <lower>28</lower>
-		    <upper>28</upper>
-		</critical>
-	    </kVp>
-	</limits>
     </action>
 
 
@@ -143,46 +152,6 @@
 	    <!-- relative threshold for deviating ROIs in FlatField -->
 	    <SNRthreshold>0.2</SNRthreshold>
 	</params>
-	<limits>
-	    <mean>
-		<!-- 580 +/- 10% en 15% -->
-		<acceptable>
-		    <lower>522</lower>
-		    <upper>638</upper>
-		</acceptable>
-		<critical>		
-		    <lower>493</lower>
-		    <upper>667</upper>
-		</critical>
-	    </mean>
-	    <SNR_ROI>
-		<!-- 54.1 +/- 10% en 15% -->
-		<acceptable>
-		    <lower>48.69</lower>
-		    <upper>59.51</upper>
-		</acceptable>
-		<critical>		
-		    <lower>45.98</lower>
-		    <upper>62.21</upper>
-		</critical>
-	    </SNR_ROI>
-	</limits>
     </action>
-
-
-<!-- ACTION LIMITS TEMPLATE
-	<limits>
-	    <param_name>
-		<acceptable>
-		    <lower></lower>
-		    <upper></upper>
-		</acceptable>
-		<critical>		
-		    <lower></lower>
-		    <upper></upper>
-		</critical>
-	    </param_name>
-	</limits>
--->
 
 </WAD_MG_config>

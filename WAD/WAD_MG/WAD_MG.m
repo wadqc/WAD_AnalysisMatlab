@@ -26,6 +26,10 @@ function WAD_MG( wadInputFileXML )
 % main routine.
 %
 % Provides a place for additional configs/defines/...
+% ------------------------------------------------------------------------
+% 20131127 / JK / v1.1
+% Support new (v1.1) style action limits
+% ------------------------------------------------------------------------
 
 
 % ----------------------
@@ -33,8 +37,8 @@ function WAD_MG( wadInputFileXML )
 % ----------------------
 % version info
 my.name = 'WAD_MG';
-my.version = '0.95';
-my.date = '20121105';
+my.version = '1.1';
+my.date = '20131127';
 
 disp( ['Starting analysis module ' my.name '  Version ' my.version ' ' my.date] );
 
