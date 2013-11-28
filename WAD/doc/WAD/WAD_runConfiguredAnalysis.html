@@ -103,103 +103,129 @@ This function is called by:
 0041 <span class="comment">% ------------------------------------------------------------------------</span>
 0042 <span class="comment">% VUmc, Amsterdam, NL / Joost Kuijer / jpa.kuijer@vumc.nl</span>
 0043 <span class="comment">% 2013-09-06 / JK</span>
-0044 <span class="comment">% V1.1: Produce message for v1.0 style action limits</span>
-0045 <span class="comment">% ------------------------------------------------------------------------</span>
-0046 
-0047 
-0048 <span class="comment">% ----------------------</span>
-0049 <span class="comment">% GLOBALS</span>
-0050 <span class="comment">% ----------------------</span>
-0051 <span class="keyword">global</span> WAD
-0052 
-0053 <span class="comment">% version info</span>
-0054 my.name = <span class="string">'WAD_runConfiguredAnalysis'</span>;
-0055 my.version = <span class="string">'1.1'</span>;
-0056 my.date = <span class="string">'20131127'</span>;
-0057 <a href="WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [<span class="string">'Module '</span> my.name <span class="string">' Version '</span> my.version <span class="string">' ('</span> my.date <span class="string">')'</span>], 2 );
-0058 
-0059 
-0060 <span class="keyword">if</span> ~isfield( WAD.cfg, <span class="string">'action'</span> )
-0061     <span class="comment">% no actions defined</span>
-0062     <a href="WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">': no actions defined, check your configuration file!'</span>], 1 );
-0063     <span class="keyword">return</span>
-0064 <span class="keyword">end</span>
-0065 
-0066 <span class="comment">% shortcut access to current study</span>
-0067 curStudy = WAD.in.patient(1).study(1);
-0068 
-0069 <span class="comment">% ----------------------</span>
-0070 <span class="comment">% loop over configured actions</span>
-0071 <span class="comment">% ----------------------</span>
-0072 i_nAction = length( WAD.cfg.action );
-0073 <a href="WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">': number of configured actions = '</span> num2str(i_nAction)], 1 );
-0074 <a href="WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">': starting loop over configured analysis'</span>], 2 );
-0075 
-0076 <span class="keyword">for</span> i_icAction = 1:i_nAction
-0077     <a href="WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">': checking action '</span> num2str(i_icAction)], 2 );
-0078     <span class="comment">% shortcut access to current action</span>
-0079     curAct = WAD.cfg.action( i_icAction );
-0080     
-0081     <span class="comment">% output some debugging info</span>
-0082     <a href="WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">': action name = &quot;'</span> curAct.name <span class="string">'&quot;'</span> ], 2 );
-0083     
-0084     <span class="comment">% --------------------</span>
-0085     <span class="comment">% check &quot;name&quot; field</span>
-0086     <span class="comment">% --------------------</span>
-0087     <span class="keyword">if</span> ~isfield( curAct, <span class="string">'name'</span> )
-0088         <a href="WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">' ERROR: &quot;name&quot; is not defined for action '</span> num2str(i_icAction)], 1 );
-0089         <span class="keyword">continue</span> <span class="comment">% next action</span>
-0090     <span class="keyword">end</span>
-0091     <span class="comment">% check if function (in a .m file) with configured name exists</span>
-0092     <span class="keyword">if</span> exist( curAct.name, <span class="string">'file'</span> ) ~= 2
-0093         <span class="comment">% funtion does not exist</span>
-0094         <a href="WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">' in action '</span> num2str(i_icAction) <span class="string">': cannot find analysis function named &quot;'</span> curAct.name <span class="string">'&quot;'</span> ], 1 );
-0095         <span class="keyword">continue</span> <span class="comment">% next action</span>
-0096     <span class="keyword">end</span>
-0097     <span class="comment">% construct function handle</span>
-0098     curAct.fh = str2func( curAct.name );
-0099     
-0100     <span class="comment">% --------------------</span>
-0101     <span class="comment">% check &quot;match&quot; field</span>
-0102     <span class="comment">% --------------------</span>
-0103     <span class="keyword">if</span> ~isfield( curAct, <span class="string">'match'</span> ) || isempty( curAct.match )
-0104         <span class="comment">% Change V1.0: not considered an error, repair with empty match.</span>
-0105         <span class="comment">% Empty match results in match with any series.</span>
-0106         <span class="comment">%WAD_vbprint( [my.name ' ERROR: &quot;match&quot; is not defined for action ' num2str(i_icAction) ' ' curAct.name], 1 );</span>
-0107         <span class="comment">%continue % next action</span>
-0108         curAct.match = [];
-0109     <span class="keyword">end</span>
-0110     <span class="comment">% check match definition</span>
-0111     [curAct.match, validMatch] = <a href="WAD_checkMatchDefinition.html" class="code" title="function [newMatch, valid] = WAD_checkMatchDefinition( match )">WAD_checkMatchDefinition</a>( curAct.match );
-0112     <span class="comment">% continue with next action if match definition is not valid</span>
-0113     <span class="keyword">if</span> ~validMatch, <span class="keyword">continue</span>; <span class="keyword">end</span> <span class="comment">% next action</span>
-0114     
-0115     <span class="comment">% --------------------</span>
-0116     <span class="comment">% check &quot;params&quot; field</span>
-0117     <span class="comment">% --------------------</span>
-0118     <span class="keyword">if</span> ~isfield( curAct, <span class="string">'params'</span> )
-0119         <span class="comment">% not considered an error, repair with empty params</span>
-0120         curAct.params = [];
-0121     <span class="keyword">end</span>
-0122 
-0123     <span class="comment">% --------------------</span>
-0124     <span class="comment">% check &quot;limits&quot; field</span>
-0125     <span class="comment">% Note: not present for v1.1 style action limits</span>
-0126     <span class="comment">% Use of curAct.limits is depreciated from v1.1 onwards, remove</span>
-0127     <span class="comment">% next lines of code in future version.</span>
-0128     <span class="comment">% --------------------</span>
-0129     <span class="keyword">if</span> ~isfield( curAct, <span class="string">'limits'</span> )
-0130         <span class="comment">% v1.1: new style action limits are not defined within the action.</span>
-0131         curAct.limits = [];
-0132     <span class="keyword">end</span>
-0133 
-0134     <span class="comment">% ----------------------</span>
-0135     <span class="comment">% find series that matches with current action</span>
-0136     <span class="comment">% and run action if a match is found</span>
-0137     <span class="comment">% ----------------------</span>
-0138     <a href="WAD_findMatchingSeries.html" class="code" title="function WAD_findMatchingSeries( theStudy, theAction )">WAD_findMatchingSeries</a>( curStudy, curAct )
-0139     
-0140 <span class="keyword">end</span> <span class="comment">% loop over actions</span></pre></div>
-<hr><address>Generated on Wed 27-Nov-2013 17:42:16 by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" target="_parent">m2html</a></strong> &copy; 2005</address>
+0044 <span class="comment">% V1.1: - Produce message for v1.0 style action limits</span>
+0045 <span class="comment">%       - Support for configurable action field &lt;resultsNamePrefix&gt; to</span>
+0046 <span class="comment">%         allow configuration of a single analysis function in multiple</span>
+0047 <span class="comment">%         actions, and still get unique identifiers in the results</span>
+0048 <span class="comment">%         database.</span>
+0049 <span class="comment">% ------------------------------------------------------------------------</span>
+0050 
+0051 
+0052 <span class="comment">% ----------------------</span>
+0053 <span class="comment">% GLOBALS</span>
+0054 <span class="comment">% ----------------------</span>
+0055 <span class="keyword">global</span> WAD
+0056 
+0057 <span class="comment">% version info</span>
+0058 my.name = <span class="string">'WAD_runConfiguredAnalysis'</span>;
+0059 my.version = <span class="string">'1.1'</span>;
+0060 my.date = <span class="string">'20131127'</span>;
+0061 <a href="WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [<span class="string">'Module '</span> my.name <span class="string">' Version '</span> my.version <span class="string">' ('</span> my.date <span class="string">')'</span>], 2 );
+0062 
+0063 
+0064 <span class="keyword">if</span> ~isfield( WAD.cfg, <span class="string">'action'</span> )
+0065     <span class="comment">% no actions defined</span>
+0066     <a href="WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">': no actions defined, check your configuration file!'</span>], 1 );
+0067     <span class="keyword">return</span>
+0068 <span class="keyword">end</span>
+0069 
+0070 <span class="comment">% shortcut access to current study</span>
+0071 curStudy = WAD.in.patient(1).study(1);
+0072 
+0073 <span class="comment">% ----------------------</span>
+0074 <span class="comment">% loop over configured actions</span>
+0075 <span class="comment">% ----------------------</span>
+0076 i_nAction = length( WAD.cfg.action );
+0077 <a href="WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">': number of configured actions = '</span> num2str(i_nAction)], 1 );
+0078 <a href="WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">': starting loop over configured analysis'</span>], 2 );
+0079 
+0080 <span class="keyword">for</span> i_icAction = 1:i_nAction
+0081     <a href="WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">': checking action '</span> num2str(i_icAction)], 2 );
+0082     <span class="comment">% shortcut access to current action</span>
+0083     curAct = WAD.cfg.action( i_icAction );
+0084     
+0085     <span class="comment">% output some debugging info</span>
+0086     <a href="WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">': action name = &quot;'</span> curAct.name <span class="string">'&quot;'</span> ], 2 );
+0087     
+0088     <span class="comment">% --------------------</span>
+0089     <span class="comment">% check &quot;name&quot; field</span>
+0090     <span class="comment">% --------------------</span>
+0091     <span class="keyword">if</span> ~isfield( curAct, <span class="string">'name'</span> )
+0092         <a href="WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">' ERROR: &quot;name&quot; is not defined for action '</span> num2str(i_icAction)], 1 );
+0093         <span class="keyword">continue</span> <span class="comment">% next action</span>
+0094     <span class="keyword">end</span>
+0095     <span class="comment">% check if function (in a .m file) with configured name exists</span>
+0096     <span class="keyword">if</span> exist( curAct.name, <span class="string">'file'</span> ) ~= 2
+0097         <span class="comment">% funtion does not exist</span>
+0098         <a href="WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">' in action '</span> num2str(i_icAction) <span class="string">': cannot find analysis function named &quot;'</span> curAct.name <span class="string">'&quot;'</span> ], 1 );
+0099         <span class="keyword">continue</span> <span class="comment">% next action</span>
+0100     <span class="keyword">end</span>
+0101     <span class="comment">% construct function handle</span>
+0102     curAct.fh = str2func( curAct.name );
+0103     
+0104     <span class="comment">% --------------------</span>
+0105     <span class="comment">% check &quot;match&quot; field</span>
+0106     <span class="comment">% --------------------</span>
+0107     <span class="keyword">if</span> ~isfield( curAct, <span class="string">'match'</span> ) || isempty( curAct.match )
+0108         <span class="comment">% Change V1.0: not considered an error, repair with empty match.</span>
+0109         <span class="comment">% Empty match results in match with any series.</span>
+0110         <span class="comment">%WAD_vbprint( [my.name ' ERROR: &quot;match&quot; is not defined for action ' num2str(i_icAction) ' ' curAct.name], 1 );</span>
+0111         <span class="comment">%continue % next action</span>
+0112         curAct.match = [];
+0113     <span class="keyword">end</span>
+0114     <span class="comment">% check match definition</span>
+0115     [curAct.match, validMatch] = <a href="WAD_checkMatchDefinition.html" class="code" title="function [newMatch, valid] = WAD_checkMatchDefinition( match )">WAD_checkMatchDefinition</a>( curAct.match );
+0116     <span class="comment">% continue with next action if match definition is not valid</span>
+0117     <span class="keyword">if</span> ~validMatch, <span class="keyword">continue</span>; <span class="keyword">end</span> <span class="comment">% next action</span>
+0118     
+0119     <span class="comment">% --------------------</span>
+0120     <span class="comment">% check &quot;params&quot; field</span>
+0121     <span class="comment">% --------------------</span>
+0122     <span class="keyword">if</span> ~isfield( curAct, <span class="string">'params'</span> )
+0123         <span class="comment">% not considered an error, repair with empty params</span>
+0124         curAct.params = [];
+0125     <span class="keyword">end</span>
+0126 
+0127     <span class="comment">% --------------------</span>
+0128     <span class="comment">% check &quot;resultsNamePrefix&quot; field</span>
+0129     <span class="comment">% --------------------</span>
+0130     <span class="keyword">if</span> ~isfield( curAct, <span class="string">'resultsNamePrefix'</span> )
+0131         <span class="comment">% option to configure a prefix for the result field 'omschrijving'</span>
+0132         curAct.resultsNamePrefix = [];
+0133     <span class="keyword">end</span>
+0134 
+0135     <span class="comment">% Need to communicate this to WAD_resultsAppendFloat( )...</span>
+0136     <span class="comment">% Not the best solution on earth but works for single thread. If the</span>
+0137     <span class="comment">% for-loop around this part of code would ever be changed to parfor</span>
+0138     <span class="comment">% then this would not work!</span>
+0139     <span class="keyword">if</span> ~isempty( curAct.resultsNamePrefix )
+0140         <a href="WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">' in action '</span> num2str(i_icAction) <span class="string">': resultsTag was set to &quot;'</span> curAct.resultsNamePrefix <span class="string">'&quot; for action &quot;'</span> curAct.name <span class="string">'&quot;'</span> ], 1 );
+0141     <span class="keyword">end</span>
+0142     WAD.currentActionResultsNamePrefix = curAct.resultsNamePrefix;
+0143     
+0144     <span class="comment">% --------------------</span>
+0145     <span class="comment">% check &quot;limits&quot; field</span>
+0146     <span class="comment">% Note: not present for v1.1 style action limits</span>
+0147     <span class="comment">% Use of curAct.limits is depreciated from v1.1 onwards, remove</span>
+0148     <span class="comment">% next lines of code in future version.</span>
+0149     <span class="comment">% --------------------</span>
+0150     <span class="keyword">if</span> ~isfield( curAct, <span class="string">'limits'</span> )
+0151         <span class="comment">% v1.1: new style action limits are not defined within the action.</span>
+0152         curAct.limits = [];
+0153     <span class="keyword">end</span>
+0154 
+0155     <span class="comment">% ----------------------</span>
+0156     <span class="comment">% find series that matches with current action</span>
+0157     <span class="comment">% and run action if a match is found</span>
+0158     <span class="comment">% ----------------------</span>
+0159     <a href="WAD_findMatchingSeries.html" class="code" title="function WAD_findMatchingSeries( theStudy, theAction )">WAD_findMatchingSeries</a>( curStudy, curAct )
+0160     
+0161     <span class="comment">% ----------------------</span>
+0162     <span class="comment">% Reset any results tagging actions</span>
+0163     <span class="comment">% ----------------------</span>
+0164     WAD.currentActionResultsNamePrefix = [];
+0165     
+0166 <span class="keyword">end</span> <span class="comment">% loop over actions</span></pre></div>
+<hr><address>Generated on Thu 28-Nov-2013 13:27:31 by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" target="_parent">m2html</a></strong> &copy; 2005</address>
 </body>
 </html>
