@@ -109,8 +109,11 @@
       <match type="DICOM" field="SequenceName"> DICOM veld inhoud: indien gelijk wordt de functie gestart
       Valide "DCM4CHEE" velden (uit de DCM4CHEE database) zijn SeriesDescription en ImagesInSeries (aantal beelden in serie).
       NB: test op DICOM veld is trager dan "interne" velden.
+    - optioneel: <resultsNamePrefix> plak tekst vooraan het veld "omschrijving" van het resultaat. Maakt het mogelijk om
+                 onderscheid te maken tussen meerdere acties met dezelfde naam, bijv. dezelfde analyse op verschillende DICOM
+		 series of dezelfde analyse met andere parameters, op hetzelfde DICOM beeld. Actielimieten kunnen gedefinieerd
+		 worden op de aangepaste naam (voeg dezelfde tekst toe bij <omschrijving>, de prefix wordt gevolgd door een spatie).
     - optioneel: <params> configuratie parameters per funtie
-    - optioneel: <limits> actielimieten per resultaat
 -->
 
 
@@ -153,5 +156,30 @@
 	    <SNRthreshold>0.2</SNRthreshold>
 	</params>
     </action>
+
+
+    <!-- Example how to run same analysis on another DICOM image in the study
+         Note the use of the optional tag <resultsNamePrefix> to get a unique description
+	 for this series. For corresponging action limits add the same tag (separated by single space).
+	 In this example that would be <omschrijving>Rh AEC</omschrijving>  -->
+    <action>
+	<!-- AEC -->
+	<name>WAD_MG_AEC</name>
+	<!-- series selectie -->
+	<!-- SOP class ForPresentation -->
+	<match type="DICOM" field="MediaStorageSOPClassUID">1.2.840.10008.5.1.4.1.1.1.2.1</match>
+	<!-- AEC mode Auto Time -->
+	<match type="DICOM" field="ExposureControlMode">AUTO_TIME</match>
+	<!-- Rhodium filter -->
+	<match type="DICOM" field="FilterMaterial">RHODIUM</match>
+	<!-- Add prefix to results description to distinguish from analysis on Mo -->
+	<resultsNamePrefix>Rh</resultsNamePrefix>
+	<!-- parameters -->
+	<params>
+	    <!-- where to find the exposure index -->
+	    <EI_field>RelativeXrayExposure</EI_field>
+	</params>
+    </action>
+
 
 </WAD_MG_config>

@@ -144,6 +144,10 @@
       Valide "DCM4CHEE" velden (uit de DCM4CHEE database) zijn SeriesDescription en ImagesInSeries (aantal beelden in serie).
       NB: test op DICOM veld is trager dan "interne" velden.
     - optioneel: <autoComment> kopieer een tekst of float DICOM veld naar resultaten, bijv StudyComment
+    - optioneel: <resultsNamePrefix> plak tekst vooraan het veld "omschrijving" van het resultaat. Maakt het mogelijk om
+                 onderscheid te maken tussen meerdere acties met dezelfde naam, bijv. dezelfde analyse op verschillende DICOM
+		 series of dezelfde analyse met andere parameters, op hetzelfde DICOM beeld. Actielimieten kunnen gedefinieerd
+		 worden op de aangepaste naam (voeg dezelfde tekst toe bij <omschrijving>, de prefix wordt gevolgd door een spatie).
     - optioneel: <params> configuratie parameters per funtie
 -->
 
@@ -179,13 +183,6 @@
     </action>
     
     <action>
-	<!-- Geometry Z-axis: length of ACR phantom -->
-	<name>WAD_MR_geomZ</name>
-	<!-- series selectie -->
-	<match>ACR SAG LOC</match>
-    </action>
-
-    <action>
 	<!-- Geometry X and Y-axis: diameter of ACR phantom -->
 	<name>WAD_MR_geomXY</name>
 	<!-- series selectie -->
@@ -206,6 +203,13 @@
 	    <!-- <excludedst2_pix>20</excludedst2_pix> -->
 	    <!-- <excludedst3_pix>10</excludedst3_pix> -->
 	</params>
+    </action>
+
+    <action>
+	<!-- Geometry Z-axis: length of ACR phantom -->
+	<name>WAD_MR_geomZ</name>
+	<!-- series selectie -->
+	<match>ACR SAG LOC</match>
     </action>
 
     <action>

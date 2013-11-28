@@ -31,6 +31,17 @@ function WAD_resultsAppendString( level, value, description )
 % 2012-11-07 / JK
 % first version
 % ------------------------------------------------------------------------
+% VUmc, Amsterdam, NL / Joost Kuijer / jpa.kuijer@vumc.nl
+% 2013-11-26 / JK
+% V1.1  - New style XML definition of action limit in config file.
+%         Old style definition still supported.
+%       - Support for configurable action field <resultsNamePrefix> to
+%         allow configuration of a single analysis function in multiple
+%         actions, and still get unique identifiers in the results
+%         database.
+% ------------------------------------------------------------------------
+
+
 
 global WAD
 
@@ -44,6 +55,12 @@ WAD.out.results{end}.volgnummer = WAD.results_index;
 WAD.out.results{end}.type = 'char';
 WAD.out.results{end}.niveau = level;
 WAD.out.results{end}.waarde = value;
+
+% check if <resultsTag> was added for this action
+if isfield( WAD, 'currentActionResultsNamePrefix' ) && ~isempty( WAD.currentActionResultsNamePrefix )
+    description = [ WAD.currentActionResultsNamePrefix ' ' description ];
+end
+
 if ~isempty( description ), WAD.out.results{end}.omschrijving = description; end
 
 %gen_object_display( handles.WAD );

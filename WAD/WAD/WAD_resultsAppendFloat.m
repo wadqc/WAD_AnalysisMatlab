@@ -95,11 +95,14 @@ function WAD_resultsAppendFloat( level, value, variable, unit, description, sLim
 % 2012-11-07 / JK
 % first version
 % ------------------------------------------------------------------------
-% ------------------------------------------------------------------------
 % VUmc, Amsterdam, NL / Joost Kuijer / jpa.kuijer@vumc.nl
 % 2013-11-26 / JK
-% V1.1 New style XML definition of action limit in config file.
-% Old style definition still supported.
+% V1.1  - New style XML definition of action limit in config file.
+%         Old style definition still supported.
+%       - Support for configurable action field <resultsNamePrefix> to
+%         allow configuration of a single analysis function in multiple
+%         actions, and still get unique identifiers in the results
+%         database.
 % ------------------------------------------------------------------------
 
 % optional argument limits_field_name for backward compatibility V1.0
@@ -143,6 +146,11 @@ if ~isempty( unit ), ...
     WAD.out.results{end}.eenheid = unit;
 end
 
+% check if <resultsTag> was added for this action
+if isfield( WAD, 'currentActionResultsNamePrefix' ) && ~isempty( WAD.currentActionResultsNamePrefix )
+    description = [ WAD.currentActionResultsNamePrefix ' ' description ];
+end
+    
 if ~isempty( description ), ...
     WAD.out.results{end}.omschrijving = description;
 end

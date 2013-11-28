@@ -41,7 +41,11 @@ function WAD_runConfiguredAnalysis
 % ------------------------------------------------------------------------
 % VUmc, Amsterdam, NL / Joost Kuijer / jpa.kuijer@vumc.nl
 % 2013-09-06 / JK
-% V1.1: Produce message for v1.0 style action limits
+% V1.1: - Produce message for v1.0 style action limits
+%       - Support for configurable action field <resultsNamePrefix> to
+%         allow configuration of a single analysis function in multiple
+%         actions, and still get unique identifiers in the results
+%         database.
 % ------------------------------------------------------------------------
 
 
@@ -121,6 +125,23 @@ for i_icAction = 1:i_nAction
     end
 
     % --------------------
+    % check "resultsNamePrefix" field
+    % --------------------
+    if ~isfield( curAct, 'resultsNamePrefix' )
+        % option to configure a prefix for the result field 'omschrijving'
+        curAct.resultsNamePrefix = [];
+    end
+
+    % Need to communicate this to WAD_resultsAppendFloat( )...
+    % Not the best solution on earth but works for single thread. If the
+    % for-loop around this part of code would ever be changed to parfor
+    % then this would not work!
+    if ~isempty( curAct.resultsNamePrefix )
+        WAD_vbprint( [my.name ' in action ' num2str(i_icAction) ': resultsTag was set to "' curAct.resultsNamePrefix '" for action "' curAct.name '"' ], 1 );
+    end
+    WAD.currentActionResultsNamePrefix = curAct.resultsNamePrefix;
+    
+    % --------------------
     % check "limits" field
     % Note: not present for v1.1 style action limits
     % Use of curAct.limits is depreciated from v1.1 onwards, remove
@@ -136,5 +157,10 @@ for i_icAction = 1:i_nAction
     % and run action if a match is found
     % ----------------------
     WAD_findMatchingSeries( curStudy, curAct )
+    
+    % ----------------------
+    % Reset any results tagging actions
+    % ----------------------
+    WAD.currentActionResultsNamePrefix = [];
     
 end % loop over actions

@@ -76,8 +76,11 @@
       NB: test op DICOM veld is trager dan "interne" velden.
       NB: als <match> wordt weggelaten, dan een match met elke serie
     - optioneel: <autoComment> kopieer een tekst of float DICOM veld naar resultaten, bijv StudyComment
+    - optioneel: <resultsNamePrefix> plak tekst vooraan het veld "omschrijving" van het resultaat. Maakt het mogelijk om
+                 onderscheid te maken tussen meerdere acties met dezelfde naam, bijv. dezelfde analyse op verschillende DICOM
+		 series of dezelfde analyse met andere parameters, op hetzelfde DICOM beeld. Actielimieten kunnen gedefinieerd
+		 worden op de aangepaste naam (voeg dezelfde tekst toe bij <omschrijving>, de prefix wordt gevolgd door een spatie).
     - optioneel: <params> configuratie parameters per funtie
-    - optioneel: <limits> actielimieten per resultaat
 -->
 
 
@@ -97,10 +100,11 @@
 
 
     <action>
-	<!-- actionTne -->
+	<!-- actionTwo -->
 	<name>WAD_demo_actionTwo</name>
 	<!-- series selectie -->
 	<match>B0_MAP</match>
+	<!-- optioneel: <resultsNamePrefix>, zie uitleg hierboven -->
 	<!-- parameters -->
 	<params>
 	    <!-- ROI definition, pixel index starts with 1 (not 0) -->
