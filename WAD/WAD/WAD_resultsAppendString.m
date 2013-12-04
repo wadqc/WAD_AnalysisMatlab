@@ -58,7 +58,11 @@ WAD.out.results{end}.waarde = value;
 
 % check if <resultsTag> was added for this action
 if isfield( WAD, 'currentActionResultsNamePrefix' ) && ~isempty( WAD.currentActionResultsNamePrefix )
-    description = [ WAD.currentActionResultsNamePrefix ' ' description ];
+    if ~isempty( description )
+        description = [ WAD.currentActionResultsNamePrefix ' ' description ];
+    else
+        description = WAD.currentActionResultsNamePrefix;        
+    end
 end
 
 if ~isempty( description ), WAD.out.results{end}.omschrijving = description; end
