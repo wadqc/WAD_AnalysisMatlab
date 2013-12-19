@@ -63,7 +63,11 @@ function [SNR, ghostRow_percent, ghostCol_percent, PIU, figureHandle] = WAD_MR_p
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Modified by: Joost Kuijer / Frank de Weerd / VUmc
 % 29/08/2008
-%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% JK - 19/12/2013
+% Bugfix: execution sometimes hangs in ROImask() in compiled version.
+% Replaced immultiply() and imcomplement() by regular mathematic
+% expressions.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % only calculate what's requested
@@ -72,12 +76,10 @@ calcUniformity = false;
 if nargout > 1, calcGhosting   = true; end
 if nargout > 3, calcUniformity = true; end
 
-
 % Get the initial image
 fname = image.filename;
 info = dicominfo( fname );
 slice = double( dicomread( fname ) );
-
 
 % definitions of ROI sizes/locations
 % ... and convert mm to pixels
@@ -101,7 +103,6 @@ centbckgbl  = centrePos_pix + shiftx + shifty;  % center of background ROI
 centbckgtl  = centrePos_pix + shiftx - shifty;  % center of background ROI
 centbckgbr  = centrePos_pix - shiftx + shifty;  % center of background ROI
 centbckgtr  = centrePos_pix - shiftx - shifty;  % center of background ROI
-
 
 % Determine mean value in centre and ghosting ROIs
 [B,M]           = ROImask(radius,radius,cent,slice,0);
@@ -178,7 +179,7 @@ if calcUniformity
           [Bdummy,Mdummy] = ROImask(radius/10,radius/10,cent_dummy,slice,0);
           mean_dummy = sum(Bdummy(:))/sum(Mdummy(:));
 
-          all_means(run) = mean_dummy;       % for making a histogram of means
+          %all_means(run) = mean_dummy;       % for making a histogram of means
 
           if(run==1)
                largest = mean_dummy;
@@ -196,17 +197,18 @@ if calcUniformity
           end
       end
     end
+    
 
     %largest
     %smallest
     %cent_largest
     %cent_smallest
-    PIU = 100 * (1 - (largest - smallest) / (largest + smallest));
+    PIU = 100 .* (1 - (largest - smallest) / (largest + smallest));
 
     % figure; hist(all_means);
 
-    [Blargest,Mlargest] = ROImask(radius/10,radius/10,cent_largest,slice,0);
-    [Bsmallest,Msmallest] = ROImask(radius/10,radius/10,cent_smallest,slice,0);
+    [Blargest,Mlargest]   = ROImask( radius ./ 10.0, radius ./ 10.0, cent_largest,  slice, 0);
+    [Bsmallest,Msmallest] = ROImask( radius ./ 10.0, radius ./ 10.0, cent_smallest, slice, 0);
 end
 % end part 1 FdW, also changes in the figure below 
 
@@ -238,6 +240,7 @@ if makefig
     title('ROIs for SNR/Ghosting', 'Interpreter', 'none');
 end
 
+
 % save figure
 %[pathstr, name, ext] = fileparts(fname);
 %saveas( gcf, fullfile(pathstr,'acrNoise.jpg'));
@@ -247,28 +250,30 @@ if nargout > 4
     figureHandle = hFig;
 end
 
+end
+
+
 
 %%%%%%%%%%%%%%%%%%%%   SUB-FUNCTION    %%%%%%%%%%%%%%%%%%%%%%%%%%   
 
 function [B,M] = ROImask(a,b,cent,I,valfill)
 % Creates an elliptical mask defined by paramaters a, b and cent. Multiples
 % this mask to I and fills all pixels outside ellipse with valfill
-
 centx = cent(1);
 centy = cent(2);
-[numr,numc]=size(I);
-[x,y] = meshgrid([1:numc],[1:numr]);
-M = double(((x-centx).^2)/a^2 + ((y-centy).^2)/b^2 <= 1);
-B = immultiply(I,M) + imcomplement(M)*valfill;
-
+[numr,numc] = size(I);
+[x,y] = meshgrid( 1:numc, 1:numr );
+M = double( ((x-centx).^2) ./ a.^2 + ((y-centy).^2) ./ b.^2 <= 1 );
+B = M .* I + ( 1.0 - M ) .* valfill;
+end
 
 function [B,M] = ROImaskrec(a,b,cent,I,valfill)
 % Creates an rectangular mask defined by paramaters a, b and cent. Multiples
 % this mask to I and fills all pixels outside rectangle with valfill
-
 centx = cent(1);
 centy = cent(2);
-[numr,numc]=size(I);
-[x,y] = meshgrid([1:numc],[1:numr]);
-M = double( and( abs(x-centx)<a, abs(y-centy)<b ) );
-B = immultiply(I,M) + imcomplement(M)*valfill;
+[numr,numc] = size(I);
+[x,y] = meshgrid( 1:numc, 1:numr );
+M = double( and( abs(x-centx) < a, abs(y-centy) < b ) );
+B = M .* I + ( 1.0 - M ) .* valfill;
+end

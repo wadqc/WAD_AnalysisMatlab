@@ -32,6 +32,9 @@ function WAD_MR_SNR( i_iSeries, sSeries, sParams )
 % ------------------------------------------------------------------------
 % 2012-08-09 adapted to WAD
 % ------------------------------------------------------------------------
+% VUmc, Amsterdam, NL / Joost Kuijer / jpa.kuijer@vumc.nl
+% 2013-12-19 bugfix: process hangs in WAD_MR_privateSNR_ghost()
+% ------------------------------------------------------------------------
 
 % produce a figure on the screen or be quiet...
 quiet = true;
@@ -44,8 +47,8 @@ global WAD
 
 % version info
 my.name = 'WAD_MR_SNR';
-my.version = '1.1';
-my.date = '20130904';
+my.version = '1.1.1';
+my.date = '20131219';
 WAD_vbprint( ['Module ' my.name ' Version ' my.version ' (' my.date ')'] );
 
 
