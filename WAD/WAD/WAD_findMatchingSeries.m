@@ -165,21 +165,22 @@ end % loop over series
 % Matching functions
 % ------------------------------------------------------------------------
 function bMatch = matchSeriesDescription( curMatch, curSeries )
-my.name = 'WAD_MR_runConfiguredAnalysis:matchSeriesDescription';
+my.name = 'WAD_findMatchingSeries:matchSeriesDescription';
 % compare action content with series description
 bMatch = isequal( curSeries.description, curMatch.CONTENT );
 WAD_vbprint( [my.name ': Compare SeriesDescription "' curSeries.description '" with "' curMatch.CONTENT '" Equal? >> ' num2str(bMatch) ], 2 );
 
 
 function bMatch = matchImagesInSeries( curMatch, curSeries )
-my.name = 'WAD_MR_runConfiguredAnalysis:matchImagesInSeries';
+my.name = 'WAD_findMatchingSeries:matchImagesInSeries';
 % compare action content with number of images
 bMatch = isequal( length( curSeries.instance ), curMatch.CONTENT );
 WAD_vbprint( [my.name ': Compare #images ' num2str( length( curSeries.instance ) ) ' with ' num2str( curMatch.CONTENT ) '. Equal? >> ' num2str(bMatch) ], 2 );
 
 
 function bMatch = matchDicomTag( curMatch, curSeries )
-my.name = 'WAD_MR_runConfiguredAnalysis:matchDicomTag';
+my.name = 'WAD_findMatchingSeries:matchDicomTag';
+bMatch = false;
 % compare action content with DICOM field
 try
     % read DICOM header of first instance
@@ -187,7 +188,8 @@ try
     dcminfo = dicominfo( curSeries.instance(1).filename );
 catch err
     WAD_vbprint( [my.name ': Error reading DICOM file "' curSeries.instance(1).filename '"'], 1 );
-    WAD_vbprint( [my.name ': ' err.message ] );
+    WAD_ErrorMsg( my.name, 'Error reading DICOM file.', err );
+    return
 end
 
 % check if configured field exists
@@ -196,7 +198,17 @@ if isfield( dcminfo, dcmFieldName )
     % compare action content with DICOM field
     % statement below should work for both number and string type fields
     bMatch = isequal( dcminfo.(dcmFieldName), curMatch.CONTENT );
-    WAD_vbprint( [my.name ': Compare DICOM field "' dcmFieldName '" content "' dcminfo.(dcmFieldName) '" with "' curMatch.CONTENT '" Equal? >> ' num2str(bMatch) ], 2 );
+    if isnumeric( dcminfo.(dcmFieldName) )
+        dcmContent = num2str( dcminfo.(dcmFieldName) );
+    else
+        dcmContent = dcminfo.(dcmFieldName);
+    end
+    if isnumeric( curMatch.CONTENT )
+        matchContent = num2str( curMatch.CONTENT );
+    else
+        matchContent = curMatch.CONTENT;
+    end
+    WAD_vbprint( [my.name ': Compare DICOM field "' dcmFieldName '" content "' dcmContent '" with "' matchContent '" Equal? >> ' num2str(bMatch) ], 2 );
 else
     bMatch = false;
     WAD_vbprint( [my.name ': DICOM field "' dcmFieldName '" is not defined.'], 2 );
