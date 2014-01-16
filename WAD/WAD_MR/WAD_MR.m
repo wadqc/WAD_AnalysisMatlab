@@ -30,6 +30,9 @@ function WAD_MR( wadInputFileXML )
 % 20131127 / JK / v1.1
 % Support new (v1.1) style action limits
 % ------------------------------------------------------------------------
+% 20140116 / JK / v1.1.1
+% - Support Toshiba B0 map (iAAS)
+% ------------------------------------------------------------------------
 
 
 % ----------------------
@@ -37,8 +40,8 @@ function WAD_MR( wadInputFileXML )
 % ----------------------
 % version info
 my.name = 'WAD_MR';
-my.version = '1.1';
-my.date = '20131127';
+my.version = '1.1.1';
+my.date = '20140116';
 
 disp( ['Starting analysis module ' my.name '  Version ' my.version ' ' my.date] );
 

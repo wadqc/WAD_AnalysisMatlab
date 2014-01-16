@@ -125,6 +125,22 @@ if isempty( magnitude ) || isempty( phase )
     return
 end
 
+% check type of data, options are:
+% - dPhi_rad: (wrapped) phase in radians [default]
+% - dB0_ppm : B0 in ppm
+if ~isfield( phase, 'type' ) || isempty( phase.type )
+    % apply default
+    phase.type = 'dPhi_rad';
+end
+
+% consistency check
+if ~isfield( phase, phase.type )
+    % image data not consistent with give data type
+    WAD_vbprint( [my.name ': consistency check failed! Phase type ' phase.type ' but field phase.' phase.type ' doesn''t exist.' ], 1 );
+    return
+end
+
+
 % update waitbar
 if isInteractive, waitbar( 0.2, h ); end
 
@@ -147,9 +163,9 @@ if isInteractive, waitbar( 0.5, h ); end
 axis_x = floor( szROI * diameter_pix(1) / 2 );
 axis_y = floor( szROI * diameter_pix(2) / 2 );
 
-[phase.masked, mask] = ROImask( axis_x, axis_y, centre_pix, phase.dPhi_rad, 0 );
+[phase.masked, mask] = ROImask( axis_x, axis_y, centre_pix, phase.(phase.type), 0 );
 
-magnitude.masked = immultiply( magnitude.image, mask);
+magnitude.masked = magnitude.image .* mask;
 
 % ----------------------------------------------------
 % haalt bovenste stuk fantoom af omdat daar afwijkende geometrie,
@@ -160,7 +176,7 @@ phasemask(:,:) = mask(:,:);
 ignoreTopRows = floor( centre_pix(2) - ignoreTop*axis_x );
 phasemask( 1:ignoreTopRows, : ) = 0;
 
-phase.masked = immultiply( phase.masked, phasemask );
+phase.masked = phase.masked .* phasemask;
 
 % update waitbar
 if isInteractive, waitbar( 0.6, h ); end
@@ -173,24 +189,29 @@ if isInteractive, waitbar( 0.6, h ); end
 x_pix=floor(centre_pix(1));
 y_pix=floor(centre_pix(2));
 
-phase.unwrapped = unwrap2D( phase.masked, [x_pix,y_pix]);
-phase.maskedandunwrapped = immultiply(phase.unwrapped, phasemask);
+% unwrapping fasehoek, en conversie naar B0
+if strcmp( phase.type, 'dPhi_rad' )
+    phase.unwrapped = unwrap2D( phase.masked, [x_pix,y_pix]);
+    phase.maskedandunwrapped = phase.unwrapped .* phasemask;
+    % update waitbar
+    if isInteractive, waitbar( 0.8, h ); end
 
-% update waitbar
-if isInteractive, waitbar( 0.8, h ); end
+    % ----------------------------------------------------
+    % bereken B0
+    % ----------------------------------------------------
+    gamma = 267513; %42576;  % gyromatric frequency in rad/s*1/T
+    magnet_T = phase.info.MagneticFieldStrength;  % in Tesla
 
-% ----------------------------------------------------
-% bereken B0
-% ----------------------------------------------------
-gamma = 267513; %42576;  % gyromatric frequency in rad/s*1/T
-magnet_T = phase.info.MagneticFieldStrength;  % in Tesla
-
-dB0_T = phase.maskedandunwrapped / (gamma .* phase.dTE); % in Tesla
+    dB0_T = phase.maskedandunwrapped / (gamma .* phase.dTE); % in Tesla
+    dB0_ppm = dB0_T / magnet_T * 1000000; % in ppm
+else
+    % For B0 map: just apply the mask
+    dB0_ppm = phase.dB0_ppm .* phasemask;
+end
 
 % write B0 map to calculations log file
 hFig = figure( 'Visible', fig_visible, 'MenuBar', 'none', 'Name', 'B0 map [ppm]' );
-%hFig = figure( 'Name', 'B0 map [ppm]' );
-imshow( dB0_T / magnet_T * 1000000, [] ); % in ppm
+imshow( dB0_ppm, [] ); % in ppm
 colormap(jet);
 axis image
 axis square
@@ -212,19 +233,19 @@ if isInteractive, waitbar( 0.9, h ); end
 % ----------------------------------------------------
 % bereken uniformiteit
 % ----------------------------------------------------
-matrixsize_phase = size( phase.maskedandunwrapped );
+matrixsize_phase = size( phase.dB0_ppm );
 
 smallest = +1.0E99; % huge
 largest  = -1.0E99; % negative huge
 
 for i=1:matrixsize_phase(1)
     for j=1:matrixsize_phase(2)
-        if phasemask(i,j)==1
-            if dB0_T(i,j)<smallest
-                smallest=dB0_T(i,j);
+        if phasemask(i,j) == 1
+            if phase.dB0_ppm(i,j) < smallest
+                smallest = phase.dB0_ppm(i,j);
             end
-            if dB0_T(i,j)>largest
-                largest=dB0_T(i,j);
+            if phase.dB0_ppm(i,j) > largest
+                largest = phase.dB0_ppm(i,j);
             end
         end
     end
@@ -237,7 +258,7 @@ if isInteractive, waitbar( 1.0, h ); end
 % ----------------------------------------------------
 % final result: difference in ppm
 % ----------------------------------------------------
-B0_uniformity_ppm = ( largest-smallest ) / magnet_T * 1000000; % in ppm
+B0_uniformity_ppm = largest - smallest; % in ppm
 WAD_resultsAppendFloat( 1, B0_uniformity_ppm, 'Uniformity', 'ppm', 'B0' );
 
 % log file
@@ -248,27 +269,22 @@ WAD_vbprint( [my.name ':   B0 uniformity = ' num2str(B0_uniformity_ppm) ' ppm'] 
 if isInteractive, close( h ), end
 
 return
+end
 
 
 
-
-
-% -------------------------------------------------------------------------
 function [B,M] = ROImask(a,b,cent,I,valfill)
+% -------------------------------------------------------------------------
 % Creates an elliptical mask defined by paramaters a, b and cent. Multiples
 % this mask to I and fills all pixels outside ellipse with valfill
 % -------------------------------------------------------------------------
 centx = cent(1);
 centy = cent(2);
-[numr,numc]=size(I);
-
-[x,y] = meshgrid(1:numc,1:numr);
-M = double(((x-centx).^2)/a^2 + ((y-centy).^2)/b^2 <= 1);
-% figure
-% imagesc(M)
-B = immultiply(I,M) + imcomplement(M)*valfill;
-
-
+[numr,numc] = size(I);
+[x,y] = meshgrid( 1:numc, 1:numr );
+M = double( ((x-centx).^2) ./ a.^2 + ((y-centy).^2) ./ b.^2 <= 1 );
+B = M .* I + ( 1.0 - M ) .* valfill;
+end
 
 
 
@@ -305,6 +321,8 @@ for count=1:size_image(1)
     image_out=unwrap_line(image_out(:,:),count,y,size_image,2);
 end
 
+end
+
 
 
 
@@ -321,3 +339,4 @@ result_start = unwrap( row_start, [], orientation);
 % ge-unwrapte delen weer invoegen in uiteindelijke image:
 image_out(x, y:size_image(2))  = result_end( :,: );
 image_out(x, 1:y-1          )  = fliplr( result_start( 1, 2:y ) );
+end
