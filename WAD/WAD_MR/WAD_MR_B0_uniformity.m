@@ -233,7 +233,7 @@ if isInteractive, waitbar( 0.9, h ); end
 % ----------------------------------------------------
 % bereken uniformiteit
 % ----------------------------------------------------
-matrixsize_phase = size( phase.dB0_ppm );
+matrixsize_phase = size( dB0_ppm );
 
 smallest = +1.0E99; % huge
 largest  = -1.0E99; % negative huge
@@ -241,11 +241,11 @@ largest  = -1.0E99; % negative huge
 for i=1:matrixsize_phase(1)
     for j=1:matrixsize_phase(2)
         if phasemask(i,j) == 1
-            if phase.dB0_ppm(i,j) < smallest
-                smallest = phase.dB0_ppm(i,j);
+            if dB0_ppm(i,j) < smallest
+                smallest = dB0_ppm(i,j);
             end
-            if phase.dB0_ppm(i,j) > largest
-                largest = phase.dB0_ppm(i,j);
+            if dB0_ppm(i,j) > largest
+                largest = dB0_ppm(i,j);
             end
         end
     end
