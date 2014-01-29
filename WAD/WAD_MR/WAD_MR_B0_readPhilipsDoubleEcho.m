@@ -123,20 +123,31 @@ phase2.image     = double( dicomread( phase2.info ) );
 % conversion phase map from pixel values to radians
 % Philips has the RescaleSlope field defined, and needs an
 % additional factor 1000
-if isfield( phase2.info, 'RescaleSlope' )
-    factor = phase2.info.RescaleSlope / 1000.0;
-    offset = 0; % matlab reads the offset already from RescaleIntercept
+if isfield( phase.info, 'RescaleSlope' ) && isfield( phase2.info, 'RescaleSlope' )
+    factor  =  phase.info.RescaleSlope / 1000.0;
+    offset  = 0; % matlab reads the offset already from RescaleIntercept
+    factor2 = phase2.info.RescaleSlope / 1000.0;
+    offset2 = 0; % matlab reads the offset already from RescaleIntercept
+elseif isfield( phase.info, 'RealWorldValueMappingSequence' ) && ...
+       isfield( phase.info.RealWorldValueMappingSequence, 'Item_1' ) && ...
+       isfield( phase.info.RealWorldValueMappingSequence.Item_1, 'RealWorldValueSlope') && ...
+       isfield( phase.info.RealWorldValueMappingSequence.Item_1, 'RealWorldValueIntercept')
+    factor  =  phase.info.RealWorldValueMappingSequence.Item_1.RealWorldValueSlope / 1000.0;
+    offset  =  phase.info.RealWorldValueMappingSequence.Item_1.RealWorldValueIntercept / 1000.0;
+    factor2 = phase2.info.RealWorldValueMappingSequence.Item_1.RealWorldValueSlope / 1000.0;
+    offset2 = phase2.info.RealWorldValueMappingSequence.Item_1.RealWorldValueIntercept / 1000.0;
 else
     % don't know what to do without the rescale slope...
-    WAD_vbprint( [my.name ':   ERROR: phase image does not have RescaleIntercept defined. Skipping analysis'] );
+    WAD_vbprint( [my.name ':   ERROR: phase image does not have RescaleSlope or '] );
+    WAD_vbprint( [my.name ':          RealWorldValueMappingSequence.Item_1.RealWorldValueSlope + Intercept defined. Skipping analysis'] );
     error( 'Error during import of phase images.' )
 end
 
 % subtract the first image
-phase.image = phase2.image - phase.image;
+phase.image = (phase2.image * factor2 - offset2) - (phase.image * factor - offset);
 
 % convert from phase image from pixel values to radians
-phase.dPhi_rad = phase.image * factor - offset;
+phase.dPhi_rad = phase.image;
 
 % get delta-TE from header of both phase images
 phase.dTE = phase2.info.EchoTime - phase.info.EchoTime;
