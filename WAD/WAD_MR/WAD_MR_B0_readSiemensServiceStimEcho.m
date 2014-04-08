@@ -98,7 +98,9 @@ steimg = dicomread( info );
 hFig = figure( 'Visible', fig_visible, 'MenuBar', 'none', 'Name', 'Siemens STE image' );
 colormap(gray);
 % display image 
-imshow( steimg, [] );
+%imshow( steimg, [] );
+colormap( gray(256) );
+imagesc( steimg );
 axis image
 axis square
 axis off

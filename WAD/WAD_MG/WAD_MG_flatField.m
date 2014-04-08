@@ -368,7 +368,8 @@ if roi.threshold > 0
     % - reduce image size: show only one in imDispPx pixels
     % - with +/- 4 SD full scale mapping
     imDispPx = 5;
-    imshow( img(1:imDispPx:end,1:imDispPx:end), [theMean-4*SD theMean+4*SD] );
+    %imshow( img(1:imDispPx:end,1:imDispPx:end), [theMean-4*SD theMean+4*SD] );
+    imagesc( img(1:imDispPx:end,1:imDispPx:end), [theMean-4*SD theMean+4*SD] );
     axis image
     axis square
     axis off
