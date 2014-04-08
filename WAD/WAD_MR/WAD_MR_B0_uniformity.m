@@ -58,6 +58,10 @@ function WAD_MR_B0_uniformity( i_iSeries, sSeries, sParams )
 % V1.1
 % - new (v1.1) style action limits
 % ------------------------------------------------------------------------
+% 20140207 / JK
+% V1.1.1
+% - support for B0 maps in ppm or Hz
+% ------------------------------------------------------------------------
 
 % ----------------------
 % GLOBALS
@@ -66,8 +70,8 @@ function WAD_MR_B0_uniformity( i_iSeries, sSeries, sParams )
 
 % version info
 my.name = 'WAD_MR_B0_uniformity';
-my.version = '1.1';
-my.date = '20131127';
+my.version = '1.1.1';
+my.date = '20140207';
 WAD_vbprint( ['Module ' my.name ' Version ' my.version ' (' my.date ')'] );
 
 
@@ -128,6 +132,7 @@ end
 % check type of data, options are:
 % - dPhi_rad: (wrapped) phase in radians [default]
 % - dB0_ppm : B0 in ppm
+% - dB0_Hz  : B0 in Hz
 if ~isfield( phase, 'type' ) || isempty( phase.type )
     % apply default
     phase.type = 'dPhi_rad';
@@ -189,23 +194,29 @@ if isInteractive, waitbar( 0.6, h ); end
 x_pix=floor(centre_pix(1));
 y_pix=floor(centre_pix(2));
 
-% unwrapping fasehoek, en conversie naar B0
+
+% ----------------------------------------------------
+% bereken B0 in ppm
+% ----------------------------------------------------
+magnet_T = phase.info.MagneticFieldStrength;  % in Tesla
+
+% unwrapping fasehoek, en conversie naar B0 in ppm
 if strcmp( phase.type, 'dPhi_rad' )
     phase.unwrapped = unwrap2D( phase.masked, [x_pix,y_pix]);
     phase.maskedandunwrapped = phase.unwrapped .* phasemask;
     % update waitbar
     if isInteractive, waitbar( 0.8, h ); end
 
-    % ----------------------------------------------------
-    % bereken B0
-    % ----------------------------------------------------
-    gamma = 267513; %42576;  % gyromatric frequency in rad/s*1/T
-    magnet_T = phase.info.MagneticFieldStrength;  % in Tesla
-
-    dB0_T = phase.maskedandunwrapped / (gamma .* phase.dTE); % in Tesla
+    gamma_rad_ms_T = 267513; % 42576 * 2 * pi;  % gyromatric frequency in rad/ms*1/T
+    dB0_T = phase.maskedandunwrapped / (gamma_rad_ms_T .* phase.dTE); % in Tesla
     dB0_ppm = dB0_T / magnet_T * 1000000; % in ppm
+elseif strcmp( phase.type, 'dB0_Hz' )
+    % Convert B0 in Hz to ppm
+    gamma_Hz_T = 42.576E06;
+    dB0_ppm = ( phase.dB0_Hz ./ gamma_Hz_T ) ./ magnet_T * 1000000; % in ppm
+    dB0_ppm = dB0_ppm .* phasemask;
 else
-    % For B0 map: just apply the mask
+    % For B0 mapin ppm: just apply the mask
     dB0_ppm = phase.dB0_ppm .* phasemask;
 end
 

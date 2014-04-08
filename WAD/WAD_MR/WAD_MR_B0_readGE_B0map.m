@@ -19,14 +19,14 @@
 % along with this program.  If not, see <http://www.gnu.org/licenses/>.
 % ------------------------------------------------------------------------
 
-function [magnitude, phase] = WAD_MR_B0_readGE_VUMC_custom( i_iSeries, sSeries, sParams )
+function [magnitude, phase] = WAD_MR_B0_readGE_B0map( i_iSeries, sSeries, sParams )
 % Import function for BO uniformity GE phase difference field map 
-% (implemented as a VUMC custom sequence). Acquisition must be single slice.
+% (GE research type-in: B0map). Acquisition must be single slice.
 %
 % This is a import function to be called from WAD_MR_B0_uniformity()
 %
 % Configuration name for the <params><type> field:
-% GE_VUMC_custom
+% GE_B0map
 %
 % Known limitations:
 % - Needs Explicit DICOM files. TODO: check type of field, if uint8 convert
@@ -54,6 +54,12 @@ function [magnitude, phase] = WAD_MR_B0_readGE_VUMC_custom( i_iSeries, sSeries, 
 % V1.1
 % - new (v1.1) style action limits
 % ------------------------------------------------------------------------
+% 20140207 / JK
+% V1.1
+% - new function GE_B0map for GE research type-in: B0map
+% - for GE software level HD23 or DV23 or newer
+% - sequence produces a B0 map in [Hz]
+% ------------------------------------------------------------------------
 
 
 % ----------------------
@@ -62,9 +68,9 @@ function [magnitude, phase] = WAD_MR_B0_readGE_VUMC_custom( i_iSeries, sSeries, 
 %global WAD
 
 % version info
-my.name = 'WAD_MR_B0_readGE_VUMC_custom';
+my.name = 'WAD_MR_B0_readGE_B0map';
 my.version = '1.1';
-my.date = '20131127';
+my.date = '20140207';
 WAD_vbprint( ['Module ' my.name ' Version ' my.version ' (' my.date ')'] );
 
 
@@ -80,15 +86,15 @@ fname = sSeries.instance( 1 ).filename;
 WAD_vbprint( [my.name ':   Check type of B0 map... reading DICOM header of file ' fname ] );
 info = dicominfo( fname );
 
-if isfield( info, 'Private_0019_109c' ) &&  strfind( info.Private_0019_109c', 'fgre_B0' )
+if isfield( info, 'Private_0019_109c' ) && strfind( info.Private_0019_109c', 'B0map' )
     % custom sequence for B0 map on GE
-    WAD_vbprint( [my.name ':   Detected VUmc custom B0 map for GE.'] );
+    WAD_vbprint( [my.name ':   Detected research type-in B0map for GE.'] );
 else
-    WAD_vbprint( [my.name ':   Could not detect Siemens VUmc custom B0 map for GE. Private_0019_109c not equal to "fgre_B0"'] );
+    WAD_vbprint( [my.name ':   Could not detect type-in B0map for GE. Private_0019_109c not equal to "B0map"'] );
     error( 'Error during import of phase images.' )
 end
 
-WAD_vbprint( [my.name ':   Setting type of B0 map to GE custom.'] );
+WAD_vbprint( [my.name ':   Setting type of B0 map to GE B0map.'] );
 % GE has (custom) B0 map in single series, magn/phase pair.
 if length( sSeries.instance ) ~= 2
     WAD_vbprint( [my.name ':   ERROR: B0 map has more than one slice. Skip analysis'] );
@@ -96,9 +102,9 @@ if length( sSeries.instance ) ~= 2
 end
 
 % magnitude series / image
-mci = 1;
+mci = 2;
 % phase series / image
-pci = 2;
+pci = 1;
 
 % ----------------------------------------------------
 % read DICOM images
@@ -109,16 +115,11 @@ magnitude.image = double( dicomread( magnitude.info ) );
 
 phase.filename  = sSeries.instance( pci ).filename;
 phase.info      = dicominfo( phase.filename );
-phase.image     = double( dicomread( phase.info ) );
+%phase.image     = double( dicomread( phase.info ) );
 
-% conversion phase map from pixel values to radians
-factor = 1/1000;
-offset = 0;
+phase.dB0_Hz   = double( dicomread( phase.info ) ); % image is in Hz
+phase.type      = 'dB0_Hz';
 
-% convert from phase image from pixel values to radians
-phase.dPhi_rad = phase.image * factor - offset;
-
-% GE custom has time between echoes as TE in DICOM header of the
-% PHASE image
-phase.dTE = phase.info.EchoTime;
-
+% NOTE: limits (phase wrap) defined in DICOM field (0019,10ab)
+phase.range = str2double( char( phase.info.Private_0019_10ab )' );
+WAD_vbprint( [my.name ':   Info: phase wrap at +/- ' char(phase.info.Private_0019_10ab)' ' Hz.'] );

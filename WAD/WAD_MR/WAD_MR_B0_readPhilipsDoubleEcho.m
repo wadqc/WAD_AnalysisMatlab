@@ -81,7 +81,7 @@ WAD_vbprint( [my.name ':   Check type of B0 map... reading DICOM header of file 
 info = dicominfo( fname );
 
 
-if isfield( info, 'Private_2001_1020' ) &&  strfind( info.Private_2001_1020, 'FFE' )
+if isfield( info, 'Private_2001_1020' ) &&  strfind( info.Private_2001_1020', 'FFE' )
     % Philips product FFE sequence (hopefully with double echo and phase images)
     WAD_vbprint( [my.name ':   Detected Philips double echo FFE.'] );
 else
