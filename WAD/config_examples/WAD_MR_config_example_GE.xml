@@ -40,7 +40,7 @@
 	<omschrijving>Transmitter</omschrijving>
 	<grootheid>Freq Offset</grootheid>
 	<eenheid>Hz</eenheid>
-	<grens_relatief_referentie>34820</grens_relatief_referentie>
+	<grens_relatief_referentie>-6300</grens_relatief_referentie>
 	<grens_relatief_kritisch>1270</grens_relatief_kritisch>
 	<grens_relatief_acceptabel>635</grens_relatief_acceptabel>
     </grens>
