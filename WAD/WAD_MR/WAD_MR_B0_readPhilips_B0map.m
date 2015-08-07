@@ -19,14 +19,14 @@
 % along with this program.  If not, see <http://www.gnu.org/licenses/>.
 % ------------------------------------------------------------------------
 
-function [magnitude, phase] = WAD_MR_B0_readGE_VUMC_custom( i_iSeries, sSeries, sParams )
-% Import function for BO uniformity GE phase difference field map 
-% (implemented as a VUMC custom sequence). Acquisition must be single slice.
+function [magnitude, phase] = WAD_MR_B0_readPhilips_B0map( i_iSeries, sSeries, sParams )
+% Import function for B0 uniformity Philips clinical science key B0 map. 
+% Acquisition must be single slice, with one magnitude and one phase image.
 %
 % This is a import function to be called from WAD_MR_B0_uniformity()
 %
 % Configuration name for the <params><type> field:
-% GE_VUMC_custom
+% Philips_B0map
 %
 % Known limitations:
 % - Needs Explicit DICOM files. TODO: check type of field, if uint8 convert
@@ -59,6 +59,11 @@ function [magnitude, phase] = WAD_MR_B0_readGE_VUMC_custom( i_iSeries, sSeries, 
 % Private fields are class uint8 and in one column for implicit DICOM, and class char and one row for explicit DICOM
 % char(info.Private_2001_1020(:))' converts both to class char and one row.
 % ------------------------------------------------------------------------
+% 20140729 / JK
+% V2.1.1
+% Converted to Philips B0 map with clinical science key (B0 map option)
+% Unit of phase map is [Hz]
+% ------------------------------------------------------------------------
 
 
 % ----------------------
@@ -67,9 +72,9 @@ function [magnitude, phase] = WAD_MR_B0_readGE_VUMC_custom( i_iSeries, sSeries, 
 %global WAD
 
 % version info
-my.name = 'WAD_MR_B0_readGE_VUMC_custom';
-my.version = '1.1.1';
-my.date = '20140212';
+my.name = 'WAD_MR_B0_readPhilips_B0map';
+my.version = '2.1.1';
+my.date = '20140729';
 WAD_vbprint( ['Module ' my.name ' Version ' my.version ' (' my.date ')'] );
 
 
@@ -85,18 +90,22 @@ fname = sSeries.instance( 1 ).filename;
 WAD_vbprint( [my.name ':   Check type of B0 map... reading DICOM header of file ' fname ] );
 info = dicominfo( fname );
 
-if isfield( info, 'Private_0019_109c' ) &&  strfind( char(info.Private_0019_109c(:))', 'fgre_B0' )
-    % custom sequence for B0 map on GE
-    WAD_vbprint( [my.name ':   Detected VUmc custom B0 map for GE.'] );
+% Private fields are class uint8 and in one column for implicit DICOM, and class char and one row for explicit DICOM
+% char(info.Private_2001_1020(:))' converts both to class char and one row.
+if isfield( info, 'Private_2001_1020' ) &&  strfind( char(info.Private_2001_1020(:))', 'FFE' )
+    % Philips product FFE sequence (hopefully with double echo and phase images)
+    WAD_vbprint( [my.name ':   Detected Philips FFE.'] );
 else
-    WAD_vbprint( [my.name ':   Could not detect Siemens VUmc custom B0 map for GE. Private_0019_109c not equal to "fgre_B0"'] );
+    WAD_vbprint( [my.name ':   Could not detect Philips double echo FFE. Private_2001_1020 not equal to "FFE"'] );
     error( 'Error during import of phase images.' )
 end
 
-WAD_vbprint( [my.name ':   Setting type of B0 map to GE custom.'] );
-% GE has (custom) B0 map in single series, magn/phase pair.
+WAD_vbprint( [my.name ':   Setting type of B0 map to Philips B0 map with phase images.'] );
+% Philips puts all images in one series:
+% - first the magnitude image
+% - then the phase difference image
 if length( sSeries.instance ) ~= 2
-    WAD_vbprint( [my.name ':   ERROR: B0 map has more than one slice. Skip analysis'] );
+    WAD_vbprint( [my.name ':   ERROR: B0 map series does not have 2 images. Skipping analysis'] );
     error( 'Error during import of phase images.' )
 end
 
@@ -104,6 +113,7 @@ end
 mci = 1;
 % phase series / image
 pci = 2;
+
 
 % ----------------------------------------------------
 % read DICOM images
@@ -116,14 +126,34 @@ phase.filename  = sSeries.instance( pci ).filename;
 phase.info      = dicominfo( phase.filename );
 phase.image     = double( dicomread( phase.info ) );
 
-% conversion phase map from pixel values to radians
-factor = 1/1000;
-offset = 0;
+% conversion phase map from pixel values to Hz
+% Philips has the RescaleSlope field defined.
+if isfield( phase.info, 'RescaleSlope' ) && isfield( phase2.info, 'RescaleSlope' )
+    factor  =  phase.info.RescaleSlope;
+    offset  = 0; % matlab reads the offset already from RescaleIntercept
+elseif isfield( phase.info, 'RealWorldValueMappingSequence' ) && ...
+       isfield( phase.info.RealWorldValueMappingSequence, 'Item_1' ) && ...
+       isfield( phase.info.RealWorldValueMappingSequence.Item_1, 'RealWorldValueSlope') && ...
+       isfield( phase.info.RealWorldValueMappingSequence.Item_1, 'RealWorldValueIntercept')
+    factor  =  phase.info.RealWorldValueMappingSequence.Item_1.RealWorldValueSlope;
+    offset  =  phase.info.RealWorldValueMappingSequence.Item_1.RealWorldValueIntercept;
+else
+    % don't know what to do without the rescale slope...
+    WAD_vbprint( [my.name ':   ERROR: phase image does not have RescaleSlope or '] );
+    WAD_vbprint( [my.name ':          RealWorldValueMappingSequence.Item_1.RealWorldValueSlope + Intercept defined. Skipping analysis'] );
+    error( 'Error during import of phase images.' )
+end
 
-% convert from phase image from pixel values to radians
-phase.dPhi_rad = phase.image * factor - offset;
+% B0 map in Hz
+phase.dB0_Hz = phase.image * factor - offset;
 
-% GE custom has time between echoes as TE in DICOM header of the
-% PHASE image
-phase.dTE = phase.info.EchoTime;
-
+% convert back to phase in radians, in order to unwrap the B0 map
+% only possible if delta-TE is known!
+if isfield( sParams, 'deltaTE_ms' )
+    phase.dTE = sParams.deltaTE_ms;
+    phase.dPhi_rad = phase.dB0_Hz * (2*pi) * phase.dTE * 1E-3;
+    phase.type = 'dPhi_rad';
+else
+    % use B0 map in Hz, may contain wraps though!
+    phase.type = 'dB0_Hz';
+end

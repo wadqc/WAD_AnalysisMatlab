@@ -60,6 +60,11 @@ function [magnitude, phase] = WAD_MR_B0_readGE_B0map( i_iSeries, sSeries, sParam
 % - for GE software level HD23 or DV23 or newer
 % - sequence produces a B0 map in [Hz]
 % ------------------------------------------------------------------------
+% 20140212 / JK
+% V1.1.1
+% Private fields are class uint8 and in one column for implicit DICOM, and class char and one row for explicit DICOM
+% char(info.Private_2001_1020(:))' converts both to class char and one row.
+% ------------------------------------------------------------------------
 
 
 % ----------------------
@@ -69,8 +74,8 @@ function [magnitude, phase] = WAD_MR_B0_readGE_B0map( i_iSeries, sSeries, sParam
 
 % version info
 my.name = 'WAD_MR_B0_readGE_B0map';
-my.version = '1.1';
-my.date = '20140207';
+my.version = '1.1.1';
+my.date = '20130212';
 WAD_vbprint( ['Module ' my.name ' Version ' my.version ' (' my.date ')'] );
 
 
@@ -86,7 +91,7 @@ fname = sSeries.instance( 1 ).filename;
 WAD_vbprint( [my.name ':   Check type of B0 map... reading DICOM header of file ' fname ] );
 info = dicominfo( fname );
 
-if isfield( info, 'Private_0019_109c' ) && strfind( info.Private_0019_109c', 'B0map' )
+if isfield( info, 'Private_0019_109c' ) && strfind( char(info.Private_0019_109c(:))', 'B0map' )
     % custom sequence for B0 map on GE
     WAD_vbprint( [my.name ':   Detected research type-in B0map for GE.'] );
 else
@@ -121,5 +126,5 @@ phase.dB0_Hz   = double( dicomread( phase.info ) ); % image is in Hz
 phase.type      = 'dB0_Hz';
 
 % NOTE: limits (phase wrap) defined in DICOM field (0019,10ab)
-phase.range = str2double( char( phase.info.Private_0019_10ab )' );
-WAD_vbprint( [my.name ':   Info: phase wrap at +/- ' char(phase.info.Private_0019_10ab)' ' Hz.'] );
+phase.range = str2double( char( phase.info.Private_0019_10ab(:) )' );
+WAD_vbprint( [my.name ':   Info: phase wrap at +/- ' char(phase.info.Private_0019_10ab(:))' ' Hz.'] );

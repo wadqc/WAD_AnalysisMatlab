@@ -54,6 +54,11 @@ function [magnitude, phase] = WAD_MR_B0_readPhilipsDoubleEcho( i_iSeries, sSerie
 % V1.1
 % - new (v1.1) style action limits
 % ------------------------------------------------------------------------
+% 20140212 / JK
+% V1.1.1
+% Private fields are class uint8 and in one column for implicit DICOM, and class char and one row for explicit DICOM
+% char(info.Private_2001_1020(:))' converts both to class char and one row.
+% ------------------------------------------------------------------------
 
 
 % ----------------------
@@ -63,8 +68,8 @@ function [magnitude, phase] = WAD_MR_B0_readPhilipsDoubleEcho( i_iSeries, sSerie
 
 % version info
 my.name = 'WAD_MR_B0_readPhilipsDoubleEcho';
-my.version = '1.1';
-my.date = '20131127';
+my.version = '1.1.1';
+my.date = '20140212';
 WAD_vbprint( ['Module ' my.name ' Version ' my.version ' (' my.date ')'] );
 
 
@@ -80,8 +85,9 @@ fname = sSeries.instance( 1 ).filename;
 WAD_vbprint( [my.name ':   Check type of B0 map... reading DICOM header of file ' fname ] );
 info = dicominfo( fname );
 
-
-if isfield( info, 'Private_2001_1020' ) &&  strfind( info.Private_2001_1020', 'FFE' )
+% Private fields are class uint8 and in one column for implicit DICOM, and class char and one row for explicit DICOM
+% char(info.Private_2001_1020(:))' converts both to class char and one row.
+if isfield( info, 'Private_2001_1020' ) &&  strfind( char(info.Private_2001_1020(:))', 'FFE' )
     % Philips product FFE sequence (hopefully with double echo and phase images)
     WAD_vbprint( [my.name ':   Detected Philips double echo FFE.'] );
 else

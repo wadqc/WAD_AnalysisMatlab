@@ -222,7 +222,8 @@ end
 
 % write B0 map to calculations log file
 hFig = figure( 'Visible', fig_visible, 'MenuBar', 'none', 'Name', 'B0 map [ppm]' );
-imshow( dB0_ppm, [] ); % in ppm
+%imshow( dB0_ppm, [] ); % in ppm
+imagesc( dB0_ppm );
 colormap(jet);
 axis image
 axis square

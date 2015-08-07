@@ -76,11 +76,16 @@ function WAD_MR_TxAmplFreq( i_iSeries, sSeries, sParams )
 %   not present, ref freq is calculated from field strength (DICOM header
 %   field MagneticFieldStrength).
 % ------------------------------------------------------------------------
+% 20140212 / JK
+% V1.1.1
+% Private fields are class uint8 and in one column for implicit DICOM, and class char and one row for explicit DICOM
+% char(info.Private_2001_1020(:))' converts both to class char and one row.
+% ------------------------------------------------------------------------
 
 % version info
 my.name = 'WAD_MR_TxAmplFreq';
-my.version = '1.1';
-my.date = '20131127';
+my.version = '1.1.1';
+my.date = '20140212';
 WAD_vbprint( ['Module ' my.name ' Version ' my.version ' (' my.date ')'] );
 
 
@@ -146,7 +151,7 @@ my.name = 'WAD_MR_TxAmplFreq:getField';
 if isfield( fieldinfo, 'type' )
     if strcmp( fieldinfo.type, 'char' )
         % convert this dicom field to the requested type 'char'
-        x = cast( dicomheader.(fieldinfo.field), fieldinfo.type )';
+        x = cast( dicomheader.(fieldinfo.field)(:), fieldinfo.type )';
 
         if isfield( fieldinfo, 'pattern' )
             % find the starting pattern
