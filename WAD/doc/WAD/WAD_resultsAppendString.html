@@ -57,7 +57,9 @@ This function is called by:
 <li><a href="WAD_main.html" class="code" title="function WAD_main( wadInputFileXML )">WAD_main</a>	------------------------------------------------------------------------</li><li><a href="WAD_parseAutoComment.html" class="code" title="function WAD_parseAutoComment( sSeries, sAutoComment )">WAD_parseAutoComment</a>	------------------------------------------------------------------------</li><li><a href="WAD_vbprint_init.html" class="code" title="function WAD_vbprint_init( logfilename )">WAD_vbprint_init</a>	------------------------------------------------------------------------</li><li><a href="../WAD_MG/WAD_MG_AEC.html" class="code" title="function WAD_MG_AEC( i_iSeries, sSeries, sParams )">WAD_MG_AEC</a>	------------------------------------------------------------------------</li><li><a href="../WAD_MG/WAD_MG_flatField.html" class="code" title="function WAD_MG_flatField( i_iSeries, sSeries, sParams )">WAD_MG_flatField</a>	------------------------------------------------------------------------</li><li><a href="../WAD_MR/WAD_MR_B0_readSiemensServiceStimEcho.html" class="code" title="function [magnitude, phase] = WAD_MR_B0_readSiemensServiceStimEcho( i_iSeries, sSeries, sParams )">WAD_MR_B0_readSiemensServiceStimEcho</a>	------------------------------------------------------------------------</li><li><a href="../WAD_MR/WAD_MR_B0_uniformity.html" class="code" title="function WAD_MR_B0_uniformity( i_iSeries, sSeries, sParams )">WAD_MR_B0_uniformity</a>	------------------------------------------------------------------------</li><li><a href="../WAD_MR/WAD_MR_SNR.html" class="code" title="function WAD_MR_SNR( i_iSeries, sSeries, sParams )">WAD_MR_SNR</a>	------------------------------------------------------------------------</li><li><a href="../WAD_MR/WAD_MR_SNR_MultiChannel.html" class="code" title="function WAD_MR_SNR_MultiChannel( i_iSeries, sSeries, sParams )">WAD_MR_SNR_MultiChannel</a>	------------------------------------------------------------------------</li><li><a href="../WAD_MR/WAD_MR_geomXY.html" class="code" title="function WAD_MR_geomXY( i_iSeries, sSeries, sParams )">WAD_MR_geomXY</a>	------------------------------------------------------------------------</li><li><a href="../WAD_MR/WAD_MR_geomZ.html" class="code" title="function WAD_MR_geomZ( i_iSeries, sSeries, sParams )">WAD_MR_geomZ</a>	------------------------------------------------------------------------</li><li><a href="../WAD_demo/WAD_demo_actionOne.html" class="code" title="function WAD_demo_actionOne( i_iSeries, sSeries, sParams )">WAD_demo_actionOne</a>	------------------------------------------------------------------------</li><li><a href="../WAD_demo/WAD_demo_actionTwo.html" class="code" title="function WAD_demo_actionTwo( i_iSeries, sSeries, sParams )">WAD_demo_actionTwo</a>	------------------------------------------------------------------------</li></ul>
 <!-- crossreference -->
 
-
+<h2><a name="_subfunctions"></a>SUBFUNCTIONS <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<ul style="list-style-image:url(../matlabicon.gif)">
+<li><a href="#_sub1" class="code">function i_iLim = findLimits( limitsFieldName, description )</a></li></ul>
 
 <h2><a name="_source"></a>SOURCE CODE <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
 <div class="fragment"><pre>0001 <span class="comment">% ------------------------------------------------------------------------</span>
@@ -102,31 +104,90 @@ This function is called by:
 0040 <span class="comment">%         actions, and still get unique identifiers in the results</span>
 0041 <span class="comment">%         database.</span>
 0042 <span class="comment">% ------------------------------------------------------------------------</span>
-0043 
-0044 
-0045 
-0046 <span class="keyword">global</span> WAD
-0047 
-0048 <a href="WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( <span class="string">'Module WAD_resultsAppendString()'</span>, 2 );
-0049 
-0050 <span class="comment">% WAD XML object</span>
-0051 WAD.out.results{end+1} = []; <span class="comment">% new item</span>
-0052 <span class="comment">% increase index number</span>
-0053 WAD.results_index = WAD.results_index + 1;
-0054 WAD.out.results{end}.volgnummer = WAD.results_index;
-0055 WAD.out.results{end}.type = <span class="string">'char'</span>;
-0056 WAD.out.results{end}.niveau = level;
-0057 WAD.out.results{end}.waarde = value;
+0043 <span class="comment">% 2013-11-26 / JK</span>
+0044 <span class="comment">% V2.1  - Added support for passing a &quot;criterium&quot; defined in the config</span>
+0045 <span class="comment">%         file, similar to float action limits.</span>
+0046 <span class="comment">%     &lt;grens&gt;</span>
+0047 <span class="comment">%         &lt;omschrijving&gt;Fase-coderingsrichting&lt;/omschrijving&gt;</span>
+0048 <span class="comment">%         &lt;criterium&gt;ROW&lt;/criterium&gt;</span>
+0049 <span class="comment">%     &lt;/grens&gt;</span>
+0050 
+0051 <span class="comment">% ------------------------------------------------------------------------</span>
+0052 
+0053 
+0054 <span class="keyword">global</span> WAD
+0055 
+0056 <span class="comment">% Field name of array with action limits in config file</span>
+0057 limitsFieldName = <span class="string">'grens'</span>;
 0058 
-0059 <span class="comment">% check if &lt;resultsTag&gt; was added for this action</span>
-0060 <span class="keyword">if</span> isfield( WAD, <span class="string">'currentActionResultsNamePrefix'</span> ) &amp;&amp; ~isempty( WAD.currentActionResultsNamePrefix )
-0061     description = [ WAD.currentActionResultsNamePrefix <span class="string">' '</span> description ];
-0062 <span class="keyword">end</span>
-0063 
-0064 <span class="keyword">if</span> ~isempty( description ), WAD.out.results{end}.omschrijving = description; <span class="keyword">end</span>
-0065 
-0066 <span class="comment">%gen_object_display( handles.WAD );</span>
-0067 <span class="keyword">end</span></pre></div>
-<hr><address>Generated on Thu 28-Nov-2013 13:27:31 by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" target="_parent">m2html</a></strong> &copy; 2005</address>
+0059 <a href="WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( <span class="string">'Module WAD_resultsAppendString()'</span>, 2 );
+0060 
+0061 <span class="comment">% WAD XML object</span>
+0062 WAD.out.results{end+1} = []; <span class="comment">% new item</span>
+0063 <span class="comment">% increase index number</span>
+0064 WAD.results_index = WAD.results_index + 1;
+0065 WAD.out.results{end}.volgnummer = WAD.results_index;
+0066 WAD.out.results{end}.type = <span class="string">'char'</span>;
+0067 WAD.out.results{end}.niveau = level;
+0068 WAD.out.results{end}.waarde = value;
+0069 
+0070 
+0071 <span class="comment">% check if &lt;resultsTag&gt; was added for this action</span>
+0072 <span class="keyword">if</span> isfield( WAD, <span class="string">'currentActionResultsNamePrefix'</span> ) &amp;&amp; ~isempty( WAD.currentActionResultsNamePrefix )
+0073     <span class="keyword">if</span> ~isempty( description )
+0074         description = [ WAD.currentActionResultsNamePrefix <span class="string">' '</span> description ];
+0075     <span class="keyword">else</span>
+0076         description = WAD.currentActionResultsNamePrefix;        
+0077     <span class="keyword">end</span>
+0078 <span class="keyword">end</span>
+0079 
+0080 <span class="keyword">if</span> ~isempty( description ), WAD.out.results{end}.omschrijving = description; <span class="keyword">end</span>
+0081 
+0082 
+0083 i_iLim = <a href="#_sub1" class="code" title="subfunction i_iLim = findLimits( limitsFieldName, description )">findLimits</a>( limitsFieldName, description );
+0084 <span class="keyword">if</span> ~isempty( i_iLim )
+0085     <span class="comment">% We have a match, use the first match...</span>
+0086     lmts = WAD.cfg.(limitsFieldName)( i_iLim(1) );
+0087 
+0088     <span class="comment">% Check if relative action limits are defined</span>
+0089     <span class="keyword">if</span> isfield( lmts, <span class="string">'criterium'</span> ) &amp;&amp; ~isempty( lmts.criterium )
+0090         WAD.out.results{end}.criterium = lmts.criterium;
+0091     <span class="keyword">end</span>
+0092 <span class="keyword">end</span>
+0093 
+0094 <span class="comment">%gen_object_display( handles.WAD );</span>
+0095 <span class="keyword">end</span>
+0096 
+0097 
+0098 
+0099 <span class="comment">% Local helper functions</span>
+0100 <a name="_sub1" href="#_subfunctions" class="code">function i_iLim = findLimits( limitsFieldName, description )</a>
+0101 <span class="comment">% Find configured limits matching variable / unit / description of current result</span>
+0102 <span class="comment">% Adapted from the AppendFloat version</span>
+0103 
+0104     <span class="keyword">global</span> WAD <span class="comment">% for access to WAD.cfg</span>
+0105 
+0106     <span class="comment">% Check if any limits defined</span>
+0107     i_iLim = [];
+0108     <span class="keyword">if</span> ~isempty( WAD.cfg ) &amp;&amp; isfield( WAD.cfg, limitsFieldName ) &amp;&amp; ~isempty( WAD.cfg.(limitsFieldName) )
+0109 
+0110         <span class="comment">% We should have some limits defined...</span>
+0111         sLimits = WAD.cfg.(limitsFieldName);
+0112 
+0113         <span class="comment">% Another check: need at least one item defined of variable / unit / description</span>
+0114         <span class="keyword">if</span> isfield( sLimits, <span class="string">'omschrijving'</span> ) &amp;&amp; ~isempty( description )
+0115 
+0116             <span class="comment">% Find match of grootheid/eenheid/omschrijving with action limit</span>
+0117             <span class="keyword">if</span> ~isempty( description ) &amp;&amp; isfield( sLimits, <span class="string">'omschrijving'</span> )
+0118                 cmp3 = strcmp( description, {sLimits.omschrijving} );
+0119             <span class="keyword">else</span>
+0120                 cmp3 = true;
+0121             <span class="keyword">end</span>
+0122 
+0123             i_iLim = find( cmp3 );
+0124         <span class="keyword">end</span>
+0125     <span class="keyword">end</span>
+0126 <span class="keyword">end</span> <span class="comment">% findLimits( )</span></pre></div>
+<hr><address>Generated on Fri 07-Aug-2015 09:34:21 by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" target="_parent">m2html</a></strong> &copy; 2005</address>
 </body>
 </html>

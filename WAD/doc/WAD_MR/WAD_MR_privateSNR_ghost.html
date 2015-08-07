@@ -133,215 +133,220 @@ This function is called by:
 0063 <span class="comment">%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%</span>
 0064 <span class="comment">% Modified by: Joost Kuijer / Frank de Weerd / VUmc</span>
 0065 <span class="comment">% 29/08/2008</span>
-0066 <span class="comment">%</span>
-0067 <span class="comment">%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%</span>
-0068 
-0069 <span class="comment">% only calculate what's requested</span>
-0070 calcGhosting   = false;
-0071 calcUniformity = false;
-0072 <span class="keyword">if</span> nargout &gt; 1, calcGhosting   = true; <span class="keyword">end</span>
-0073 <span class="keyword">if</span> nargout &gt; 3, calcUniformity = true; <span class="keyword">end</span>
-0074 
-0075 
-0076 <span class="comment">% Get the initial image</span>
-0077 fname = image.filename;
-0078 info = dicominfo( fname );
-0079 slice = double( dicomread( fname ) );
-0080 
-0081 
-0082 <span class="comment">% definitions of ROI sizes/locations</span>
-0083 <span class="comment">% ... and convert mm to pixels</span>
-0084 radius  = sParams.ROIradius          / info.PixelSpacing(1);    <span class="comment">% radius of large ROI</span>
-0085 Blength = sParams.backgroundROIsize  / info.PixelSpacing(1);    <span class="comment">% length of background ROIs</span>
-0086 <span class="comment">%shift   = 108 / info.PixelSpacing(1);    % shift from centre of phantom to background ROIs</span>
-0087 shift   = sParams.backgroundROIshift / info.PixelSpacing(1);    <span class="comment">% shift from centre of phantom to background ROIs</span>
-0088 
-0089 cent = centrePos_pix; <span class="comment">% centre of phantom</span>
-0090 shiftx = [0, shift];  <span class="comment">% shift from centre for ghosting and background ROIs</span>
-0091 shifty = [shift, 0];
-0092 
-0093 <span class="comment">% 4 background ROI's for ghosting, on all sides near the phantom</span>
-0094 centtop   = centrePos_pix - shiftx;    <span class="comment">% center of top ROI</span>
-0095 centbtm   = centrePos_pix + shiftx;    <span class="comment">% center of bottom ROI</span>
-0096 centright = centrePos_pix - shifty;    <span class="comment">% center of right ROI</span>
-0097 centleft  = centrePos_pix + shifty;    <span class="comment">% center of left ROI</span>
-0098 
-0099 <span class="comment">% 4 background ROI's in the corners of the image for noise estimation</span>
-0100 centbckgbl  = centrePos_pix + shiftx + shifty;  <span class="comment">% center of background ROI</span>
-0101 centbckgtl  = centrePos_pix + shiftx - shifty;  <span class="comment">% center of background ROI</span>
-0102 centbckgbr  = centrePos_pix - shiftx + shifty;  <span class="comment">% center of background ROI</span>
-0103 centbckgtr  = centrePos_pix - shiftx - shifty;  <span class="comment">% center of background ROI</span>
-0104 
-0105 
-0106 <span class="comment">% Determine mean value in centre and ghosting ROIs</span>
-0107 [B,M]           = <a href="#_sub1" class="code" title="subfunction [B,M] = ROImask(a,b,cent,I,valfill)">ROImask</a>(radius,radius,cent,slice,0);
-0108 <span class="keyword">if</span> calcGhosting
-0109     [Btop,Mtop]     = <a href="#_sub2" class="code" title="subfunction [B,M] = ROImaskrec(a,b,cent,I,valfill)">ROImaskrec</a>(Blength*4,Blength  ,centtop,slice,0);
-0110     [Bbtm,Mbtm]     = <a href="#_sub2" class="code" title="subfunction [B,M] = ROImaskrec(a,b,cent,I,valfill)">ROImaskrec</a>(Blength*4,Blength  ,centbtm,slice,0);
-0111     [Bright,Mright] = <a href="#_sub2" class="code" title="subfunction [B,M] = ROImaskrec(a,b,cent,I,valfill)">ROImaskrec</a>(Blength  ,Blength*4,centright,slice,0);
-0112     [Bleft,Mleft]   = <a href="#_sub2" class="code" title="subfunction [B,M] = ROImaskrec(a,b,cent,I,valfill)">ROImaskrec</a>(Blength  ,Blength*4,centleft,slice,0);
-0113 <span class="keyword">end</span>
-0114 
-0115 <span class="comment">% background (noise) ROI's</span>
-0116 [Bbckgbl,Mbckgbl] = <a href="#_sub2" class="code" title="subfunction [B,M] = ROImaskrec(a,b,cent,I,valfill)">ROImaskrec</a>(Blength,Blength,centbckgbl,slice,0);
-0117 [Bbckgtl,Mbckgtl] = <a href="#_sub2" class="code" title="subfunction [B,M] = ROImaskrec(a,b,cent,I,valfill)">ROImaskrec</a>(Blength,Blength,centbckgtl,slice,0);
-0118 [Bbckgbr,Mbckgbr] = <a href="#_sub2" class="code" title="subfunction [B,M] = ROImaskrec(a,b,cent,I,valfill)">ROImaskrec</a>(Blength,Blength,centbckgbr,slice,0);
-0119 [Bbckgtr,Mbckgtr] = <a href="#_sub2" class="code" title="subfunction [B,M] = ROImaskrec(a,b,cent,I,valfill)">ROImaskrec</a>(Blength,Blength,centbckgtr,slice,0);
-0120 <span class="comment">% because background ROI's are not overlapping, we just add them up</span>
-0121 Bbckg = Bbckgbl + Bbckgtl + Bbckgbr + Bbckgtr;
-0122 Mbckg = Mbckgbl + Mbckgtl + Mbckgbr + Mbckgtr;
-0123 
-0124 meanLarge = sum(B(:))/sum(M(:));
-0125 meanbckg  = sum(Bbckg(:))/sum(Mbckg(:));
-0126 <span class="keyword">if</span> calcGhosting
-0127     meantop   = sum(Btop(:))/sum(Mtop(:));
-0128     meanbtm   = sum(Bbtm(:))/sum(Mbtm(:));
-0129     meanright = sum(Bright(:))/sum(Mright(:));
-0130     meanleft  = sum(Bleft(:))/sum(Mleft(:));
-0131 
-0132     <span class="comment">% ACR definition of Percent Signal Ghosting</span>
-0133     ghostRow_percent = 100 * ( max( meanleft, meanright ) - meanbckg ) / (2.0 * meanLarge);
-0134     ghostCol_percent = 100 * ( max( meantop , meanbtm   ) - meanbckg ) / (2.0 * meanLarge);
-0135 <span class="keyword">end</span>
-0136 
-0137 <span class="comment">% standard deviation of background ROI</span>
-0138 [n,m]=size(slice);
-0139 Sbckg = zeros(1,n*m); <span class="comment">% preallocate mem</span>
-0140 k = 0;
-0141 <span class="keyword">for</span> i=1:n,
-0142     <span class="keyword">for</span> j=1:m,
-0143         <span class="keyword">if</span> (Mbckg(i,j) &gt; 0)
-0144             k = k+1;
-0145             Sbckg(k) = Bbckg(i,j);
-0146         <span class="keyword">end</span>
-0147     <span class="keyword">end</span>
-0148 <span class="keyword">end</span>
-0149 <span class="comment">% resize mem</span>
-0150 Sbckg = Sbckg(1:k);
-0151 <span class="comment">% calc SD</span>
-0152 STDbckg = std( Sbckg );
-0153 
-0154 <span class="comment">% SNR --&gt; not true SNR because this need correction for magnitude recon</span>
-0155 SNR = meanLarge / STDbckg;
-0156 
+0066 <span class="comment">%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%</span>
+0067 <span class="comment">% JK - 19/12/2013</span>
+0068 <span class="comment">% Bugfix: execution sometimes hangs in ROImask() in compiled version.</span>
+0069 <span class="comment">% Replaced immultiply() and imcomplement() by regular mathematic</span>
+0070 <span class="comment">% expressions.</span>
+0071 <span class="comment">%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%</span>
+0072 
+0073 <span class="comment">% only calculate what's requested</span>
+0074 calcGhosting   = false;
+0075 calcUniformity = false;
+0076 <span class="keyword">if</span> nargout &gt; 1, calcGhosting   = true; <span class="keyword">end</span>
+0077 <span class="keyword">if</span> nargout &gt; 3, calcUniformity = true; <span class="keyword">end</span>
+0078 
+0079 <span class="comment">% Get the initial image</span>
+0080 fname = image.filename;
+0081 info = dicominfo( fname );
+0082 slice = double( dicomread( fname ) );
+0083 
+0084 <span class="comment">% definitions of ROI sizes/locations</span>
+0085 <span class="comment">% ... and convert mm to pixels</span>
+0086 radius  = sParams.ROIradius          / info.PixelSpacing(1);    <span class="comment">% radius of large ROI</span>
+0087 Blength = sParams.backgroundROIsize  / info.PixelSpacing(1);    <span class="comment">% length of background ROIs</span>
+0088 <span class="comment">%shift   = 108 / info.PixelSpacing(1);    % shift from centre of phantom to background ROIs</span>
+0089 shift   = sParams.backgroundROIshift / info.PixelSpacing(1);    <span class="comment">% shift from centre of phantom to background ROIs</span>
+0090 
+0091 cent = centrePos_pix; <span class="comment">% centre of phantom</span>
+0092 shiftx = [0, shift];  <span class="comment">% shift from centre for ghosting and background ROIs</span>
+0093 shifty = [shift, 0];
+0094 
+0095 <span class="comment">% 4 background ROI's for ghosting, on all sides near the phantom</span>
+0096 centtop   = centrePos_pix - shiftx;    <span class="comment">% center of top ROI</span>
+0097 centbtm   = centrePos_pix + shiftx;    <span class="comment">% center of bottom ROI</span>
+0098 centright = centrePos_pix - shifty;    <span class="comment">% center of right ROI</span>
+0099 centleft  = centrePos_pix + shifty;    <span class="comment">% center of left ROI</span>
+0100 
+0101 <span class="comment">% 4 background ROI's in the corners of the image for noise estimation</span>
+0102 centbckgbl  = centrePos_pix + shiftx + shifty;  <span class="comment">% center of background ROI</span>
+0103 centbckgtl  = centrePos_pix + shiftx - shifty;  <span class="comment">% center of background ROI</span>
+0104 centbckgbr  = centrePos_pix - shiftx + shifty;  <span class="comment">% center of background ROI</span>
+0105 centbckgtr  = centrePos_pix - shiftx - shifty;  <span class="comment">% center of background ROI</span>
+0106 
+0107 <span class="comment">% Determine mean value in centre and ghosting ROIs</span>
+0108 [B,M]           = <a href="#_sub1" class="code" title="subfunction [B,M] = ROImask(a,b,cent,I,valfill)">ROImask</a>(radius,radius,cent,slice,0);
+0109 <span class="keyword">if</span> calcGhosting
+0110     [Btop,Mtop]     = <a href="#_sub2" class="code" title="subfunction [B,M] = ROImaskrec(a,b,cent,I,valfill)">ROImaskrec</a>(Blength*4,Blength  ,centtop,slice,0);
+0111     [Bbtm,Mbtm]     = <a href="#_sub2" class="code" title="subfunction [B,M] = ROImaskrec(a,b,cent,I,valfill)">ROImaskrec</a>(Blength*4,Blength  ,centbtm,slice,0);
+0112     [Bright,Mright] = <a href="#_sub2" class="code" title="subfunction [B,M] = ROImaskrec(a,b,cent,I,valfill)">ROImaskrec</a>(Blength  ,Blength*4,centright,slice,0);
+0113     [Bleft,Mleft]   = <a href="#_sub2" class="code" title="subfunction [B,M] = ROImaskrec(a,b,cent,I,valfill)">ROImaskrec</a>(Blength  ,Blength*4,centleft,slice,0);
+0114 <span class="keyword">end</span>
+0115 
+0116 <span class="comment">% background (noise) ROI's</span>
+0117 [Bbckgbl,Mbckgbl] = <a href="#_sub2" class="code" title="subfunction [B,M] = ROImaskrec(a,b,cent,I,valfill)">ROImaskrec</a>(Blength,Blength,centbckgbl,slice,0);
+0118 [Bbckgtl,Mbckgtl] = <a href="#_sub2" class="code" title="subfunction [B,M] = ROImaskrec(a,b,cent,I,valfill)">ROImaskrec</a>(Blength,Blength,centbckgtl,slice,0);
+0119 [Bbckgbr,Mbckgbr] = <a href="#_sub2" class="code" title="subfunction [B,M] = ROImaskrec(a,b,cent,I,valfill)">ROImaskrec</a>(Blength,Blength,centbckgbr,slice,0);
+0120 [Bbckgtr,Mbckgtr] = <a href="#_sub2" class="code" title="subfunction [B,M] = ROImaskrec(a,b,cent,I,valfill)">ROImaskrec</a>(Blength,Blength,centbckgtr,slice,0);
+0121 <span class="comment">% because background ROI's are not overlapping, we just add them up</span>
+0122 Bbckg = Bbckgbl + Bbckgtl + Bbckgbr + Bbckgtr;
+0123 Mbckg = Mbckgbl + Mbckgtl + Mbckgbr + Mbckgtr;
+0124 
+0125 meanLarge = sum(B(:))/sum(M(:));
+0126 meanbckg  = sum(Bbckg(:))/sum(Mbckg(:));
+0127 <span class="keyword">if</span> calcGhosting
+0128     meantop   = sum(Btop(:))/sum(Mtop(:));
+0129     meanbtm   = sum(Bbtm(:))/sum(Mbtm(:));
+0130     meanright = sum(Bright(:))/sum(Mright(:));
+0131     meanleft  = sum(Bleft(:))/sum(Mleft(:));
+0132 
+0133     <span class="comment">% ACR definition of Percent Signal Ghosting</span>
+0134     ghostRow_percent = 100 * ( max( meanleft, meanright ) - meanbckg ) / (2.0 * meanLarge);
+0135     ghostCol_percent = 100 * ( max( meantop , meanbtm   ) - meanbckg ) / (2.0 * meanLarge);
+0136 <span class="keyword">end</span>
+0137 
+0138 <span class="comment">% standard deviation of background ROI</span>
+0139 [n,m]=size(slice);
+0140 Sbckg = zeros(1,n*m); <span class="comment">% preallocate mem</span>
+0141 k = 0;
+0142 <span class="keyword">for</span> i=1:n,
+0143     <span class="keyword">for</span> j=1:m,
+0144         <span class="keyword">if</span> (Mbckg(i,j) &gt; 0)
+0145             k = k+1;
+0146             Sbckg(k) = Bbckg(i,j);
+0147         <span class="keyword">end</span>
+0148     <span class="keyword">end</span>
+0149 <span class="keyword">end</span>
+0150 <span class="comment">% resize mem</span>
+0151 Sbckg = Sbckg(1:k);
+0152 <span class="comment">% calc SD</span>
+0153 STDbckg = std( Sbckg );
+0154 
+0155 <span class="comment">% SNR --&gt; not true SNR because this need correction for magnitude recon</span>
+0156 SNR = meanLarge / STDbckg;
 0157 
-0158 <span class="comment">% -----------------------------------------------------------------------</span>
-0159 <span class="comment">% Homogeneity</span>
-0160 <span class="comment">% -----------------------------------------------------------------------</span>
-0161 <span class="comment">% begin FdW</span>
-0162 <span class="keyword">if</span> calcUniformity
-0163     [numr,numc]=size(slice);
-0164     centra_plot = zeros(numr,numc);
-0165 
-0166     run=0;
-0167     <span class="keyword">for</span> r=0:0.1:0.9,
-0168        r_dummy = r;
-0169        <span class="keyword">if</span>(r==0)              <span class="comment">% avoid dividing by zero</span>
-0170            r_dummy=0.001;    <span class="comment">% any number smaller than 1/360 will do</span>
-0171        <span class="keyword">end</span>    
-0172        <span class="keyword">for</span> theta= 0 : 5/r_dummy : 360, <span class="comment">% counterclockwise vanaf 6h</span>
-0173           run=run+1;
-0174           shift_dummy_x = [0, r*radius*cos(2*pi*theta/360)];
-0175           shift_dummy_y = [r*radius*sin(2*pi*theta/360), 0];
-0176           cent_dummy = centrePos_pix + shift_dummy_x + shift_dummy_y;  
-0177           centra_plot(round(cent_dummy(2)),round(cent_dummy(1))) = 1;      <span class="comment">% let op de volgorde!!</span>
-0178           [Bdummy,Mdummy] = <a href="#_sub1" class="code" title="subfunction [B,M] = ROImask(a,b,cent,I,valfill)">ROImask</a>(radius/10,radius/10,cent_dummy,slice,0);
-0179           mean_dummy = sum(Bdummy(:))/sum(Mdummy(:));
-0180 
-0181           all_means(run) = mean_dummy;       <span class="comment">% for making a histogram of means</span>
-0182 
-0183           <span class="keyword">if</span>(run==1)
-0184                largest = mean_dummy;
-0185                smallest = mean_dummy;
-0186                cent_largest = cent_dummy;
-0187                cent_smallest = cent_dummy;
-0188           <span class="keyword">else</span>
-0189               <span class="keyword">if</span> (mean_dummy &gt; largest)
-0190                   largest = mean_dummy;
-0191                   cent_largest = cent_dummy;
-0192               <span class="keyword">elseif</span> (mean_dummy &lt; smallest)
-0193                   smallest = mean_dummy;
-0194                   cent_smallest = cent_dummy;
-0195               <span class="keyword">end</span>    
-0196           <span class="keyword">end</span>
-0197       <span class="keyword">end</span>
-0198     <span class="keyword">end</span>
-0199 
-0200     <span class="comment">%largest</span>
-0201     <span class="comment">%smallest</span>
-0202     <span class="comment">%cent_largest</span>
-0203     <span class="comment">%cent_smallest</span>
-0204     PIU = 100 * (1 - (largest - smallest) / (largest + smallest));
-0205 
-0206     <span class="comment">% figure; hist(all_means);</span>
+0158 
+0159 <span class="comment">% -----------------------------------------------------------------------</span>
+0160 <span class="comment">% Homogeneity</span>
+0161 <span class="comment">% -----------------------------------------------------------------------</span>
+0162 <span class="comment">% begin FdW</span>
+0163 <span class="keyword">if</span> calcUniformity
+0164     [numr,numc]=size(slice);
+0165     centra_plot = zeros(numr,numc);
+0166 
+0167     run=0;
+0168     <span class="keyword">for</span> r=0:0.1:0.9,
+0169        r_dummy = r;
+0170        <span class="keyword">if</span>(r==0)              <span class="comment">% avoid dividing by zero</span>
+0171            r_dummy=0.001;    <span class="comment">% any number smaller than 1/360 will do</span>
+0172        <span class="keyword">end</span>    
+0173        <span class="keyword">for</span> theta= 0 : 5/r_dummy : 360, <span class="comment">% counterclockwise vanaf 6h</span>
+0174           run=run+1;
+0175           shift_dummy_x = [0, r*radius*cos(2*pi*theta/360)];
+0176           shift_dummy_y = [r*radius*sin(2*pi*theta/360), 0];
+0177           cent_dummy = centrePos_pix + shift_dummy_x + shift_dummy_y;  
+0178           centra_plot(round(cent_dummy(2)),round(cent_dummy(1))) = 1;      <span class="comment">% let op de volgorde!!</span>
+0179           [Bdummy,Mdummy] = <a href="#_sub1" class="code" title="subfunction [B,M] = ROImask(a,b,cent,I,valfill)">ROImask</a>(radius/10,radius/10,cent_dummy,slice,0);
+0180           mean_dummy = sum(Bdummy(:))/sum(Mdummy(:));
+0181 
+0182           <span class="comment">%all_means(run) = mean_dummy;       % for making a histogram of means</span>
+0183 
+0184           <span class="keyword">if</span>(run==1)
+0185                largest = mean_dummy;
+0186                smallest = mean_dummy;
+0187                cent_largest = cent_dummy;
+0188                cent_smallest = cent_dummy;
+0189           <span class="keyword">else</span>
+0190               <span class="keyword">if</span> (mean_dummy &gt; largest)
+0191                   largest = mean_dummy;
+0192                   cent_largest = cent_dummy;
+0193               <span class="keyword">elseif</span> (mean_dummy &lt; smallest)
+0194                   smallest = mean_dummy;
+0195                   cent_smallest = cent_dummy;
+0196               <span class="keyword">end</span>    
+0197           <span class="keyword">end</span>
+0198       <span class="keyword">end</span>
+0199     <span class="keyword">end</span>
+0200     
+0201 
+0202     <span class="comment">%largest</span>
+0203     <span class="comment">%smallest</span>
+0204     <span class="comment">%cent_largest</span>
+0205     <span class="comment">%cent_smallest</span>
+0206     PIU = 100 .* (1 - (largest - smallest) / (largest + smallest));
 0207 
-0208     [Blargest,Mlargest] = <a href="#_sub1" class="code" title="subfunction [B,M] = ROImask(a,b,cent,I,valfill)">ROImask</a>(radius/10,radius/10,cent_largest,slice,0);
-0209     [Bsmallest,Msmallest] = <a href="#_sub1" class="code" title="subfunction [B,M] = ROImask(a,b,cent,I,valfill)">ROImask</a>(radius/10,radius/10,cent_smallest,slice,0);
-0210 <span class="keyword">end</span>
-0211 <span class="comment">% end part 1 FdW, also changes in the figure below</span>
-0212 
-0213 <span class="comment">% create figure</span>
-0214 <span class="keyword">if</span> quiet 
-0215     fig_visible = <span class="string">'off'</span>;
-0216 <span class="keyword">else</span>
-0217     fig_visible = <span class="string">'on'</span>;
-0218 <span class="keyword">end</span>
-0219 <span class="comment">% reasons for plotting a figure...</span>
-0220 makefig = (nargout &gt; 4) || ~quiet;
-0221 
-0222 <span class="keyword">if</span> makefig
-0223     <span class="comment">% create figure</span>
-0224     hFig = figure( <span class="string">'Visible'</span>, fig_visible, <span class="string">'MenuBar'</span>, <span class="string">'none'</span>, <span class="string">'Name'</span>, <span class="string">'SNR / Ghosting'</span> );
-0225     colormap(gray);
-0226     theImage = slice/10 + B + Bbckg + 0.001;
-0227     <span class="keyword">if</span> calcGhosting
-0228         theImage = theImage + Btop + Bbtm + Bright + Bleft;
-0229     <span class="keyword">end</span>
-0230     <span class="keyword">if</span> calcUniformity
-0231         <span class="comment">% FdW: Blargest and Bsmallest and centra_plot added</span>
-0232         theImage = theImage - Blargest - Bsmallest + 10000*centra_plot;
-0233     <span class="keyword">end</span>
-0234     imagesc( log( theImage ) );
-0235     axis image
-0236     axis square
-0237     axis off
-0238     title(<span class="string">'ROIs for SNR/Ghosting'</span>, <span class="string">'Interpreter'</span>, <span class="string">'none'</span>);
-0239 <span class="keyword">end</span>
-0240 
-0241 <span class="comment">% save figure</span>
-0242 <span class="comment">%[pathstr, name, ext] = fileparts(fname);</span>
-0243 <span class="comment">%saveas( gcf, fullfile(pathstr,'acrNoise.jpg'));</span>
-0244 
-0245 <span class="comment">% return figure handle if it was requested</span>
-0246 <span class="keyword">if</span> nargout &gt; 4
-0247     figureHandle = hFig;
-0248 <span class="keyword">end</span>
-0249 
-0250 
-0251 <span class="comment">%%%%%%%%%%%%%%%%%%%%   SUB-FUNCTION    %%%%%%%%%%%%%%%%%%%%%%%%%%</span>
+0208     <span class="comment">% figure; hist(all_means);</span>
+0209 
+0210     [Blargest,Mlargest]   = <a href="#_sub1" class="code" title="subfunction [B,M] = ROImask(a,b,cent,I,valfill)">ROImask</a>( radius ./ 10.0, radius ./ 10.0, cent_largest,  slice, 0);
+0211     [Bsmallest,Msmallest] = <a href="#_sub1" class="code" title="subfunction [B,M] = ROImask(a,b,cent,I,valfill)">ROImask</a>( radius ./ 10.0, radius ./ 10.0, cent_smallest, slice, 0);
+0212 <span class="keyword">end</span>
+0213 <span class="comment">% end part 1 FdW, also changes in the figure below</span>
+0214 
+0215 <span class="comment">% create figure</span>
+0216 <span class="keyword">if</span> quiet 
+0217     fig_visible = <span class="string">'off'</span>;
+0218 <span class="keyword">else</span>
+0219     fig_visible = <span class="string">'on'</span>;
+0220 <span class="keyword">end</span>
+0221 <span class="comment">% reasons for plotting a figure...</span>
+0222 makefig = (nargout &gt; 4) || ~quiet;
+0223 
+0224 <span class="keyword">if</span> makefig
+0225     <span class="comment">% create figure</span>
+0226     hFig = figure( <span class="string">'Visible'</span>, fig_visible, <span class="string">'MenuBar'</span>, <span class="string">'none'</span>, <span class="string">'Name'</span>, <span class="string">'SNR / Ghosting'</span> );
+0227     colormap(gray);
+0228     theImage = slice/10 + B + Bbckg + 0.001;
+0229     <span class="keyword">if</span> calcGhosting
+0230         theImage = theImage + Btop + Bbtm + Bright + Bleft;
+0231     <span class="keyword">end</span>
+0232     <span class="keyword">if</span> calcUniformity
+0233         <span class="comment">% FdW: Blargest and Bsmallest and centra_plot added</span>
+0234         theImage = theImage - Blargest - Bsmallest + 10000*centra_plot;
+0235     <span class="keyword">end</span>
+0236     imagesc( log( theImage ) );
+0237     axis image
+0238     axis square
+0239     axis off
+0240     title(<span class="string">'ROIs for SNR/Ghosting'</span>, <span class="string">'Interpreter'</span>, <span class="string">'none'</span>);
+0241 <span class="keyword">end</span>
+0242 
+0243 
+0244 <span class="comment">% save figure</span>
+0245 <span class="comment">%[pathstr, name, ext] = fileparts(fname);</span>
+0246 <span class="comment">%saveas( gcf, fullfile(pathstr,'acrNoise.jpg'));</span>
+0247 
+0248 <span class="comment">% return figure handle if it was requested</span>
+0249 <span class="keyword">if</span> nargout &gt; 4
+0250     figureHandle = hFig;
+0251 <span class="keyword">end</span>
 0252 
-0253 <a name="_sub1" href="#_subfunctions" class="code">function [B,M] = ROImask(a,b,cent,I,valfill)</a>
-0254 <span class="comment">% Creates an elliptical mask defined by paramaters a, b and cent. Multiples</span>
-0255 <span class="comment">% this mask to I and fills all pixels outside ellipse with valfill</span>
+0253 <span class="keyword">end</span>
+0254 
+0255 
 0256 
-0257 centx = cent(1);
-0258 centy = cent(2);
-0259 [numr,numc]=size(I);
-0260 [x,y] = meshgrid([1:numc],[1:numr]);
-0261 M = double(((x-centx).^2)/a^2 + ((y-centy).^2)/b^2 &lt;= 1);
-0262 B = immultiply(I,M) + imcomplement(M)*valfill;
-0263 
-0264 
-0265 <a name="_sub2" href="#_subfunctions" class="code">function [B,M] = ROImaskrec(a,b,cent,I,valfill)</a>
-0266 <span class="comment">% Creates an rectangular mask defined by paramaters a, b and cent. Multiples</span>
-0267 <span class="comment">% this mask to I and fills all pixels outside rectangle with valfill</span>
-0268 
-0269 centx = cent(1);
-0270 centy = cent(2);
-0271 [numr,numc]=size(I);
-0272 [x,y] = meshgrid([1:numc],[1:numr]);
-0273 M = double( and( abs(x-centx)&lt;a, abs(y-centy)&lt;b ) );
-0274 B = immultiply(I,M) + imcomplement(M)*valfill;</pre></div>
-<hr><address>Generated on Thu 28-Nov-2013 13:27:31 by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" target="_parent">m2html</a></strong> &copy; 2005</address>
+0257 <span class="comment">%%%%%%%%%%%%%%%%%%%%   SUB-FUNCTION    %%%%%%%%%%%%%%%%%%%%%%%%%%</span>
+0258 
+0259 <a name="_sub1" href="#_subfunctions" class="code">function [B,M] = ROImask(a,b,cent,I,valfill)</a>
+0260 <span class="comment">% Creates an elliptical mask defined by paramaters a, b and cent. Multiples</span>
+0261 <span class="comment">% this mask to I and fills all pixels outside ellipse with valfill</span>
+0262 centx = cent(1);
+0263 centy = cent(2);
+0264 [numr,numc] = size(I);
+0265 [x,y] = meshgrid( 1:numc, 1:numr );
+0266 M = double( ((x-centx).^2) ./ a.^2 + ((y-centy).^2) ./ b.^2 &lt;= 1 );
+0267 B = M .* I + ( 1.0 - M ) .* valfill;
+0268 <span class="keyword">end</span>
+0269 
+0270 <a name="_sub2" href="#_subfunctions" class="code">function [B,M] = ROImaskrec(a,b,cent,I,valfill)</a>
+0271 <span class="comment">% Creates an rectangular mask defined by paramaters a, b and cent. Multiples</span>
+0272 <span class="comment">% this mask to I and fills all pixels outside rectangle with valfill</span>
+0273 centx = cent(1);
+0274 centy = cent(2);
+0275 [numr,numc] = size(I);
+0276 [x,y] = meshgrid( 1:numc, 1:numr );
+0277 M = double( and( abs(x-centx) &lt; a, abs(y-centy) &lt; b ) );
+0278 B = M .* I + ( 1.0 - M ) .* valfill;
+0279 <span class="keyword">end</span></pre></div>
+<hr><address>Generated on Fri 07-Aug-2015 09:34:21 by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" target="_parent">m2html</a></strong> &copy; 2005</address>
 </body>
 </html>

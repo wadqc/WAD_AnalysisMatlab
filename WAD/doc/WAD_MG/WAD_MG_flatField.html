@@ -432,103 +432,104 @@ This function is called by:
 0368     <span class="comment">% - reduce image size: show only one in imDispPx pixels</span>
 0369     <span class="comment">% - with +/- 4 SD full scale mapping</span>
 0370     imDispPx = 5;
-0371     imshow( img(1:imDispPx:<span class="keyword">end</span>,1:imDispPx:end), [theMean-4*SD theMean+4*SD] );
-0372     axis image
-0373     axis square
-0374     axis off
-0375     title([<span class="string">'series '</span> num2str(sSeries.number) <span class="string">' - image '</span> num2str(sSeries.instance(ci).number) <span class="string">' (1 in '</span> num2str(imDispPx.^2) <span class="string">' pixels displayed)'</span>], <span class="string">'Interpreter'</span>, <span class="string">'none'</span>);
-0376     hold on
-0377     
-0378     <span class="comment">% overlay of deviating ROIs</span>
-0379     <span class="keyword">if</span> SNRthreshold &gt; 0
-0380         <span class="keyword">for</span> i=1:numDeviatingRoi
-0381             rectangle(<span class="string">'Position'</span>, [ roiSNRsx( roiSNRrow(i), roiSNRcol(i) ), <span class="keyword">...</span>
-0382                                     roiSNRsy( roiSNRrow(i), roiSNRcol(i) ), <span class="keyword">...</span>
-0383                                     szROIX_px, szROIY_px ] ./ imDispPx, <span class="string">'LineWidth'</span>,1, <span class="string">'EdgeColor'</span>,<span class="string">'b'</span> )
-0384         <span class="keyword">end</span>
-0385     <span class="keyword">end</span>
-0386     
-0387     <span class="comment">% overlay of deviating pixels</span>
-0388     plot( sievedDevPixX/imDispPx, sievedDevPixY/imDispPx, <span class="string">'r.'</span>, <span class="string">'MarkerSize'</span>, 20 )
-0389 
-0390     <span class="comment">% flatfield figure is a primary result</span>
-0391     <a href="../WAD/WAD_resultsAppendFigure.html" class="code" title="function WAD_resultsAppendFigure( level, handle, tag, description )">WAD_resultsAppendFigure</a>( 1, hFig, <span class="string">'flatfield'</span>, <span class="string">'Flatfield'</span> );
-0392     <span class="keyword">if</span> quiet
-0393         <span class="comment">% delete non-visible image</span>
-0394         delete( hFig );
-0395     <span class="keyword">end</span>
-0396     
-0397 <span class="keyword">else</span> <span class="comment">% deviating pixels were not calculated...</span>
-0398     <a href="../WAD/WAD_resultsAppendString.html" class="code" title="function WAD_resultsAppendString( level, value, description )">WAD_resultsAppendString</a>( 2, <span class="string">'Threshold for deviating pixels was not defined, no deviating pixels calculated.'</span>, <span class="string">'Flatfield'</span> );
-0399 <span class="keyword">end</span>
-0400 
+0371     <span class="comment">%imshow( img(1:imDispPx:end,1:imDispPx:end), [theMean-4*SD theMean+4*SD] );</span>
+0372     imagesc( img(1:imDispPx:<span class="keyword">end</span>,1:imDispPx:end), [theMean-4*SD theMean+4*SD] );
+0373     axis image
+0374     axis square
+0375     axis off
+0376     title([<span class="string">'series '</span> num2str(sSeries.number) <span class="string">' - image '</span> num2str(sSeries.instance(ci).number) <span class="string">' (1 in '</span> num2str(imDispPx.^2) <span class="string">' pixels displayed)'</span>], <span class="string">'Interpreter'</span>, <span class="string">'none'</span>);
+0377     hold on
+0378     
+0379     <span class="comment">% overlay of deviating ROIs</span>
+0380     <span class="keyword">if</span> SNRthreshold &gt; 0
+0381         <span class="keyword">for</span> i=1:numDeviatingRoi
+0382             rectangle(<span class="string">'Position'</span>, [ roiSNRsx( roiSNRrow(i), roiSNRcol(i) ), <span class="keyword">...</span>
+0383                                     roiSNRsy( roiSNRrow(i), roiSNRcol(i) ), <span class="keyword">...</span>
+0384                                     szROIX_px, szROIY_px ] ./ imDispPx, <span class="string">'LineWidth'</span>,1, <span class="string">'EdgeColor'</span>,<span class="string">'b'</span> )
+0385         <span class="keyword">end</span>
+0386     <span class="keyword">end</span>
+0387     
+0388     <span class="comment">% overlay of deviating pixels</span>
+0389     plot( sievedDevPixX/imDispPx, sievedDevPixY/imDispPx, <span class="string">'r.'</span>, <span class="string">'MarkerSize'</span>, 20 )
+0390 
+0391     <span class="comment">% flatfield figure is a primary result</span>
+0392     <a href="../WAD/WAD_resultsAppendFigure.html" class="code" title="function WAD_resultsAppendFigure( level, handle, tag, description )">WAD_resultsAppendFigure</a>( 1, hFig, <span class="string">'flatfield'</span>, <span class="string">'Flatfield'</span> );
+0393     <span class="keyword">if</span> quiet
+0394         <span class="comment">% delete non-visible image</span>
+0395         delete( hFig );
+0396     <span class="keyword">end</span>
+0397     
+0398 <span class="keyword">else</span> <span class="comment">% deviating pixels were not calculated...</span>
+0399     <a href="../WAD/WAD_resultsAppendString.html" class="code" title="function WAD_resultsAppendString( level, value, description )">WAD_resultsAppendString</a>( 2, <span class="string">'Threshold for deviating pixels was not defined, no deviating pixels calculated.'</span>, <span class="string">'Flatfield'</span> );
+0400 <span class="keyword">end</span>
 0401 
-0402 <span class="keyword">if</span> SNRthreshold &gt; 0
-0403     <a href="../WAD/WAD_resultsAppendString.html" class="code" title="function WAD_resultsAppendString( level, value, description )">WAD_resultsAppendString</a>( 2, [<span class="string">'Threshold for deviating ROIs set at '</span> num2str(SNRthreshold*100) <span class="string">'%.'</span>], <span class="string">'Flatfield'</span> );
-0404     <a href="../WAD/WAD_resultsAppendFloat.html" class="code" title="function WAD_resultsAppendFloat( level, value, variable, unit, description, sLimits, limits_field_name )">WAD_resultsAppendFloat</a>( 1, numDeviatingRoi, <span class="string">'Deviating'</span>, <span class="string">'ROIs'</span>, <span class="string">'Flatfield Deviation ROI'</span> );
-0405 <span class="keyword">else</span> <span class="comment">% deviating ROIs were not calculated...</span>
-0406     <a href="../WAD/WAD_resultsAppendString.html" class="code" title="function WAD_resultsAppendString( level, value, description )">WAD_resultsAppendString</a>( 2, <span class="string">'Threshold for deviating ROIs was not defined, no deviating ROIs calculated.'</span>, <span class="string">'Flatfield'</span> );
-0407 <span class="keyword">end</span>
-0408 
+0402 
+0403 <span class="keyword">if</span> SNRthreshold &gt; 0
+0404     <a href="../WAD/WAD_resultsAppendString.html" class="code" title="function WAD_resultsAppendString( level, value, description )">WAD_resultsAppendString</a>( 2, [<span class="string">'Threshold for deviating ROIs set at '</span> num2str(SNRthreshold*100) <span class="string">'%.'</span>], <span class="string">'Flatfield'</span> );
+0405     <a href="../WAD/WAD_resultsAppendFloat.html" class="code" title="function WAD_resultsAppendFloat( level, value, variable, unit, description, sLimits, limits_field_name )">WAD_resultsAppendFloat</a>( 1, numDeviatingRoi, <span class="string">'Deviating'</span>, <span class="string">'ROIs'</span>, <span class="string">'Flatfield Deviation ROI'</span> );
+0406 <span class="keyword">else</span> <span class="comment">% deviating ROIs were not calculated...</span>
+0407     <a href="../WAD/WAD_resultsAppendString.html" class="code" title="function WAD_resultsAppendString( level, value, description )">WAD_resultsAppendString</a>( 2, <span class="string">'Threshold for deviating ROIs was not defined, no deviating ROIs calculated.'</span>, <span class="string">'Flatfield'</span> );
+0408 <span class="keyword">end</span>
 0409 
 0410 
 0411 
-0412 <span class="comment">% -----------------------------------------------------------------------</span>
-0413 <span class="comment">% local funtion: calcFlatFieldRoi( pixdata, roi, mx_nPix )</span>
-0414 <span class="comment">%</span>
-0415 <span class="comment">% - calculates mean sum, variance and deviating pixels of pixdata</span>
-0416 <span class="comment">% - updates roi data structure</span>
-0417 <span class="comment">% -----------------------------------------------------------------------</span>
-0418 <a name="_sub1" href="#_subfunctions" class="code">function roi = calcFlatFieldRoi( pixdata, roi, mx_nPix )</a>
-0419 
-0420 roi.nRoi    = roi.nRoi + 1;
-0421 <span class="comment">% basic statistics</span>
-0422 roimean = mean2( pixdata );
-0423 roistd  = std2 ( pixdata );
-0424 roi.sumMean = roi.sumMean + roimean;
-0425 roi.sumVar  = roi.sumVar  + roistd.^2 ;
-0426 <span class="comment">% ROI SNR</span>
-0427 roi.SNR = roimean ./ roistd;
-0428 
+0412 
+0413 <span class="comment">% -----------------------------------------------------------------------</span>
+0414 <span class="comment">% local funtion: calcFlatFieldRoi( pixdata, roi, mx_nPix )</span>
+0415 <span class="comment">%</span>
+0416 <span class="comment">% - calculates mean sum, variance and deviating pixels of pixdata</span>
+0417 <span class="comment">% - updates roi data structure</span>
+0418 <span class="comment">% -----------------------------------------------------------------------</span>
+0419 <a name="_sub1" href="#_subfunctions" class="code">function roi = calcFlatFieldRoi( pixdata, roi, mx_nPix )</a>
+0420 
+0421 roi.nRoi    = roi.nRoi + 1;
+0422 <span class="comment">% basic statistics</span>
+0423 roimean = mean2( pixdata );
+0424 roistd  = std2 ( pixdata );
+0425 roi.sumMean = roi.sumMean + roimean;
+0426 roi.sumVar  = roi.sumVar  + roistd.^2 ;
+0427 <span class="comment">% ROI SNR</span>
+0428 roi.SNR = roimean ./ roistd;
 0429 
-0430 <span class="comment">% output first ROI (basic testing)</span>
-0431 <span class="comment">% if roi.nRoi == 1</span>
-0432 <span class="comment">%     roi.sx</span>
-0433 <span class="comment">%     roi.sy</span>
-0434 <span class="comment">%     roimean</span>
-0435 <span class="comment">%     sqrt( var( pixdata(:) ) )</span>
-0436 <span class="comment">%     %pixdata(:)</span>
-0437 <span class="comment">% end</span>
-0438 
-0439 <span class="keyword">if</span> roi.threshold &gt; 0
-0440     <span class="comment">% find deviating pixels</span>
-0441     thrhi = roimean * ( 1 + roi.threshold );
-0442     thrlo = roimean * ( 1 - roi.threshold );
-0443     <span class="comment">% above high threshold</span>
-0444     [row,col] = find( pixdata &gt; thrhi );
-0445     <span class="comment">% store coordinates of pixels</span>
-0446     <span class="keyword">for</span> i=1:length(row)
-0447         <span class="keyword">if</span> roi.nDevPix &gt;= mx_nPix, <span class="keyword">break</span>, <span class="keyword">end</span>
-0448         roi.nDevPix = roi.nDevPix + 1;
-0449         <span class="comment">% pixdata is a subset of image, so need to add ROI start coordinates</span>
-0450         roi.devPixX(roi.nDevPix) = col(i) + roi.sx - 1;
-0451         roi.devPixY(roi.nDevPix) = row(i) + roi.sy - 1;
-0452         roi.devPixValue(roi.nDevPix) = pixdata(row(i),col(i));
-0453         roi.devPixRoiMean(roi.nDevPix) = roimean;
-0454     <span class="keyword">end</span>
-0455     <span class="comment">% below low threshold</span>
-0456     [row,col] = find( pixdata &lt; thrlo );
-0457     <span class="comment">% store coordinates of pixels</span>
-0458     <span class="keyword">for</span> i=1:length(row)
-0459         <span class="keyword">if</span> roi.nDevPix &gt;= mx_nPix, <span class="keyword">break</span>, <span class="keyword">end</span>
-0460         roi.nDevPix = roi.nDevPix + 1;
-0461         <span class="comment">% pixdata is a subset of image, so need to add ROI start coordinates</span>
-0462         roi.devPixX(roi.nDevPix) = col(i) + roi.sx - 1;
-0463         roi.devPixY(roi.nDevPix) = row(i) + roi.sy - 1;
-0464         roi.devPixValue(roi.nDevPix) = pixdata(row(i),col(i));
-0465         roi.devPixRoiMean(roi.nDevPix) = roimean;
-0466     <span class="keyword">end</span>
-0467 <span class="keyword">end</span></pre></div>
-<hr><address>Generated on Thu 28-Nov-2013 13:27:31 by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" target="_parent">m2html</a></strong> &copy; 2005</address>
+0430 
+0431 <span class="comment">% output first ROI (basic testing)</span>
+0432 <span class="comment">% if roi.nRoi == 1</span>
+0433 <span class="comment">%     roi.sx</span>
+0434 <span class="comment">%     roi.sy</span>
+0435 <span class="comment">%     roimean</span>
+0436 <span class="comment">%     sqrt( var( pixdata(:) ) )</span>
+0437 <span class="comment">%     %pixdata(:)</span>
+0438 <span class="comment">% end</span>
+0439 
+0440 <span class="keyword">if</span> roi.threshold &gt; 0
+0441     <span class="comment">% find deviating pixels</span>
+0442     thrhi = roimean * ( 1 + roi.threshold );
+0443     thrlo = roimean * ( 1 - roi.threshold );
+0444     <span class="comment">% above high threshold</span>
+0445     [row,col] = find( pixdata &gt; thrhi );
+0446     <span class="comment">% store coordinates of pixels</span>
+0447     <span class="keyword">for</span> i=1:length(row)
+0448         <span class="keyword">if</span> roi.nDevPix &gt;= mx_nPix, <span class="keyword">break</span>, <span class="keyword">end</span>
+0449         roi.nDevPix = roi.nDevPix + 1;
+0450         <span class="comment">% pixdata is a subset of image, so need to add ROI start coordinates</span>
+0451         roi.devPixX(roi.nDevPix) = col(i) + roi.sx - 1;
+0452         roi.devPixY(roi.nDevPix) = row(i) + roi.sy - 1;
+0453         roi.devPixValue(roi.nDevPix) = pixdata(row(i),col(i));
+0454         roi.devPixRoiMean(roi.nDevPix) = roimean;
+0455     <span class="keyword">end</span>
+0456     <span class="comment">% below low threshold</span>
+0457     [row,col] = find( pixdata &lt; thrlo );
+0458     <span class="comment">% store coordinates of pixels</span>
+0459     <span class="keyword">for</span> i=1:length(row)
+0460         <span class="keyword">if</span> roi.nDevPix &gt;= mx_nPix, <span class="keyword">break</span>, <span class="keyword">end</span>
+0461         roi.nDevPix = roi.nDevPix + 1;
+0462         <span class="comment">% pixdata is a subset of image, so need to add ROI start coordinates</span>
+0463         roi.devPixX(roi.nDevPix) = col(i) + roi.sx - 1;
+0464         roi.devPixY(roi.nDevPix) = row(i) + roi.sy - 1;
+0465         roi.devPixValue(roi.nDevPix) = pixdata(row(i),col(i));
+0466         roi.devPixRoiMean(roi.nDevPix) = roimean;
+0467     <span class="keyword">end</span>
+0468 <span class="keyword">end</span></pre></div>
+<hr><address>Generated on Fri 07-Aug-2015 09:34:21 by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" target="_parent">m2html</a></strong> &copy; 2005</address>
 </body>
 </html>

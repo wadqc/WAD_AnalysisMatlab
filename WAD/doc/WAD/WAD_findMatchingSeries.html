@@ -229,42 +229,54 @@ This function is called by:
 0165 <span class="comment">% Matching functions</span>
 0166 <span class="comment">% ------------------------------------------------------------------------</span>
 0167 <a name="_sub1" href="#_subfunctions" class="code">function bMatch = matchSeriesDescription( curMatch, curSeries )</a>
-0168 my.name = <span class="string">'WAD_MR_runConfiguredAnalysis:matchSeriesDescription'</span>;
+0168 my.name = <span class="string">'WAD_findMatchingSeries:matchSeriesDescription'</span>;
 0169 <span class="comment">% compare action content with series description</span>
 0170 bMatch = isequal( curSeries.description, curMatch.CONTENT );
 0171 <a href="WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">': Compare SeriesDescription &quot;'</span> curSeries.description <span class="string">'&quot; with &quot;'</span> curMatch.CONTENT <span class="string">'&quot; Equal? &gt;&gt; '</span> num2str(bMatch) ], 2 );
 0172 
 0173 
 0174 <a name="_sub2" href="#_subfunctions" class="code">function bMatch = matchImagesInSeries( curMatch, curSeries )</a>
-0175 my.name = <span class="string">'WAD_MR_runConfiguredAnalysis:matchImagesInSeries'</span>;
+0175 my.name = <span class="string">'WAD_findMatchingSeries:matchImagesInSeries'</span>;
 0176 <span class="comment">% compare action content with number of images</span>
 0177 bMatch = isequal( length( curSeries.instance ), curMatch.CONTENT );
 0178 <a href="WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">': Compare #images '</span> num2str( length( curSeries.instance ) ) <span class="string">' with '</span> num2str( curMatch.CONTENT ) <span class="string">'. Equal? &gt;&gt; '</span> num2str(bMatch) ], 2 );
 0179 
 0180 
 0181 <a name="_sub3" href="#_subfunctions" class="code">function bMatch = matchDicomTag( curMatch, curSeries )</a>
-0182 my.name = <span class="string">'WAD_MR_runConfiguredAnalysis:matchDicomTag'</span>;
-0183 <span class="comment">% compare action content with DICOM field</span>
-0184 <span class="keyword">try</span>
-0185     <span class="comment">% read DICOM header of first instance</span>
-0186     <a href="WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">': Reading DICOM file &quot;'</span> curSeries.instance(1).filename <span class="string">'&quot;'</span>], 2 );
-0187     dcminfo = dicominfo( curSeries.instance(1).filename );
-0188 <span class="keyword">catch</span> err
-0189     <a href="WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">': Error reading DICOM file &quot;'</span> curSeries.instance(1).filename <span class="string">'&quot;'</span>], 1 );
-0190     <a href="WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">': '</span> err.message ] );
-0191 <span class="keyword">end</span>
-0192 
-0193 <span class="comment">% check if configured field exists</span>
-0194 dcmFieldName = curMatch.ATTRIBUTE.field;
-0195 <span class="keyword">if</span> isfield( dcminfo, dcmFieldName )
-0196     <span class="comment">% compare action content with DICOM field</span>
-0197     <span class="comment">% statement below should work for both number and string type fields</span>
-0198     bMatch = isequal( dcminfo.(dcmFieldName), curMatch.CONTENT );
-0199     <a href="WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">': Compare DICOM field &quot;'</span> dcmFieldName <span class="string">'&quot; content &quot;'</span> dcminfo.(dcmFieldName) <span class="string">'&quot; with &quot;'</span> curMatch.CONTENT <span class="string">'&quot; Equal? &gt;&gt; '</span> num2str(bMatch) ], 2 );
-0200 <span class="keyword">else</span>
-0201     bMatch = false;
-0202     <a href="WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">': DICOM field &quot;'</span> dcmFieldName <span class="string">'&quot; is not defined.'</span>], 2 );
-0203 <span class="keyword">end</span></pre></div>
-<hr><address>Generated on Thu 28-Nov-2013 13:27:31 by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" target="_parent">m2html</a></strong> &copy; 2005</address>
+0182 my.name = <span class="string">'WAD_findMatchingSeries:matchDicomTag'</span>;
+0183 bMatch = false;
+0184 <span class="comment">% compare action content with DICOM field</span>
+0185 <span class="keyword">try</span>
+0186     <span class="comment">% read DICOM header of first instance</span>
+0187     <a href="WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">': Reading DICOM file &quot;'</span> curSeries.instance(1).filename <span class="string">'&quot;'</span>], 2 );
+0188     dcminfo = dicominfo( curSeries.instance(1).filename );
+0189 <span class="keyword">catch</span> err
+0190     <a href="WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">': Error reading DICOM file &quot;'</span> curSeries.instance(1).filename <span class="string">'&quot;'</span>], 1 );
+0191     <a href="WAD_ErrorMsg.html" class="code" title="function WAD_ErrorMsg( name, mymessage, err )">WAD_ErrorMsg</a>( my.name, <span class="string">'Error reading DICOM file.'</span>, err );
+0192     <span class="keyword">return</span>
+0193 <span class="keyword">end</span>
+0194 
+0195 <span class="comment">% check if configured field exists</span>
+0196 dcmFieldName = curMatch.ATTRIBUTE.field;
+0197 <span class="keyword">if</span> isfield( dcminfo, dcmFieldName )
+0198     <span class="comment">% compare action content with DICOM field</span>
+0199     <span class="comment">% statement below should work for both number and string type fields</span>
+0200     bMatch = isequal( dcminfo.(dcmFieldName), curMatch.CONTENT );
+0201     <span class="keyword">if</span> isnumeric( dcminfo.(dcmFieldName) )
+0202         dcmContent = num2str( dcminfo.(dcmFieldName) );
+0203     <span class="keyword">else</span>
+0204         dcmContent = dcminfo.(dcmFieldName);
+0205     <span class="keyword">end</span>
+0206     <span class="keyword">if</span> isnumeric( curMatch.CONTENT )
+0207         matchContent = num2str( curMatch.CONTENT );
+0208     <span class="keyword">else</span>
+0209         matchContent = curMatch.CONTENT;
+0210     <span class="keyword">end</span>
+0211     <a href="WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">': Compare DICOM field &quot;'</span> dcmFieldName <span class="string">'&quot; content &quot;'</span> dcmContent <span class="string">'&quot; with &quot;'</span> matchContent <span class="string">'&quot; Equal? &gt;&gt; '</span> num2str(bMatch) ], 2 );
+0212 <span class="keyword">else</span>
+0213     bMatch = false;
+0214     <a href="WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">': DICOM field &quot;'</span> dcmFieldName <span class="string">'&quot; is not defined.'</span>], 2 );
+0215 <span class="keyword">end</span></pre></div>
+<hr><address>Generated on Fri 07-Aug-2015 09:34:21 by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" target="_parent">m2html</a></strong> &copy; 2005</address>
 </body>
 </html>

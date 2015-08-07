@@ -140,115 +140,120 @@ This function is called by:
 0076 <span class="comment">%   not present, ref freq is calculated from field strength (DICOM header</span>
 0077 <span class="comment">%   field MagneticFieldStrength).</span>
 0078 <span class="comment">% ------------------------------------------------------------------------</span>
-0079 
-0080 <span class="comment">% version info</span>
-0081 my.name = <span class="string">'WAD_MR_TxAmplFreq'</span>;
-0082 my.version = <span class="string">'1.1'</span>;
-0083 my.date = <span class="string">'20131127'</span>;
-0084 <a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [<span class="string">'Module '</span> my.name <span class="string">' Version '</span> my.version <span class="string">' ('</span> my.date <span class="string">')'</span>] );
-0085 
-0086 
-0087 <span class="comment">% read dicom header of first image of series</span>
-0088 <a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">': Reading DICOM header: '</span> sSeries.instance(1).filename ] );
-0089 <span class="keyword">try</span>
-0090     dicomheader = dicominfo( sSeries.instance(1).filename );
-0091 <span class="keyword">catch</span> err
-0092     <a href="../WAD/WAD_ErrorMsg.html" class="code" title="function WAD_ErrorMsg( name, mymessage, err )">WAD_ErrorMsg</a>( my.name, [<span class="string">'ERROR reading DICOM info from file &quot;'</span> sSeries.instance(1).filename <span class="string">'&quot;)'</span>], err );
-0093     <span class="keyword">return</span>
-0094 <span class="keyword">end</span>
-0095 
-0096 
-0097 <span class="comment">% TxAmpl may not be defined for all system types, because it usually</span>
-0098 <span class="comment">% resides in a private field.</span>
-0099 <span class="keyword">if</span> isfield( sParams, <span class="string">'TxAmpl'</span> ) &amp;&amp; isfield( sParams.TxAmpl, <span class="string">'field'</span> )
-0100     <a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">': Getting TX amplitude from header'</span>] );
-0101     TxAmpl = <a href="#_sub1" class="code" title="subfunction content = getField( dicomheader, fieldinfo )">getField</a>( dicomheader, sParams.TxAmpl );
-0102     <span class="comment">% Write result</span>
-0103     <a href="../WAD/WAD_resultsAppendFloat.html" class="code" title="function WAD_resultsAppendFloat( level, value, variable, unit, description, sLimits, limits_field_name )">WAD_resultsAppendFloat</a>( 1, TxAmpl, <span class="string">'Amplitude'</span>, [], <span class="string">'Transmitter'</span> );
-0104 <span class="keyword">else</span>
-0105     <a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">': TX amplitude not defined for this system'</span>] );
-0106 <span class="keyword">end</span>
-0107 
-0108 <span class="comment">% TxFreq should be defined, but check anyway...</span>
-0109 <span class="keyword">if</span> isfield( sParams, <span class="string">'TxFreq'</span> ) &amp;&amp; isfield( sParams.TxFreq, <span class="string">'field'</span> )
-0110     <a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">': Getting TX frequency from header'</span>] );
-0111     TxFreq = <a href="#_sub1" class="code" title="subfunction content = getField( dicomheader, fieldinfo )">getField</a>( dicomheader, sParams.TxFreq );
-0112     <span class="comment">% Display frequency as offset</span>
-0113     gamma_MHz = 42.5759;
-0114     <span class="keyword">if</span> isfield( sParams.TxFreq, <span class="string">'f0_MHz'</span> ) &amp;&amp; ~isempty( sParams.TxFreq.f0_MHz )
-0115         <a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">': Reference frequency TxFreq.f0_MHz defined in config.'</span>] );
-0116         f0_ref = sParams.TxFreq.f0_MHz;
-0117     <span class="keyword">elseif</span> isfield( dicomheader, <span class="string">'MagneticFieldStrength'</span> )
-0118         B0_ref = dicomheader.MagneticFieldStrength;
-0119         <a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">': Magnetic Field Strength defined in DICOM header, use for Tx Reference Frequency.'</span>] );
-0120         f0_ref = B0_ref * gamma_MHz;
-0121     <span class="keyword">else</span>
-0122         <span class="comment">% no reference, just display f0</span>
-0123         f0_ref = 0;
-0124         <a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">': No Tx Reference Frequency.'</span>] );
-0125     <span class="keyword">end</span>
-0126     <a href="../WAD/WAD_resultsAppendFloat.html" class="code" title="function WAD_resultsAppendFloat( level, value, variable, unit, description, sLimits, limits_field_name )">WAD_resultsAppendFloat</a>( 2, f0_ref * 1E6, <span class="string">'Referentie Freq'</span>, <span class="string">'Hz'</span>, <span class="string">'Transmitter'</span> );
-0127     
-0128 
-0129     <span class="comment">% Write result</span>
-0130     <a href="../WAD/WAD_resultsAppendFloat.html" class="code" title="function WAD_resultsAppendFloat( level, value, variable, unit, description, sLimits, limits_field_name )">WAD_resultsAppendFloat</a>( 1, (TxFreq - f0_ref) * 1E6, <span class="string">'Freq Offset'</span>, <span class="string">'Hz'</span>, <span class="string">'Transmitter'</span> );
-0131 <span class="keyword">else</span>
-0132     <a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">': TX frequency not defined for this system'</span>] );
-0133 <span class="keyword">end</span>
-0134 
-0135 
-0136 <span class="keyword">return</span>
-0137 
-0138 
-0139 <span class="comment">% Local function that reads the numerical value from a DICOM field.</span>
-0140 <span class="comment">% Implemented are</span>
-0141 <span class="comment">% - typecast (for implicit type DICOM files and private fields)</span>
-0142 <span class="comment">% - string search (needed for Siemens systems)</span>
-0143 <a name="_sub1" href="#_subfunctions" class="code">function content = getField( dicomheader, fieldinfo )</a>
-0144 my.name = <span class="string">'WAD_MR_TxAmplFreq:getField'</span>;
-0145 <span class="comment">% get requested number from the dicom header</span>
-0146 <span class="keyword">if</span> isfield( fieldinfo, <span class="string">'type'</span> )
-0147     <span class="keyword">if</span> strcmp( fieldinfo.type, <span class="string">'char'</span> )
-0148         <span class="comment">% convert this dicom field to the requested type 'char'</span>
-0149         x = cast( dicomheader.(fieldinfo.field), fieldinfo.type )';
-0150 
-0151         <span class="keyword">if</span> isfield( fieldinfo, <span class="string">'pattern'</span> )
-0152             <span class="comment">% find the starting pattern</span>
-0153             <span class="comment">%numstart = strfind( x, char(fieldinfo.pattern(1)) ) + length( char(fieldinfo.pattern(1)) );</span>
-0154             numstart = strfind( x, fieldinfo.pattern ) + length( fieldinfo.pattern );
-0155             <span class="keyword">if</span> numstart
-0156                 <span class="comment">% find the trailing pattern</span>
-0157                 <span class="comment">%numend = strfind( x(numstart:end), char(fieldinfo.pattern(2)) );</span>
-0158                 numend = strfind( x(numstart:end), char(10) );
-0159                 <span class="keyword">if</span> numend
-0160                     <span class="keyword">if</span> ( numend &lt; 3 )
-0161                         <a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">': Error: reading from header (no number between starting and trailing patterns).'</span>] );
-0162                         content = -1;
-0163                     <span class="keyword">end</span>
-0164                     content = str2num( x(numstart:numstart+numend(1)-2) );
-0165                 <span class="keyword">else</span>
-0166                     <a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">': Error: reading from header (trailing pattern not found).'</span>] );
-0167                     content = -1;
-0168                 <span class="keyword">end</span>
-0169             <span class="keyword">else</span>
-0170                 <a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">': Error: reading from header (starting pattern not found).'</span>] );
-0171                 content = -1;
-0172             <span class="keyword">end</span>
-0173         <span class="keyword">else</span>
-0174             <span class="comment">% no pattern to search for, just convert...</span>
-0175             content = str2num( x );
-0176         <span class="keyword">end</span> <span class="comment">% pattern</span>
-0177     <span class="keyword">else</span>
-0178         <span class="comment">% not char, we need to typecast the field</span>
-0179         content = double( typecast( dicomheader.(fieldinfo.field), fieldinfo.type ) );
-0180     <span class="keyword">end</span>
-0181 <span class="keyword">else</span>
-0182     <span class="comment">% no additional field type specifiers... should be a number known in</span>
-0183     <span class="comment">% dicom dictionary</span>
-0184     content = double( dicomheader.(fieldinfo.field) );
-0185 <span class="keyword">end</span>
-0186 
-0187 <span class="keyword">return</span></pre></div>
-<hr><address>Generated on Thu 28-Nov-2013 13:27:31 by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" target="_parent">m2html</a></strong> &copy; 2005</address>
+0079 <span class="comment">% 20140212 / JK</span>
+0080 <span class="comment">% V1.1.1</span>
+0081 <span class="comment">% Private fields are class uint8 and in one column for implicit DICOM, and class char and one row for explicit DICOM</span>
+0082 <span class="comment">% char(info.Private_2001_1020(:))' converts both to class char and one row.</span>
+0083 <span class="comment">% ------------------------------------------------------------------------</span>
+0084 
+0085 <span class="comment">% version info</span>
+0086 my.name = <span class="string">'WAD_MR_TxAmplFreq'</span>;
+0087 my.version = <span class="string">'1.1.1'</span>;
+0088 my.date = <span class="string">'20140212'</span>;
+0089 <a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [<span class="string">'Module '</span> my.name <span class="string">' Version '</span> my.version <span class="string">' ('</span> my.date <span class="string">')'</span>] );
+0090 
+0091 
+0092 <span class="comment">% read dicom header of first image of series</span>
+0093 <a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">': Reading DICOM header: '</span> sSeries.instance(1).filename ] );
+0094 <span class="keyword">try</span>
+0095     dicomheader = dicominfo( sSeries.instance(1).filename );
+0096 <span class="keyword">catch</span> err
+0097     <a href="../WAD/WAD_ErrorMsg.html" class="code" title="function WAD_ErrorMsg( name, mymessage, err )">WAD_ErrorMsg</a>( my.name, [<span class="string">'ERROR reading DICOM info from file &quot;'</span> sSeries.instance(1).filename <span class="string">'&quot;)'</span>], err );
+0098     <span class="keyword">return</span>
+0099 <span class="keyword">end</span>
+0100 
+0101 
+0102 <span class="comment">% TxAmpl may not be defined for all system types, because it usually</span>
+0103 <span class="comment">% resides in a private field.</span>
+0104 <span class="keyword">if</span> isfield( sParams, <span class="string">'TxAmpl'</span> ) &amp;&amp; isfield( sParams.TxAmpl, <span class="string">'field'</span> )
+0105     <a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">': Getting TX amplitude from header'</span>] );
+0106     TxAmpl = <a href="#_sub1" class="code" title="subfunction content = getField( dicomheader, fieldinfo )">getField</a>( dicomheader, sParams.TxAmpl );
+0107     <span class="comment">% Write result</span>
+0108     <a href="../WAD/WAD_resultsAppendFloat.html" class="code" title="function WAD_resultsAppendFloat( level, value, variable, unit, description, sLimits, limits_field_name )">WAD_resultsAppendFloat</a>( 1, TxAmpl, <span class="string">'Amplitude'</span>, [], <span class="string">'Transmitter'</span> );
+0109 <span class="keyword">else</span>
+0110     <a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">': TX amplitude not defined for this system'</span>] );
+0111 <span class="keyword">end</span>
+0112 
+0113 <span class="comment">% TxFreq should be defined, but check anyway...</span>
+0114 <span class="keyword">if</span> isfield( sParams, <span class="string">'TxFreq'</span> ) &amp;&amp; isfield( sParams.TxFreq, <span class="string">'field'</span> )
+0115     <a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">': Getting TX frequency from header'</span>] );
+0116     TxFreq = <a href="#_sub1" class="code" title="subfunction content = getField( dicomheader, fieldinfo )">getField</a>( dicomheader, sParams.TxFreq );
+0117     <span class="comment">% Display frequency as offset</span>
+0118     gamma_MHz = 42.5759;
+0119     <span class="keyword">if</span> isfield( sParams.TxFreq, <span class="string">'f0_MHz'</span> ) &amp;&amp; ~isempty( sParams.TxFreq.f0_MHz )
+0120         <a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">': Reference frequency TxFreq.f0_MHz defined in config.'</span>] );
+0121         f0_ref = sParams.TxFreq.f0_MHz;
+0122     <span class="keyword">elseif</span> isfield( dicomheader, <span class="string">'MagneticFieldStrength'</span> )
+0123         B0_ref = dicomheader.MagneticFieldStrength;
+0124         <a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">': Magnetic Field Strength defined in DICOM header, use for Tx Reference Frequency.'</span>] );
+0125         f0_ref = B0_ref * gamma_MHz;
+0126     <span class="keyword">else</span>
+0127         <span class="comment">% no reference, just display f0</span>
+0128         f0_ref = 0;
+0129         <a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">': No Tx Reference Frequency.'</span>] );
+0130     <span class="keyword">end</span>
+0131     <a href="../WAD/WAD_resultsAppendFloat.html" class="code" title="function WAD_resultsAppendFloat( level, value, variable, unit, description, sLimits, limits_field_name )">WAD_resultsAppendFloat</a>( 2, f0_ref * 1E6, <span class="string">'Referentie Freq'</span>, <span class="string">'Hz'</span>, <span class="string">'Transmitter'</span> );
+0132     
+0133 
+0134     <span class="comment">% Write result</span>
+0135     <a href="../WAD/WAD_resultsAppendFloat.html" class="code" title="function WAD_resultsAppendFloat( level, value, variable, unit, description, sLimits, limits_field_name )">WAD_resultsAppendFloat</a>( 1, (TxFreq - f0_ref) * 1E6, <span class="string">'Freq Offset'</span>, <span class="string">'Hz'</span>, <span class="string">'Transmitter'</span> );
+0136 <span class="keyword">else</span>
+0137     <a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">': TX frequency not defined for this system'</span>] );
+0138 <span class="keyword">end</span>
+0139 
+0140 
+0141 <span class="keyword">return</span>
+0142 
+0143 
+0144 <span class="comment">% Local function that reads the numerical value from a DICOM field.</span>
+0145 <span class="comment">% Implemented are</span>
+0146 <span class="comment">% - typecast (for implicit type DICOM files and private fields)</span>
+0147 <span class="comment">% - string search (needed for Siemens systems)</span>
+0148 <a name="_sub1" href="#_subfunctions" class="code">function content = getField( dicomheader, fieldinfo )</a>
+0149 my.name = <span class="string">'WAD_MR_TxAmplFreq:getField'</span>;
+0150 <span class="comment">% get requested number from the dicom header</span>
+0151 <span class="keyword">if</span> isfield( fieldinfo, <span class="string">'type'</span> )
+0152     <span class="keyword">if</span> strcmp( fieldinfo.type, <span class="string">'char'</span> )
+0153         <span class="comment">% convert this dicom field to the requested type 'char'</span>
+0154         x = cast( dicomheader.(fieldinfo.field)(:), fieldinfo.type )';
+0155 
+0156         <span class="keyword">if</span> isfield( fieldinfo, <span class="string">'pattern'</span> )
+0157             <span class="comment">% find the starting pattern</span>
+0158             <span class="comment">%numstart = strfind( x, char(fieldinfo.pattern(1)) ) + length( char(fieldinfo.pattern(1)) );</span>
+0159             numstart = strfind( x, fieldinfo.pattern ) + length( fieldinfo.pattern );
+0160             <span class="keyword">if</span> numstart
+0161                 <span class="comment">% find the trailing pattern</span>
+0162                 <span class="comment">%numend = strfind( x(numstart:end), char(fieldinfo.pattern(2)) );</span>
+0163                 numend = strfind( x(numstart:end), char(10) );
+0164                 <span class="keyword">if</span> numend
+0165                     <span class="keyword">if</span> ( numend &lt; 3 )
+0166                         <a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">': Error: reading from header (no number between starting and trailing patterns).'</span>] );
+0167                         content = -1;
+0168                     <span class="keyword">end</span>
+0169                     content = str2num( x(numstart:numstart+numend(1)-2) );
+0170                 <span class="keyword">else</span>
+0171                     <a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">': Error: reading from header (trailing pattern not found).'</span>] );
+0172                     content = -1;
+0173                 <span class="keyword">end</span>
+0174             <span class="keyword">else</span>
+0175                 <a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">': Error: reading from header (starting pattern not found).'</span>] );
+0176                 content = -1;
+0177             <span class="keyword">end</span>
+0178         <span class="keyword">else</span>
+0179             <span class="comment">% no pattern to search for, just convert...</span>
+0180             content = str2num( x );
+0181         <span class="keyword">end</span> <span class="comment">% pattern</span>
+0182     <span class="keyword">else</span>
+0183         <span class="comment">% not char, we need to typecast the field</span>
+0184         content = double( typecast( dicomheader.(fieldinfo.field), fieldinfo.type ) );
+0185     <span class="keyword">end</span>
+0186 <span class="keyword">else</span>
+0187     <span class="comment">% no additional field type specifiers... should be a number known in</span>
+0188     <span class="comment">% dicom dictionary</span>
+0189     content = double( dicomheader.(fieldinfo.field) );
+0190 <span class="keyword">end</span>
+0191 
+0192 <span class="keyword">return</span></pre></div>
+<hr><address>Generated on Fri 07-Aug-2015 09:34:21 by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" target="_parent">m2html</a></strong> &copy; 2005</address>
 </body>
 </html>

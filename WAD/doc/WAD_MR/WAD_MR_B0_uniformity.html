@@ -122,269 +122,300 @@ This function is called by:
 0058 <span class="comment">% V1.1</span>
 0059 <span class="comment">% - new (v1.1) style action limits</span>
 0060 <span class="comment">% ------------------------------------------------------------------------</span>
-0061 
-0062 <span class="comment">% ----------------------</span>
-0063 <span class="comment">% GLOBALS</span>
-0064 <span class="comment">% ----------------------</span>
-0065 <span class="comment">%global WAD</span>
-0066 
-0067 <span class="comment">% version info</span>
-0068 my.name = <span class="string">'WAD_MR_B0_uniformity'</span>;
-0069 my.version = <span class="string">'1.1'</span>;
-0070 my.date = <span class="string">'20131127'</span>;
-0071 <a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [<span class="string">'Module '</span> my.name <span class="string">' Version '</span> my.version <span class="string">' ('</span> my.date <span class="string">')'</span>] );
-0072 
-0073 
-0074 
-0075 quiet = 1;
-0076 <span class="comment">% create figure for B0 map on screen</span>
-0077 <span class="keyword">if</span> quiet 
-0078     fig_visible = <span class="string">'off'</span>;
-0079 <span class="keyword">else</span>
-0080     fig_visible = <span class="string">'on'</span>;
-0081 <span class="keyword">end</span>
-0082 isInteractive = false;
-0083 
-0084 
-0085 
-0086 <span class="comment">% ----------------------------------------------------</span>
-0087 <span class="comment">% defines for analysis</span>
-0088 <span class="comment">% ----------------------------------------------------</span>
-0089 szROI = 0.95; <span class="comment">% diameter of ROI relative to diameter of phantom</span>
-0090 ignoreTop = 0.8; <span class="comment">% top part of ROI to be ignored (air bubble), relative to ROI size</span>
-0091 
-0092 
-0093 
-0094 <span class="comment">% display waitbar in interactive mode</span>
-0095 <span class="keyword">if</span> isInteractive, h = waitbar( 0, <span class="string">'Calculating B0 uniformity...'</span> ); <span class="keyword">end</span>
+0061 <span class="comment">% 20140207 / JK</span>
+0062 <span class="comment">% V1.1.1</span>
+0063 <span class="comment">% - support for B0 maps in ppm or Hz</span>
+0064 <span class="comment">% ------------------------------------------------------------------------</span>
+0065 
+0066 <span class="comment">% ----------------------</span>
+0067 <span class="comment">% GLOBALS</span>
+0068 <span class="comment">% ----------------------</span>
+0069 <span class="comment">%global WAD</span>
+0070 
+0071 <span class="comment">% version info</span>
+0072 my.name = <span class="string">'WAD_MR_B0_uniformity'</span>;
+0073 my.version = <span class="string">'1.1.1'</span>;
+0074 my.date = <span class="string">'20140207'</span>;
+0075 <a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [<span class="string">'Module '</span> my.name <span class="string">' Version '</span> my.version <span class="string">' ('</span> my.date <span class="string">')'</span>] );
+0076 
+0077 
+0078 
+0079 quiet = 1;
+0080 <span class="comment">% create figure for B0 map on screen</span>
+0081 <span class="keyword">if</span> quiet 
+0082     fig_visible = <span class="string">'off'</span>;
+0083 <span class="keyword">else</span>
+0084     fig_visible = <span class="string">'on'</span>;
+0085 <span class="keyword">end</span>
+0086 isInteractive = false;
+0087 
+0088 
+0089 
+0090 <span class="comment">% ----------------------------------------------------</span>
+0091 <span class="comment">% defines for analysis</span>
+0092 <span class="comment">% ----------------------------------------------------</span>
+0093 szROI = 0.95; <span class="comment">% diameter of ROI relative to diameter of phantom</span>
+0094 ignoreTop = 0.8; <span class="comment">% top part of ROI to be ignored (air bubble), relative to ROI size</span>
+0095 
 0096 
 0097 
-0098 <span class="comment">% check param for import function</span>
-0099 <span class="keyword">if</span> ~isfield( sParams, <span class="string">'type'</span> ) || isempty( sParams.type )
-0100     <a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">' : Import function type not defined in configuration!'</span> ], 1 );
-0101     <span class="keyword">return</span>
-0102 <span class="keyword">end</span>    
-0103     
-0104 <span class="comment">% check if type is function (in a .m file) with configured name exists</span>
-0105 importFuncName = [ <span class="string">'WAD_MR_B0_read'</span> sParams.type ];
-0106 <span class="keyword">if</span> exist( importFuncName, <span class="string">'file'</span> ) ~= 2
-0107     <span class="comment">% funtion does not exist</span>
-0108     <a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">': ERROR: Configured import function named &quot;'</span> importFuncName <span class="string">'&quot; does not exist!'</span> ], 1 );
-0109     <span class="keyword">return</span>
-0110 <span class="keyword">end</span>
-0111 <span class="comment">% construct function handle</span>
-0112 importfh = str2func( importFuncName );
-0113 
-0114 <span class="comment">% import images</span>
-0115 <span class="keyword">try</span>
-0116     [magnitude, phase] = importfh( i_iSeries, sSeries, sParams );
-0117 <span class="keyword">catch</span> err
-0118     <a href="../WAD/WAD_ErrorMsg.html" class="code" title="function WAD_ErrorMsg( name, mymessage, err )">WAD_ErrorMsg</a>( my.name, <span class="string">'ERROR during reading/conversion of phase map.'</span>, err );
-0119     <span class="keyword">return</span>
-0120 <span class="keyword">end</span>
-0121 
-0122 <span class="keyword">if</span> isempty( magnitude ) || isempty( phase )
-0123     <span class="comment">% didn't get results back</span>
-0124     <a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">': no magnitude or phase data read for quantification.'</span> ], 1 );
-0125     <span class="keyword">return</span>
-0126 <span class="keyword">end</span>
-0127 
-0128 <span class="comment">% update waitbar</span>
-0129 <span class="keyword">if</span> isInteractive, waitbar( 0.2, h ); <span class="keyword">end</span>
-0130 
+0098 <span class="comment">% display waitbar in interactive mode</span>
+0099 <span class="keyword">if</span> isInteractive, h = waitbar( 0, <span class="string">'Calculating B0 uniformity...'</span> ); <span class="keyword">end</span>
+0100 
+0101 
+0102 <span class="comment">% check param for import function</span>
+0103 <span class="keyword">if</span> ~isfield( sParams, <span class="string">'type'</span> ) || isempty( sParams.type )
+0104     <a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">' : Import function type not defined in configuration!'</span> ], 1 );
+0105     <span class="keyword">return</span>
+0106 <span class="keyword">end</span>    
+0107     
+0108 <span class="comment">% check if type is function (in a .m file) with configured name exists</span>
+0109 importFuncName = [ <span class="string">'WAD_MR_B0_read'</span> sParams.type ];
+0110 <span class="keyword">if</span> exist( importFuncName, <span class="string">'file'</span> ) ~= 2
+0111     <span class="comment">% funtion does not exist</span>
+0112     <a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">': ERROR: Configured import function named &quot;'</span> importFuncName <span class="string">'&quot; does not exist!'</span> ], 1 );
+0113     <span class="keyword">return</span>
+0114 <span class="keyword">end</span>
+0115 <span class="comment">% construct function handle</span>
+0116 importfh = str2func( importFuncName );
+0117 
+0118 <span class="comment">% import images</span>
+0119 <span class="keyword">try</span>
+0120     [magnitude, phase] = importfh( i_iSeries, sSeries, sParams );
+0121 <span class="keyword">catch</span> err
+0122     <a href="../WAD/WAD_ErrorMsg.html" class="code" title="function WAD_ErrorMsg( name, mymessage, err )">WAD_ErrorMsg</a>( my.name, <span class="string">'ERROR during reading/conversion of phase map.'</span>, err );
+0123     <span class="keyword">return</span>
+0124 <span class="keyword">end</span>
+0125 
+0126 <span class="keyword">if</span> isempty( magnitude ) || isempty( phase )
+0127     <span class="comment">% didn't get results back</span>
+0128     <a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">': no magnitude or phase data read for quantification.'</span> ], 1 );
+0129     <span class="keyword">return</span>
+0130 <span class="keyword">end</span>
 0131 
-0132 <span class="comment">% ----------------------------------------------------</span>
-0133 <span class="comment">% find centre and diameter of phantom</span>
-0134 <span class="comment">% ----------------------------------------------------</span>
-0135 <span class="comment">% vind fantoom in magnitudeplaatje</span>
-0136 interpolPower=0;
-0137 quiet=1; <span class="comment">% no image from geometry fit</span>
-0138 
-0139 <span class="comment">% TO DO: WAD_MR_sizePos_pix reads the DICOM image again... avoid double read</span>
-0140 <span class="comment">% action...</span>
-0141 [diameter_pix, centre_pix ] = <a href="WAD_MR_privateSizePos_pix.html" class="code" title="function [diameter_pix, centre_pix, figureHandle ] = WAD_MR_privateSizePos_pix( sImage, sParams, quiet )">WAD_MR_privateSizePos_pix</a>( magnitude, interpolPower, quiet );
-0142 
-0143 <span class="comment">% update waitbar</span>
-0144 <span class="keyword">if</span> isInteractive, waitbar( 0.5, h ); <span class="keyword">end</span>
-0145 
-0146 <span class="comment">% definieer masker</span>
-0147 axis_x = floor( szROI * diameter_pix(1) / 2 );
-0148 axis_y = floor( szROI * diameter_pix(2) / 2 );
-0149 
-0150 [phase.masked, mask] = <a href="#_sub1" class="code" title="subfunction [B,M] = ROImask(a,b,cent,I,valfill)">ROImask</a>( axis_x, axis_y, centre_pix, phase.dPhi_rad, 0 );
+0132 <span class="comment">% check type of data, options are:</span>
+0133 <span class="comment">% - dPhi_rad: (wrapped) phase in radians [default]</span>
+0134 <span class="comment">% - dB0_ppm : B0 in ppm</span>
+0135 <span class="comment">% - dB0_Hz  : B0 in Hz</span>
+0136 <span class="keyword">if</span> ~isfield( phase, <span class="string">'type'</span> ) || isempty( phase.type )
+0137     <span class="comment">% apply default</span>
+0138     phase.type = <span class="string">'dPhi_rad'</span>;
+0139 <span class="keyword">end</span>
+0140 
+0141 <span class="comment">% consistency check</span>
+0142 <span class="keyword">if</span> ~isfield( phase, phase.type )
+0143     <span class="comment">% image data not consistent with give data type</span>
+0144     <a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">': consistency check failed! Phase type '</span> phase.type <span class="string">' but field phase.'</span> phase.type <span class="string">' doesn''t exist.'</span> ], 1 );
+0145     <span class="keyword">return</span>
+0146 <span class="keyword">end</span>
+0147 
+0148 
+0149 <span class="comment">% update waitbar</span>
+0150 <span class="keyword">if</span> isInteractive, waitbar( 0.2, h ); <span class="keyword">end</span>
 0151 
-0152 magnitude.masked = immultiply( magnitude.image, mask);
-0153 
-0154 <span class="comment">% ----------------------------------------------------</span>
-0155 <span class="comment">% haalt bovenste stuk fantoom af omdat daar afwijkende geometrie,</span>
-0156 <span class="comment">% anders gaat daarop berekening B0 uniformiteit en fase unwrapping mis</span>
-0157 <span class="comment">% LET OP: centre_pix heeft x en y omgedraaid... why??</span>
-0158 <span class="comment">% ----------------------------------------------------</span>
-0159 phasemask(:,:) = mask(:,:);
-0160 ignoreTopRows = floor( centre_pix(2) - ignoreTop*axis_x );
-0161 phasemask( 1:ignoreTopRows, : ) = 0;
-0162 
-0163 phase.masked = immultiply( phase.masked, phasemask );
-0164 
-0165 <span class="comment">% update waitbar</span>
-0166 <span class="keyword">if</span> isInteractive, waitbar( 0.6, h ); <span class="keyword">end</span>
-0167 
-0168 <span class="comment">% ----------------------------------------------------</span>
-0169 <span class="comment">% unwrappen</span>
-0170 <span class="comment">% ----------------------------------------------------</span>
-0171 <span class="comment">% procedure start in centerpixel van fantoom (aanname: geen wrapping nabij</span>
-0172 <span class="comment">% center pixel)</span>
-0173 x_pix=floor(centre_pix(1));
-0174 y_pix=floor(centre_pix(2));
-0175 
-0176 phase.unwrapped = <a href="#_sub2" class="code" title="subfunction [image_out] = unwrap2D(image_in, center)">unwrap2D</a>( phase.masked, [x_pix,y_pix]);
-0177 phase.maskedandunwrapped = immultiply(phase.unwrapped, phasemask);
-0178 
-0179 <span class="comment">% update waitbar</span>
-0180 <span class="keyword">if</span> isInteractive, waitbar( 0.8, h ); <span class="keyword">end</span>
-0181 
-0182 <span class="comment">% ----------------------------------------------------</span>
-0183 <span class="comment">% bereken B0</span>
-0184 <span class="comment">% ----------------------------------------------------</span>
-0185 gamma = 267513; <span class="comment">%42576;  % gyromatric frequency in rad/s*1/T</span>
-0186 magnet_T = phase.info.MagneticFieldStrength;  <span class="comment">% in Tesla</span>
-0187 
-0188 dB0_T = phase.maskedandunwrapped / (gamma .* phase.dTE); <span class="comment">% in Tesla</span>
-0189 
-0190 <span class="comment">% write B0 map to calculations log file</span>
-0191 hFig = figure( <span class="string">'Visible'</span>, fig_visible, <span class="string">'MenuBar'</span>, <span class="string">'none'</span>, <span class="string">'Name'</span>, <span class="string">'B0 map [ppm]'</span> );
-0192 <span class="comment">%hFig = figure( 'Name', 'B0 map [ppm]' );</span>
-0193 imshow( dB0_T / magnet_T * 1000000, [] ); <span class="comment">% in ppm</span>
-0194 colormap(jet);
-0195 axis image
-0196 axis square
-0197 axis off
-0198 title(<span class="string">'B0 uniformity [ppm]'</span>, <span class="string">'Interpreter'</span>, <span class="string">'none'</span>);
-0199 colorbar
-0200 
-0201 <a href="../WAD/WAD_resultsAppendString.html" class="code" title="function WAD_resultsAppendString( level, value, description )">WAD_resultsAppendString</a>( 2, [<span class="string">'B0 map calculated from series: '</span> num2str(sSeries.number) ], <span class="string">'B0 uniformiteit'</span> );
-0202 <a href="../WAD/WAD_resultsAppendFigure.html" class="code" title="function WAD_resultsAppendFigure( level, handle, tag, description )">WAD_resultsAppendFigure</a>( 2, hFig, <span class="string">'B0map'</span>, <span class="string">'B0 uniformiteit'</span> );
-0203 
-0204 <span class="keyword">if</span> quiet
-0205     <span class="comment">% delete non-visible image</span>
-0206     delete( hFig );
-0207 <span class="keyword">end</span>
-0208 
-0209 <span class="comment">% update waitbar</span>
-0210 <span class="keyword">if</span> isInteractive, waitbar( 0.9, h ); <span class="keyword">end</span>
-0211 
-0212 <span class="comment">% ----------------------------------------------------</span>
-0213 <span class="comment">% bereken uniformiteit</span>
-0214 <span class="comment">% ----------------------------------------------------</span>
-0215 matrixsize_phase = size( phase.maskedandunwrapped );
-0216 
-0217 smallest = +1.0E99; <span class="comment">% huge</span>
-0218 largest  = -1.0E99; <span class="comment">% negative huge</span>
-0219 
-0220 <span class="keyword">for</span> i=1:matrixsize_phase(1)
-0221     <span class="keyword">for</span> j=1:matrixsize_phase(2)
-0222         <span class="keyword">if</span> phasemask(i,j)==1
-0223             <span class="keyword">if</span> dB0_T(i,j)&lt;smallest
-0224                 smallest=dB0_T(i,j);
-0225             <span class="keyword">end</span>
-0226             <span class="keyword">if</span> dB0_T(i,j)&gt;largest
-0227                 largest=dB0_T(i,j);
-0228             <span class="keyword">end</span>
-0229         <span class="keyword">end</span>
-0230     <span class="keyword">end</span>
-0231 <span class="keyword">end</span>
-0232 
-0233 <span class="comment">% update waitbar</span>
-0234 <span class="keyword">if</span> isInteractive, waitbar( 1.0, h ); <span class="keyword">end</span>
-0235 
+0152 
+0153 <span class="comment">% ----------------------------------------------------</span>
+0154 <span class="comment">% find centre and diameter of phantom</span>
+0155 <span class="comment">% ----------------------------------------------------</span>
+0156 <span class="comment">% vind fantoom in magnitudeplaatje</span>
+0157 interpolPower=0;
+0158 quiet=1; <span class="comment">% no image from geometry fit</span>
+0159 
+0160 <span class="comment">% TO DO: WAD_MR_sizePos_pix reads the DICOM image again... avoid double read</span>
+0161 <span class="comment">% action...</span>
+0162 [diameter_pix, centre_pix ] = <a href="WAD_MR_privateSizePos_pix.html" class="code" title="function [diameter_pix, centre_pix, figureHandle ] = WAD_MR_privateSizePos_pix( sImage, sParams, quiet )">WAD_MR_privateSizePos_pix</a>( magnitude, interpolPower, quiet );
+0163 
+0164 <span class="comment">% update waitbar</span>
+0165 <span class="keyword">if</span> isInteractive, waitbar( 0.5, h ); <span class="keyword">end</span>
+0166 
+0167 <span class="comment">% definieer masker</span>
+0168 axis_x = floor( szROI * diameter_pix(1) / 2 );
+0169 axis_y = floor( szROI * diameter_pix(2) / 2 );
+0170 
+0171 [phase.masked, mask] = <a href="#_sub1" class="code" title="subfunction [B,M] = ROImask(a,b,cent,I,valfill)">ROImask</a>( axis_x, axis_y, centre_pix, phase.(phase.type), 0 );
+0172 
+0173 magnitude.masked = magnitude.image .* mask;
+0174 
+0175 <span class="comment">% ----------------------------------------------------</span>
+0176 <span class="comment">% haalt bovenste stuk fantoom af omdat daar afwijkende geometrie,</span>
+0177 <span class="comment">% anders gaat daarop berekening B0 uniformiteit en fase unwrapping mis</span>
+0178 <span class="comment">% LET OP: centre_pix heeft x en y omgedraaid... why??</span>
+0179 <span class="comment">% ----------------------------------------------------</span>
+0180 phasemask(:,:) = mask(:,:);
+0181 ignoreTopRows = floor( centre_pix(2) - ignoreTop*axis_x );
+0182 phasemask( 1:ignoreTopRows, : ) = 0;
+0183 
+0184 phase.masked = phase.masked .* phasemask;
+0185 
+0186 <span class="comment">% update waitbar</span>
+0187 <span class="keyword">if</span> isInteractive, waitbar( 0.6, h ); <span class="keyword">end</span>
+0188 
+0189 <span class="comment">% ----------------------------------------------------</span>
+0190 <span class="comment">% unwrappen</span>
+0191 <span class="comment">% ----------------------------------------------------</span>
+0192 <span class="comment">% procedure start in centerpixel van fantoom (aanname: geen wrapping nabij</span>
+0193 <span class="comment">% center pixel)</span>
+0194 x_pix=floor(centre_pix(1));
+0195 y_pix=floor(centre_pix(2));
+0196 
+0197 
+0198 <span class="comment">% ----------------------------------------------------</span>
+0199 <span class="comment">% bereken B0 in ppm</span>
+0200 <span class="comment">% ----------------------------------------------------</span>
+0201 magnet_T = phase.info.MagneticFieldStrength;  <span class="comment">% in Tesla</span>
+0202 
+0203 <span class="comment">% unwrapping fasehoek, en conversie naar B0 in ppm</span>
+0204 <span class="keyword">if</span> strcmp( phase.type, <span class="string">'dPhi_rad'</span> )
+0205     phase.unwrapped = <a href="#_sub2" class="code" title="subfunction [image_out] = unwrap2D(image_in, center)">unwrap2D</a>( phase.masked, [x_pix,y_pix]);
+0206     phase.maskedandunwrapped = phase.unwrapped .* phasemask;
+0207     <span class="comment">% update waitbar</span>
+0208     <span class="keyword">if</span> isInteractive, waitbar( 0.8, h ); <span class="keyword">end</span>
+0209 
+0210     gamma_rad_ms_T = 267513; <span class="comment">% 42576 * 2 * pi;  % gyromatric frequency in rad/ms*1/T</span>
+0211     dB0_T = phase.maskedandunwrapped / (gamma_rad_ms_T .* phase.dTE); <span class="comment">% in Tesla</span>
+0212     dB0_ppm = dB0_T / magnet_T * 1000000; <span class="comment">% in ppm</span>
+0213 <span class="keyword">elseif</span> strcmp( phase.type, <span class="string">'dB0_Hz'</span> )
+0214     <span class="comment">% Convert B0 in Hz to ppm</span>
+0215     gamma_Hz_T = 42.576E06;
+0216     dB0_ppm = ( phase.dB0_Hz ./ gamma_Hz_T ) ./ magnet_T * 1000000; <span class="comment">% in ppm</span>
+0217     dB0_ppm = dB0_ppm .* phasemask;
+0218 <span class="keyword">else</span>
+0219     <span class="comment">% For B0 mapin ppm: just apply the mask</span>
+0220     dB0_ppm = phase.dB0_ppm .* phasemask;
+0221 <span class="keyword">end</span>
+0222 
+0223 <span class="comment">% write B0 map to calculations log file</span>
+0224 hFig = figure( <span class="string">'Visible'</span>, fig_visible, <span class="string">'MenuBar'</span>, <span class="string">'none'</span>, <span class="string">'Name'</span>, <span class="string">'B0 map [ppm]'</span> );
+0225 <span class="comment">%imshow( dB0_ppm, [] ); % in ppm</span>
+0226 imagesc( dB0_ppm );
+0227 colormap(jet);
+0228 axis image
+0229 axis square
+0230 axis off
+0231 title(<span class="string">'B0 uniformity [ppm]'</span>, <span class="string">'Interpreter'</span>, <span class="string">'none'</span>);
+0232 colorbar
+0233 
+0234 <a href="../WAD/WAD_resultsAppendString.html" class="code" title="function WAD_resultsAppendString( level, value, description )">WAD_resultsAppendString</a>( 2, [<span class="string">'B0 map calculated from series: '</span> num2str(sSeries.number) ], <span class="string">'B0 uniformiteit'</span> );
+0235 <a href="../WAD/WAD_resultsAppendFigure.html" class="code" title="function WAD_resultsAppendFigure( level, handle, tag, description )">WAD_resultsAppendFigure</a>( 2, hFig, <span class="string">'B0map'</span>, <span class="string">'B0 uniformiteit'</span> );
 0236 
-0237 <span class="comment">% ----------------------------------------------------</span>
-0238 <span class="comment">% final result: difference in ppm</span>
-0239 <span class="comment">% ----------------------------------------------------</span>
-0240 B0_uniformity_ppm = ( largest-smallest ) / magnet_T * 1000000; <span class="comment">% in ppm</span>
-0241 <a href="../WAD/WAD_resultsAppendFloat.html" class="code" title="function WAD_resultsAppendFloat( level, value, variable, unit, description, sLimits, limits_field_name )">WAD_resultsAppendFloat</a>( 1, B0_uniformity_ppm, <span class="string">'Uniformity'</span>, <span class="string">'ppm'</span>, <span class="string">'B0'</span> );
-0242 
-0243 <span class="comment">% log file</span>
-0244 <a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">':   B0 uniformity = '</span> num2str(B0_uniformity_ppm) <span class="string">' ppm'</span>] );
-0245 
-0246 
-0247 <span class="comment">% close waitbar in interactive mode</span>
-0248 <span class="keyword">if</span> isInteractive, close( h ), <span class="keyword">end</span>
+0237 <span class="keyword">if</span> quiet
+0238     <span class="comment">% delete non-visible image</span>
+0239     delete( hFig );
+0240 <span class="keyword">end</span>
+0241 
+0242 <span class="comment">% update waitbar</span>
+0243 <span class="keyword">if</span> isInteractive, waitbar( 0.9, h ); <span class="keyword">end</span>
+0244 
+0245 <span class="comment">% ----------------------------------------------------</span>
+0246 <span class="comment">% bereken uniformiteit</span>
+0247 <span class="comment">% ----------------------------------------------------</span>
+0248 matrixsize_phase = size( dB0_ppm );
 0249 
-0250 <span class="keyword">return</span>
-0251 
+0250 smallest = +1.0E99; <span class="comment">% huge</span>
+0251 largest  = -1.0E99; <span class="comment">% negative huge</span>
 0252 
-0253 
-0254 
-0255 
-0256 <span class="comment">% -------------------------------------------------------------------------</span>
-0257 <a name="_sub1" href="#_subfunctions" class="code">function [B,M] = ROImask(a,b,cent,I,valfill)</a>
-0258 <span class="comment">% Creates an elliptical mask defined by paramaters a, b and cent. Multiples</span>
-0259 <span class="comment">% this mask to I and fills all pixels outside ellipse with valfill</span>
-0260 <span class="comment">% -------------------------------------------------------------------------</span>
-0261 centx = cent(1);
-0262 centy = cent(2);
-0263 [numr,numc]=size(I);
-0264 
-0265 [x,y] = meshgrid(1:numc,1:numr);
-0266 M = double(((x-centx).^2)/a^2 + ((y-centy).^2)/b^2 &lt;= 1);
-0267 <span class="comment">% figure</span>
-0268 <span class="comment">% imagesc(M)</span>
-0269 B = immultiply(I,M) + imcomplement(M)*valfill;
-0270 
-0271 
-0272 
-0273 
-0274 
-0275 <span class="comment">% -------------------------------------------------------------------------</span>
-0276 <a name="_sub2" href="#_subfunctions" class="code">function [image_out] = unwrap2D(image_in, center)</a>
-0277 <span class="comment">% in MatLab werkt de functie &quot;unwrap&quot; alleen van links naar rechts</span>
-0278 <span class="comment">% dit gaat mis als de waarde in het eerste pixel niet correct is</span>
-0279 <span class="comment">% aangezien aan de randen meer ruis te verwachten is, is ervoor gekozen om</span>
-0280 <span class="comment">% vanuit het centrum van het fantoom te unwrap-en.</span>
-0281 <span class="comment">% Allereest verticaal vanuit het centrum naar boven en naar beneden.</span>
-0282 <span class="comment">% Vervolgens vanuit deze ge-unwrapte kolom per element steeds naar links en naar rechts</span>
-0283 <span class="comment">% -------------------------------------------------------------------------</span>
-0284 image_out=image_in;
-0285 orientation=1;
+0253 <span class="keyword">for</span> i=1:matrixsize_phase(1)
+0254     <span class="keyword">for</span> j=1:matrixsize_phase(2)
+0255         <span class="keyword">if</span> phasemask(i,j) == 1
+0256             <span class="keyword">if</span> dB0_ppm(i,j) &lt; smallest
+0257                 smallest = dB0_ppm(i,j);
+0258             <span class="keyword">end</span>
+0259             <span class="keyword">if</span> dB0_ppm(i,j) &gt; largest
+0260                 largest = dB0_ppm(i,j);
+0261             <span class="keyword">end</span>
+0262         <span class="keyword">end</span>
+0263     <span class="keyword">end</span>
+0264 <span class="keyword">end</span>
+0265 
+0266 <span class="comment">% update waitbar</span>
+0267 <span class="keyword">if</span> isInteractive, waitbar( 1.0, h ); <span class="keyword">end</span>
+0268 
+0269 
+0270 <span class="comment">% ----------------------------------------------------</span>
+0271 <span class="comment">% final result: difference in ppm</span>
+0272 <span class="comment">% ----------------------------------------------------</span>
+0273 B0_uniformity_ppm = largest - smallest; <span class="comment">% in ppm</span>
+0274 <a href="../WAD/WAD_resultsAppendFloat.html" class="code" title="function WAD_resultsAppendFloat( level, value, variable, unit, description, sLimits, limits_field_name )">WAD_resultsAppendFloat</a>( 1, B0_uniformity_ppm, <span class="string">'Uniformity'</span>, <span class="string">'ppm'</span>, <span class="string">'B0'</span> );
+0275 
+0276 <span class="comment">% log file</span>
+0277 <a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">':   B0 uniformity = '</span> num2str(B0_uniformity_ppm) <span class="string">' ppm'</span>] );
+0278 
+0279 
+0280 <span class="comment">% close waitbar in interactive mode</span>
+0281 <span class="keyword">if</span> isInteractive, close( h ), <span class="keyword">end</span>
+0282 
+0283 <span class="keyword">return</span>
+0284 <span class="keyword">end</span>
+0285 
 0286 
-0287 size_image=size(image_in);
-0288 
-0289 x=center(1);
-0290 y=center(2);
-0291 
-0292 col_end   = image_in(x:size_image(1),y); <span class="comment">% laatste deel kolom selecteren zodat center pixel eerste pixel</span>
-0293 col_start = flipud(image_in(1:x,y));     <span class="comment">% eerste deel kolom omkeren zodat centerpixel meest eerste pixel</span>
-0294 
-0295 <span class="comment">% beide delen unwrappen:</span>
-0296 result_end=unwrap(col_end,[],orientation);
-0297 result_start=unwrap(col_start,[],orientation);
-0298 
-0299 <span class="comment">%ge-unwrapte delen weer invoegen in uiteindelijke image:</span>
-0300 image_out(x:size_image(1),y)=result_end(:,:);
-0301 image_out(1:x-1,y)=flipud(result_start(2:x,1));
+0287 
+0288 <a name="_sub1" href="#_subfunctions" class="code">function [B,M] = ROImask(a,b,cent,I,valfill)</a>
+0289 <span class="comment">% -------------------------------------------------------------------------</span>
+0290 <span class="comment">% Creates an elliptical mask defined by paramaters a, b and cent. Multiples</span>
+0291 <span class="comment">% this mask to I and fills all pixels outside ellipse with valfill</span>
+0292 <span class="comment">% -------------------------------------------------------------------------</span>
+0293 centx = cent(1);
+0294 centy = cent(2);
+0295 [numr,numc] = size(I);
+0296 [x,y] = meshgrid( 1:numc, 1:numr );
+0297 M = double( ((x-centx).^2) ./ a.^2 + ((y-centy).^2) ./ b.^2 &lt;= 1 );
+0298 B = M .* I + ( 1.0 - M ) .* valfill;
+0299 <span class="keyword">end</span>
+0300 
+0301 
 0302 
-0303 <span class="comment">% in x-richting:</span>
-0304 <span class="keyword">for</span> count=1:size_image(1)
-0305     image_out=<a href="#_sub3" class="code" title="subfunction image_out = unwrap_line(image_out,x,y,size_image,orientation)">unwrap_line</a>(image_out(:,:),count,y,size_image,2);
-0306 <span class="keyword">end</span>
-0307 
-0308 
-0309 
-0310 
+0303 <span class="comment">% -------------------------------------------------------------------------</span>
+0304 <a name="_sub2" href="#_subfunctions" class="code">function [image_out] = unwrap2D(image_in, center)</a>
+0305 <span class="comment">% in MatLab werkt de functie &quot;unwrap&quot; alleen van links naar rechts</span>
+0306 <span class="comment">% dit gaat mis als de waarde in het eerste pixel niet correct is</span>
+0307 <span class="comment">% aangezien aan de randen meer ruis te verwachten is, is ervoor gekozen om</span>
+0308 <span class="comment">% vanuit het centrum van het fantoom te unwrap-en.</span>
+0309 <span class="comment">% Allereest verticaal vanuit het centrum naar boven en naar beneden.</span>
+0310 <span class="comment">% Vervolgens vanuit deze ge-unwrapte kolom per element steeds naar links en naar rechts</span>
 0311 <span class="comment">% -------------------------------------------------------------------------</span>
-0312 <a name="_sub3" href="#_subfunctions" class="code">function image_out = unwrap_line(image_out,x,y,size_image,orientation)</a>
-0313 <span class="comment">% -------------------------------------------------------------------------</span>
-0314 row_end   = image_out( x, y:size_image(2) ); <span class="comment">% laatste deel rij selecteren zodat center pixel meest links</span>
-0315 row_start = fliplr( image_out( x, 1:y ) );   <span class="comment">% eerste deel rij omkeren zodat centerpixel meest links</span>
+0312 image_out=image_in;
+0313 orientation=1;
+0314 
+0315 size_image=size(image_in);
 0316 
-0317 <span class="comment">% beide delen unwrappen:</span>
-0318 result_end   = unwrap( row_end,   [], orientation);
-0319 result_start = unwrap( row_start, [], orientation);
-0320 
-0321 <span class="comment">% ge-unwrapte delen weer invoegen in uiteindelijke image:</span>
-0322 image_out(x, y:size_image(2))  = result_end( :,: );
-0323 image_out(x, 1:y-1          )  = fliplr( result_start( 1, 2:y ) );</pre></div>
-<hr><address>Generated on Thu 28-Nov-2013 13:27:31 by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" target="_parent">m2html</a></strong> &copy; 2005</address>
+0317 x=center(1);
+0318 y=center(2);
+0319 
+0320 col_end   = image_in(x:size_image(1),y); <span class="comment">% laatste deel kolom selecteren zodat center pixel eerste pixel</span>
+0321 col_start = flipud(image_in(1:x,y));     <span class="comment">% eerste deel kolom omkeren zodat centerpixel meest eerste pixel</span>
+0322 
+0323 <span class="comment">% beide delen unwrappen:</span>
+0324 result_end=unwrap(col_end,[],orientation);
+0325 result_start=unwrap(col_start,[],orientation);
+0326 
+0327 <span class="comment">%ge-unwrapte delen weer invoegen in uiteindelijke image:</span>
+0328 image_out(x:size_image(1),y)=result_end(:,:);
+0329 image_out(1:x-1,y)=flipud(result_start(2:x,1));
+0330 
+0331 <span class="comment">% in x-richting:</span>
+0332 <span class="keyword">for</span> count=1:size_image(1)
+0333     image_out=<a href="#_sub3" class="code" title="subfunction image_out = unwrap_line(image_out,x,y,size_image,orientation)">unwrap_line</a>(image_out(:,:),count,y,size_image,2);
+0334 <span class="keyword">end</span>
+0335 
+0336 <span class="keyword">end</span>
+0337 
+0338 
+0339 
+0340 
+0341 <span class="comment">% -------------------------------------------------------------------------</span>
+0342 <a name="_sub3" href="#_subfunctions" class="code">function image_out = unwrap_line(image_out,x,y,size_image,orientation)</a>
+0343 <span class="comment">% -------------------------------------------------------------------------</span>
+0344 row_end   = image_out( x, y:size_image(2) ); <span class="comment">% laatste deel rij selecteren zodat center pixel meest links</span>
+0345 row_start = fliplr( image_out( x, 1:y ) );   <span class="comment">% eerste deel rij omkeren zodat centerpixel meest links</span>
+0346 
+0347 <span class="comment">% beide delen unwrappen:</span>
+0348 result_end   = unwrap( row_end,   [], orientation);
+0349 result_start = unwrap( row_start, [], orientation);
+0350 
+0351 <span class="comment">% ge-unwrapte delen weer invoegen in uiteindelijke image:</span>
+0352 image_out(x, y:size_image(2))  = result_end( :,: );
+0353 image_out(x, 1:y-1          )  = fliplr( result_start( 1, 2:y ) );
+0354 <span class="keyword">end</span></pre></div>
+<hr><address>Generated on Fri 07-Aug-2015 09:34:21 by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" target="_parent">m2html</a></strong> &copy; 2005</address>
 </body>
 </html>

@@ -160,39 +160,41 @@ This function is called by:
 0098 hFig = figure( <span class="string">'Visible'</span>, fig_visible, <span class="string">'MenuBar'</span>, <span class="string">'none'</span>, <span class="string">'Name'</span>, <span class="string">'Siemens STE image'</span> );
 0099 colormap(gray);
 0100 <span class="comment">% display image</span>
-0101 imshow( steimg, [] );
-0102 axis image
-0103 axis square
-0104 axis off
-0105 hold on
-0106 
-0107 <span class="comment">% write plot to calculations log</span>
-0108 <a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">':   Write image to calculations log.'</span> ] );
-0109 
-0110 
+0101 <span class="comment">%imshow( steimg, [] );</span>
+0102 colormap( gray(256) );
+0103 imagesc( steimg );
+0104 axis image
+0105 axis square
+0106 axis off
+0107 hold on
+0108 
+0109 <span class="comment">% write plot to calculations log</span>
+0110 <a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">':   Write image to calculations log.'</span> ] );
 0111 
-0112 <a href="../WAD/WAD_resultsAppendString.html" class="code" title="function WAD_resultsAppendString( level, value, description )">WAD_resultsAppendString</a>( 2, [<span class="string">'Siemens STE fieldmap from series: '</span> num2str(sSeries.number)], <span class="string">'B0 uniformiteit'</span> );
-0113 <a href="../WAD/WAD_resultsAppendString.html" class="code" title="function WAD_resultsAppendString( level, value, description )">WAD_resultsAppendString</a>( 2, [<span class="string">'Echo Time = '</span> num2str(info.EchoTime) <span class="string">'ms'</span>], <span class="string">'B0 uniformiteit'</span> );
-0114 
-0115 <span class="comment">% calculate delta-B per line</span>
-0116 gamma_streep = 42.576;  <span class="comment">% gyromatric frequency in Hz/T</span>
-0117 B0_T = info.MagneticFieldStrength;  <span class="comment">% in Tesla</span>
-0118 TE_s = info.EchoTime / 1000.0; <span class="comment">% TE in sec</span>
-0119 dB_per_line_ppm = 1 / ( gamma_streep * B0_T * TE_s ); <span class="comment">% dB between two lines in ppm</span>
-0120 <a href="../WAD/WAD_resultsAppendString.html" class="code" title="function WAD_resultsAppendString( level, value, description )">WAD_resultsAppendString</a>( 2, [<span class="string">'Delta B = '</span> num2str( dB_per_line_ppm ) <span class="string">' ppm/line'</span> ], <span class="string">'B0 uniformiteit'</span> );
-0121 
-0122 figuretitlestring = sprintf( <span class="string">'Siemens STE. deltaB = %1.2f ppm/line'</span>, dB_per_line_ppm );
-0123 title( figuretitlestring, <span class="string">'Interpreter'</span>, <span class="string">'none'</span>);
-0124 
-0125 <a href="../WAD/WAD_resultsAppendFigure.html" class="code" title="function WAD_resultsAppendFigure( level, handle, tag, description )">WAD_resultsAppendFigure</a>( 1, hFig, <span class="string">'STE fieldmap'</span>, <span class="string">'Siemens STE Fieldmap'</span> );
+0112 
+0113 
+0114 <a href="../WAD/WAD_resultsAppendString.html" class="code" title="function WAD_resultsAppendString( level, value, description )">WAD_resultsAppendString</a>( 2, [<span class="string">'Siemens STE fieldmap from series: '</span> num2str(sSeries.number)], <span class="string">'B0 uniformiteit'</span> );
+0115 <a href="../WAD/WAD_resultsAppendString.html" class="code" title="function WAD_resultsAppendString( level, value, description )">WAD_resultsAppendString</a>( 2, [<span class="string">'Echo Time = '</span> num2str(info.EchoTime) <span class="string">'ms'</span>], <span class="string">'B0 uniformiteit'</span> );
+0116 
+0117 <span class="comment">% calculate delta-B per line</span>
+0118 gamma_streep = 42.576;  <span class="comment">% gyromatric frequency in Hz/T</span>
+0119 B0_T = info.MagneticFieldStrength;  <span class="comment">% in Tesla</span>
+0120 TE_s = info.EchoTime / 1000.0; <span class="comment">% TE in sec</span>
+0121 dB_per_line_ppm = 1 / ( gamma_streep * B0_T * TE_s ); <span class="comment">% dB between two lines in ppm</span>
+0122 <a href="../WAD/WAD_resultsAppendString.html" class="code" title="function WAD_resultsAppendString( level, value, description )">WAD_resultsAppendString</a>( 2, [<span class="string">'Delta B = '</span> num2str( dB_per_line_ppm ) <span class="string">' ppm/line'</span> ], <span class="string">'B0 uniformiteit'</span> );
+0123 
+0124 figuretitlestring = sprintf( <span class="string">'Siemens STE. deltaB = %1.2f ppm/line'</span>, dB_per_line_ppm );
+0125 title( figuretitlestring, <span class="string">'Interpreter'</span>, <span class="string">'none'</span>);
 0126 
-0127 <span class="keyword">if</span> quiet
-0128     <span class="comment">% delete non-visible image</span>
-0129     delete( hFig );
-0130 <span class="keyword">end</span>
-0131 
-0132 <span class="comment">% Done with Siemens STE.</span>
-0133 <span class="keyword">return</span></pre></div>
-<hr><address>Generated on Thu 28-Nov-2013 13:27:31 by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" target="_parent">m2html</a></strong> &copy; 2005</address>
+0127 <a href="../WAD/WAD_resultsAppendFigure.html" class="code" title="function WAD_resultsAppendFigure( level, handle, tag, description )">WAD_resultsAppendFigure</a>( 1, hFig, <span class="string">'STE fieldmap'</span>, <span class="string">'Siemens STE Fieldmap'</span> );
+0128 
+0129 <span class="keyword">if</span> quiet
+0130     <span class="comment">% delete non-visible image</span>
+0131     delete( hFig );
+0132 <span class="keyword">end</span>
+0133 
+0134 <span class="comment">% Done with Siemens STE.</span>
+0135 <span class="keyword">return</span></pre></div>
+<hr><address>Generated on Fri 07-Aug-2015 09:34:21 by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" target="_parent">m2html</a></strong> &copy; 2005</address>
 </body>
 </html>
