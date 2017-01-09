@@ -132,7 +132,7 @@ end
 % ----------------------------
 [value, status] = getFieldFromDicomHdr( dicomheader, 'KVP' );
 if status
-    WAD_resultsAppendFloat( 1, double(value), 'kVp', [], [] );
+    WAD_resultsAppendFloat( 1, double(value), 'kVp', 'kV', 'AEC' );
 end
 
 

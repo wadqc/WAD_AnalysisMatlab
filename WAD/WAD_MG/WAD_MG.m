@@ -2,7 +2,7 @@
 % WAD_MG is a mammography analysis module written for IQC.
 % NVKF WAD IQC software is a framework for automatic analysis of DICOM objects.
 % 
-% Copyright 2012-2013  Joost Kuijer / jpa.kuijer@vumc.nl
+% Copyright 2012-2016  Joost Kuijer / jpa.kuijer@vumc.nl
 % 
 % 
 % This program is free software: you can redistribute it and/or modify
@@ -37,8 +37,8 @@ function WAD_MG( wadInputFileXML )
 % ----------------------
 % version info
 my.name = 'WAD_MG';
-my.version = '1.1';
-my.date = '20131127';
+my.version = '1.2';
+my.date = '20160330';
 
 disp( ['Starting analysis module ' my.name '  Version ' my.version ' ' my.date] );
 
