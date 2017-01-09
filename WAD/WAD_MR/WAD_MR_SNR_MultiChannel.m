@@ -37,6 +37,25 @@ function WAD_MR_SNR_MultiChannel( i_iSeries, sSeries, sParams )
 % 2012-08-13 / JK
 % adapted to WAD
 % ------------------------------------------------------------------------
+% 2016-10-21 / JK
+% Support multislice acquisition for multichannel coil SNR
+% Implemented by new parameter <uncombineImage> to allow configuration of
+% the instance numbers of the separate coil images.
+% 	<params>
+% 	    <combinedImage>63</combinedImage>
+% 	    <uncombinedImage> <image>55</image> <coil>1</coil> </uncombinedImage>
+% 	    <uncombinedImage> <image>56</image> <coil>2</coil> </uncombinedImage>
+% 	    <uncombinedImage> <image>57</image> <coil>3</coil> </uncombinedImage>
+% 	    <uncombinedImage> <image>58</image> <coil>4</coil> </uncombinedImage>
+% 	    <uncombinedImage> <image>59</image> <coil>5</coil> </uncombinedImage>
+% 	    <uncombinedImage> <image>60</image> <coil>6</coil> </uncombinedImage>
+% 	    <uncombinedImage> <image>61</image> <coil>7</coil> </uncombinedImage>
+% 	    <uncombinedImage> <image>62</image> <coil>8</coil> </uncombinedImage>
+%	</params>
+% ------------------------------------------------------------------------
+% 2017-01-05 / JK
+% bugfix for combined image in separate series.
+% ------------------------------------------------------------------------
 
 
 % produce a figure on the screen or be quiet...
@@ -51,8 +70,8 @@ global WAD
 
 % version info
 my.name = 'WAD_MR_SNR_MultiChannel';
-my.version = '1.1';
-my.date = '20131127';
+my.version = '1.2.2';
+my.date = '20170105';
 WAD_vbprint( ['Module ' my.name ' Version ' my.version ' (' my.date ')'] );
 
 
@@ -114,26 +133,42 @@ else
     elseif isequal( inum, WAD.const.lastInSeries )
         inum = length( sSeries.instance );
     end
-    
-    % ---------------------------------------------
-    % find the image
-    % ---------------------------------------------
-    foundImage = false;
-    for ii = 1:length( sSeries.instance )
-        if ( sSeries.instance(ii).number == inum )
-            ci = ii;
-            foundImage = true;
-            break;
-        end
+end
+
+% ---------------------------------------------
+% find the image (array order can be different from instance numbering)
+% ---------------------------------------------
+foundImage = false;
+for ii = 1:length( sSeries.instance )
+    if ( sSeries.instance(ii).number == inum )
+        ci = ii;
+        foundImage = true;
+        break;
     end
-    if ~foundImage
-        WAD_vbprint( [my.name ': Error: could not find configured combined coils image.'] );
-        myErrordlg( isInteractive, 'Cannot find configured combined coils image.', 'WAD_MR_SNR_MultiChannel', 'on' );
-        return
-    end
+end
+if ~foundImage
+    WAD_vbprint( [my.name ': Error: could not find configured combined coils image.'] );
+    myErrordlg( isInteractive, 'Cannot find configured combined coils image.', 'WAD_MR_SNR_MultiChannel', 'on' );
+    return
 end
 
 
+% check if uncombinedImage is configured
+isConfiguredUncombinedImages = false;
+hasConfiguredUncombinedCoils = false;
+if isfield( sParams, 'uncombinedImage' ) && ~isempty( sParams.uncombinedImage )
+    % find elements: image and coil
+    if isfield( sParams.uncombinedImage, 'image' ) && ~isempty( [sParams.uncombinedImage.image] )
+        uncombinedImage = [sParams.uncombinedImage.image];
+        WAD_vbprint( [my.name ': Found configured uncombinedImage = ' num2str( uncombinedImage )] );
+        isConfiguredUncombinedImages = true;
+    end
+    if isfield( sParams.uncombinedImage, 'coil' ) && ~isempty( [sParams.uncombinedImage.coil] )
+        uncombinedCoil = [sParams.uncombinedImage.coil];
+        WAD_vbprint( [my.name ': Found configured uncombinedCoil = ' num2str( uncombinedCoil )] );
+        hasConfiguredUncombinedCoils = true;
+    end
+end
 
 
 % do the evaluation...
@@ -145,7 +180,7 @@ end
 WAD_vbprint( [my.name ':   Interpolation set to 2 ^ ' num2str(sParams.interpolPower) '. This is configurable in <params> <interpolPower>' ] );
 
 % SNR needs the centre coordinates, which are calculated by SQ_MR_geomXY
-[diameter_pix, centre_pix] = WAD_MR_privateSizePos_pix( sCCSeries.instance(1), sParams, quiet );
+[diameter_pix, centre_pix] = WAD_MR_privateSizePos_pix( sCCSeries.instance(ci), sParams, quiet );
 WAD_vbprint( [my.name ': Centre location at ' num2str(centre_pix)] );
 
 % configured parameters for ROI's
@@ -181,6 +216,8 @@ if isInteractive, h = waitbar( 0, 'Calculating SNR...' ); end
 % number of images in series
 ninum = length( sSeries.instance );
 
+
+
 % if all images have the same image number (Siemens VB25 and earlier), renumber them now
 % check if first and last image have the same number
 if sSeries.instance(1).number == sSeries.instance(ninum).number
@@ -194,20 +231,28 @@ end
 % security check: images needs to have the same slice position. Check first
 % and last image... note: not foolproof but checking all slices takes a
 % long time.
-info1 = dicominfo( sSeries.instance(1).filename );
-info2 = dicominfo( sSeries.instance(ninum).filename );
-
-if ( info1.SliceLocation ~= info2.SliceLocation )
-    if isInteractive, close(h), end
-    WAD_vbprint( [my.name ':   Error: images for multi-channel SNR must be from single slice location.'] );
-    myErrordlg( isInteractive, 'Images for multi-channel SNR must be from single slice location.', 'SNR MultiChannel', 'on' );
-    return
-end
+% info1 = dicominfo( sSeries.instance(1).filename );
+% info2 = dicominfo( sSeries.instance(ninum).filename );
+% 
+% if ( info1.SliceLocation ~= info2.SliceLocation )
+%     if isInteractive, close(h), end
+%     WAD_vbprint( [my.name ':   Error: images for multi-channel SNR must be from single slice location.'] );
+%     myErrordlg( isInteractive, 'Images for multi-channel SNR must be from single slice location.', 'SNR MultiChannel', 'on' );
+%     return
+% end
 
 
 % now calculate the SNR for all coil images
-for inum = 1:ninum
-     if isInteractive, waitbar( inum/ninum, h ); end
+% loop over uncombined images
+% note: if uncombined images are configured these have already been copied to the uncombinedImage array
+if ~isConfiguredUncombinedImages
+    % all images in series
+    uncombinedImage = 1:ninum;
+end
+
+% loop over uncombined images
+for inum = uncombinedImage
+    if isInteractive, waitbar( inum/ninum, h ); end
 
     % skip the combined image
     if ( sSeries.number == sCCSeries.number ) && ( inum == cinum )
@@ -229,11 +274,17 @@ for inum = 1:ninum
         return;
     end
     
+    % get the coil element number
+    if hasConfiguredUncombinedCoils
+        coil = uncombinedCoil( uncombinedImage == inum );
+    else
+        coil = inum;
+    end
     
 
     quiet = 1;
     SNR = WAD_MR_privateSNR_ghost( sSeries.instance(ci), centre_pix, sParams, quiet );
-    WAD_vbprint( [my.name ':   Image: ' num2str(inum) '  SNR = ' num2str(SNR) ] );
+    WAD_vbprint( [my.name ':   Coil: ' num2str(coil) '  Image: ' num2str(inum) '  SNR = ' num2str(SNR) ] );
     
     % factor 0.655 corrects for reduced noise in background of magnitude image.
     % See Henkelman.
@@ -244,7 +295,7 @@ for inum = 1:ninum
         WAD_resultsAppendString( 2, ['Multichannel SNR on series: ' num2str(sSeries.number)], 'SNR multi-channel' );
     end
     % TO DO: how to handle action limits for MC coils...?
-    WAD_resultsAppendFloat( 1, SNR_henk, 'SNR', [], ['Coil ' num2str(inum)] );
+    WAD_resultsAppendFloat( 1, SNR_henk, 'SNR', [], ['Coil ' num2str(coil)] );
 end
 
 % close waitbar in interactive mode
