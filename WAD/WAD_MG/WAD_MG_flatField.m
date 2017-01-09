@@ -2,7 +2,7 @@
 % WAD_MG is a mammography analysis module written for IQC.
 % NVKF WAD IQC software is a framework for automatic analysis of DICOM objects.
 % 
-% Copyright 2012-2013  Joost Kuijer / jpa.kuijer@vumc.nl
+% Copyright 2012-2016  Joost Kuijer / jpa.kuijer@vumc.nl
 % 
 % 
 % This program is free software: you can redistribute it and/or modify
@@ -42,6 +42,13 @@ function WAD_MG_flatField( i_iSeries, sSeries, sParams )
 % 20131127 / JK
 % Support new (v1.1) style action limits
 % ------------------------------------------------------------------------
+% 20160330 / HK / JK
+% Changed definition of ROI SNR:
+% - old: average variance over ROIs to calculate SNR
+% - new: average SD over ROIs to calculate SNR
+% New definition has slightly different SNR when noise is inhomogeneous
+% over the detector.
+% ------------------------------------------------------------------------
 
 
 % ----------------------
@@ -52,7 +59,7 @@ function WAD_MG_flatField( i_iSeries, sSeries, sParams )
 % version info
 my.name = 'WAD_MG_flatField';
 my.version = '1.1';
-my.date = '20131127';
+my.date = '20160330';
 WAD_vbprint( ['Module ' my.name ' Version ' my.version ' (' my.date ')'] );
 
 
@@ -276,7 +283,10 @@ end
 % export results, only averaged ROI SNR and number of deviating pixels goes into results database
 roi.mean = roi.sumMean ./ roi.nRoi;
 roi.SD   = sqrt( roi.sumVar ./ roi.nRoi );
-SNR_ROI  = roi.mean ./ roi.SD;
+% Changed 24-3-2016 / HK: new definition of SNR_ROI.
+%SNR_ROI  = roi.mean ./ roi.SD;
+SNR_ROI = mean2( roiSNR );
+
 if roi.threshold > 0
     numDeviatingPix = nSievedDevPix;
 end
