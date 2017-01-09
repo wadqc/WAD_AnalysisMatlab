@@ -87,14 +87,14 @@ for i_ic = 1:nComments
     
     if isfield( sAutoComment(i_ic), 'field' ) && ~isempty( sAutoComment(i_ic).field )
         theField = sAutoComment(i_ic).field;
-        if isfield( dcmInfo, theField)
+        if isfield( dcmInfo, theField )
             theComment = [];
             
             if isstruct( dcmInfo.(theField) )
                 % can't process structured data fields
             elseif ischar( dcmInfo.(theField) )
                 theComment = dcmInfo.(theField);
-            else isdouble( dcmInfo.(theField) )
+            elseif isnumeric( dcmInfo.(theField) )
                 theComment = num2str( dcmInfo.(theField) );
             end
             
