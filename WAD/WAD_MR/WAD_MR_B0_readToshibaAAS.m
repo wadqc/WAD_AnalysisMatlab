@@ -58,6 +58,10 @@ function [magnitude, phase] = WAD_MR_B0_readToshibaAAS( i_iSeries, sSeries, sPar
 % V1.1
 % - read Toshiba B0 map (product shim), adapted from readSiemens...
 % ------------------------------------------------------------------------
+% 20150901 / JK
+% V1.1.1
+% - fix: wrong image number if received in random order
+% ------------------------------------------------------------------------
 
 
 % ----------------------
@@ -67,8 +71,8 @@ global WAD
 
 % version info
 my.name = 'WAD_MR_B0_readToshibaAAS';
-my.version = '1.1';
-my.date = '20140116';
+my.version = '1.1.1';
+my.date = '20150901';
 WAD_vbprint( ['Module ' my.name ' Version ' my.version ' (' my.date ')'] );
 
 % output arguments
@@ -128,10 +132,6 @@ if ~isfield( sParams, 'image' ) || isempty( sParams.image )
     sParams.image = defaultImageNumber;
 end
 
-% magnitude series / image
-mci = sParams.image;
-% phase series / image
-pci = sParams.image;
 
 % if next series belongs to this one, it should have same name, and should
 % have one thrird of number of images.
@@ -139,6 +139,39 @@ if ~strcmp( sSeries.description, sPhsSeries.description ) || length( sPhsSeries.
     WAD_vbprint( [my.name ':   ERROR: B0 image is in next series, but the next series doesn''t have same series description or doesn''t have matching number of images. Skip analysis'] );
     error( 'Error during import of phase images.' )
 end
+
+
+
+% ---------------------------------------------
+% find the image
+% ---------------------------------------------
+foundImage = false;
+for ii = 1:length( sSeries.instance )
+    if sSeries.instance(ii).number == sParams.image
+        mci = ii;
+        foundImage = true;
+        break;
+    end
+end
+if ~foundImage
+    WAD_vbprint( [my.name ': Error: could not find configured magnitude image ' num2str( inum ) ' for Toshiba AAS'] );
+    return;
+end
+
+% find phase image
+foundImage = false;
+for ii = 1:length( sPhsSeries.instance )
+    if sPhsSeries.instance(ii).number == sParams.image
+        pci = ii;
+        foundImage = true;
+        break;
+    end
+end
+if ~foundImage
+    WAD_vbprint( [my.name ': Error: could not find configured phase image ' num2str( inum ) ' for Toshiba AAS'] );
+    return;
+end
+
 
 % ----------------------------------------------------
 % read DICOM images

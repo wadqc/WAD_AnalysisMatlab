@@ -59,6 +59,21 @@ function [magnitude, phase] = WAD_MR_B0_readGE_VUMC_custom( i_iSeries, sSeries, 
 % Private fields are class uint8 and in one column for implicit DICOM, and class char and one row for explicit DICOM
 % char(info.Private_2001_1020(:))' converts both to class char and one row.
 % ------------------------------------------------------------------------
+% 20150901 / JK
+% V1.1.2
+% Fix: wrong image number if received in random order.
+% ------------------------------------------------------------------------
+% 20161005 / JK
+% V1.2
+% Support multi-slice B0 acquisition
+% Added configured magnitude and phase instance
+% numbers in parameter section:
+% 	<params>
+% 	    <type>GE_VUMC_custom</type>
+%	    <imageMagnitude>7</imageMagnitude>
+%	    <imagePhase>18</imagePhase>
+%	</params>
+% ------------------------------------------------------------------------
 
 
 % ----------------------
@@ -68,8 +83,8 @@ function [magnitude, phase] = WAD_MR_B0_readGE_VUMC_custom( i_iSeries, sSeries, 
 
 % version info
 my.name = 'WAD_MR_B0_readGE_VUMC_custom';
-my.version = '1.1.1';
-my.date = '20140212';
+my.version = '1.2';
+my.date = '20161005';
 WAD_vbprint( ['Module ' my.name ' Version ' my.version ' (' my.date ')'] );
 
 
@@ -89,21 +104,59 @@ if isfield( info, 'Private_0019_109c' ) &&  strfind( char(info.Private_0019_109c
     % custom sequence for B0 map on GE
     WAD_vbprint( [my.name ':   Detected VUmc custom B0 map for GE.'] );
 else
-    WAD_vbprint( [my.name ':   Could not detect Siemens VUmc custom B0 map for GE. Private_0019_109c not equal to "fgre_B0"'] );
+    WAD_vbprint( [my.name ':   Could not detect VUmc custom B0 map for GE. Private_0019_109c not equal to "fgre_B0"'] );
     error( 'Error during import of phase images.' )
 end
 
 WAD_vbprint( [my.name ':   Setting type of B0 map to GE custom.'] );
-% GE has (custom) B0 map in single series, magn/phase pair.
-if length( sSeries.instance ) ~= 2
-    WAD_vbprint( [my.name ':   ERROR: B0 map has more than one slice. Skip analysis'] );
-    error( 'Error during import of phase images.' )
+
+% check if magnitude / phase instance numbers have been configured
+if ( isfield( sParams, 'imageMagnitude' ) && ~isempty( sParams.imageMagnitude ) ) ...
+&& ( isfield( sParams, 'imagePhase' ) && ~isempty( sParams.imagePhase ) )
+    WAD_vbprint( [my.name ':   Found configured magnitude and phase images = ' num2str(sParams.imageMagnitude) ' ' num2str(sParams.imagePhase) ] );
+    instanceMagnitude = sParams.imageMagnitude;
+    instancePhase = sParams.imagePhase;
+else
+    % GE has (custom) B0 map in single series, magn/phase pair.
+    if length( sSeries.instance ) ~= 2
+        WAD_vbprint( [my.name ':   ERROR: Magnitude and phase instances not configured, and B0 map has more than one slice. Skip analysis'] );
+        error( 'Error during import of phase images.' )
+    end
+    WAD_vbprint( [my.name ':   Series is single slice B0 map, no magn/phs instance numbers configured.' ] );
+    instanceMagnitude = 1;
+    instancePhase = 2;
 end
 
-% magnitude series / image
-mci = 1;
-% phase series / image
-pci = 2;
+
+% ---------------------------------------------
+% find the image
+% ---------------------------------------------
+foundImage = false;
+for ii = 1:length( sSeries.instance )
+    if sSeries.instance(ii).number == instanceMagnitude
+        mci = ii;
+        foundImage = true;
+        break;
+    end
+end
+if ~foundImage
+    WAD_vbprint( [my.name ': Error: could not find magnitude image (#1) ' num2str( inum ) ' for GE VUmc custom B0 map'] );
+    return;
+end
+
+% find phase image
+foundImage = false;
+for ii = 1:length( sSeries.instance )
+    if sSeries.instance(ii).number == instancePhase
+        pci = ii;
+        foundImage = true;
+        break;
+    end
+end
+if ~foundImage
+    WAD_vbprint( [my.name ': Error: could not find phase image (#2) ' num2str( inum ) ' for GE VUmc custom B0 map'] );
+    return;
+end
 
 % ----------------------------------------------------
 % read DICOM images

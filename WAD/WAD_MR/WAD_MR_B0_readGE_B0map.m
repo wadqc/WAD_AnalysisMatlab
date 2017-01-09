@@ -65,6 +65,10 @@ function [magnitude, phase] = WAD_MR_B0_readGE_B0map( i_iSeries, sSeries, sParam
 % Private fields are class uint8 and in one column for implicit DICOM, and class char and one row for explicit DICOM
 % char(info.Private_2001_1020(:))' converts both to class char and one row.
 % ------------------------------------------------------------------------
+% 20150901 / JK
+% V1.1.2
+% Fix: wrong image number if received in random order.
+% ------------------------------------------------------------------------
 
 
 % ----------------------
@@ -74,8 +78,8 @@ function [magnitude, phase] = WAD_MR_B0_readGE_B0map( i_iSeries, sSeries, sParam
 
 % version info
 my.name = 'WAD_MR_B0_readGE_B0map';
-my.version = '1.1.1';
-my.date = '20130212';
+my.version = '1.1.2';
+my.date = '20150901';
 WAD_vbprint( ['Module ' my.name ' Version ' my.version ' (' my.date ')'] );
 
 
@@ -106,10 +110,37 @@ if length( sSeries.instance ) ~= 2
     error( 'Error during import of phase images.' )
 end
 
-% magnitude series / image
-mci = 2;
-% phase series / image
-pci = 1;
+
+% ---------------------------------------------
+% find the image
+% ---------------------------------------------
+foundImage = false;
+for ii = 1:length( sSeries.instance )
+    if sSeries.instance(ii).number == 2
+        mci = ii;
+        foundImage = true;
+        break;
+    end
+end
+if ~foundImage
+    WAD_vbprint( [my.name ': Error: could not find magnitude image (#2) ' num2str( inum ) ' for GE B0 map'] );
+    return;
+end
+
+% find phase image
+foundImage = false;
+for ii = 1:length( sSeries.instance )
+    if sSeries.instance(ii).number == 1
+        pci = ii;
+        foundImage = true;
+        break;
+    end
+end
+if ~foundImage
+    WAD_vbprint( [my.name ': Error: could not find phase image (#1) ' num2str( inum ) ' for GE B0 map'] );
+    return;
+end
+
 
 % ----------------------------------------------------
 % read DICOM images

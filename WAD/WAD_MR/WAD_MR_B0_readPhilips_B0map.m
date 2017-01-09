@@ -64,6 +64,10 @@ function [magnitude, phase] = WAD_MR_B0_readPhilips_B0map( i_iSeries, sSeries, s
 % Converted to Philips B0 map with clinical science key (B0 map option)
 % Unit of phase map is [Hz]
 % ------------------------------------------------------------------------
+% 20150901 / JK
+% V2.1.2
+% Fix: wrong image number if received in random order.
+% ------------------------------------------------------------------------
 
 
 % ----------------------
@@ -73,8 +77,8 @@ function [magnitude, phase] = WAD_MR_B0_readPhilips_B0map( i_iSeries, sSeries, s
 
 % version info
 my.name = 'WAD_MR_B0_readPhilips_B0map';
-my.version = '2.1.1';
-my.date = '20140729';
+my.version = '2.1.2';
+my.date = '20150901';
 WAD_vbprint( ['Module ' my.name ' Version ' my.version ' (' my.date ')'] );
 
 
@@ -109,10 +113,35 @@ if length( sSeries.instance ) ~= 2
     error( 'Error during import of phase images.' )
 end
 
-% magnitude series / image
-mci = 1;
-% phase series / image
-pci = 2;
+% ---------------------------------------------
+% find the image
+% ---------------------------------------------
+foundImage = false;
+for ii = 1:length( sSeries.instance )
+    if sSeries.instance(ii).number == 1
+        mci = ii;
+        foundImage = true;
+        break;
+    end
+end
+if ~foundImage
+    WAD_vbprint( [my.name ': Error: could not find magnitude image (#1) ' num2str( inum ) ' for Philips B0 map'] );
+    return;
+end
+
+% find phase image
+foundImage = false;
+for ii = 1:length( sSeries.instance )
+    if sSeries.instance(ii).number == 2
+        pci = ii;
+        foundImage = true;
+        break;
+    end
+end
+if ~foundImage
+    WAD_vbprint( [my.name ': Error: could not find phase image (#2) ' num2str( inum ) ' for Philips B0 map'] );
+    return;
+end
 
 
 % ----------------------------------------------------

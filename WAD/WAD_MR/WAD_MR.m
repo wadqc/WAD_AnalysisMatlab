@@ -33,6 +33,36 @@ function WAD_MR( wadInputFileXML )
 % 20140116 / JK / v1.1.1
 % - Support Toshiba B0 map (iAAS)
 % ------------------------------------------------------------------------
+% 20161021 / JK / v1.1.2
+% - Support GE multislice B0 map and multislice multichannel SNR
+%
+%   For multislice B0: need to configure magnitude and phase instance
+%   numbers in parameter section:
+% 	<name>WAD_MR_B0_uniformity</name>
+% 	<match>B0_MAP</match>
+% 	<params>
+% 	    <type>GE_VUMC_custom</type>
+%	    <imageMagnitude>7</imageMagnitude>
+%	    <imagePhase>18</imagePhase>
+%	</params>
+%
+%   For multislice multichannel SNR: need to configure combined and
+%   uncombined instance numbers in parameter section:
+% 	<name>WAD_MR_SNR_MultiChannel</name>
+% 	<match>ACR SNR 8CH</match>
+% 	<params>
+% 	    <combinedImage>63</combinedImage>
+% 	    <uncombinedImage> <image>55</image> <coil>1</coil> </uncombinedImage>
+% 	    <uncombinedImage> <image>56</image> <coil>2</coil> </uncombinedImage>
+% 	    <uncombinedImage> <image>57</image> <coil>3</coil> </uncombinedImage>
+% 	    <uncombinedImage> <image>58</image> <coil>4</coil> </uncombinedImage>
+% 	    <uncombinedImage> <image>59</image> <coil>5</coil> </uncombinedImage>
+% 	    <uncombinedImage> <image>60</image> <coil>6</coil> </uncombinedImage>
+% 	    <uncombinedImage> <image>61</image> <coil>7</coil> </uncombinedImage>
+% 	    <uncombinedImage> <image>62</image> <coil>8</coil> </uncombinedImage>
+%	</params>
+%
+% ------------------------------------------------------------------------
 
 
 % ----------------------
@@ -40,8 +70,8 @@ function WAD_MR( wadInputFileXML )
 % ----------------------
 % version info
 my.name = 'WAD_MR';
-my.version = '1.1.1';
-my.date = '20140116';
+my.version = '1.1.2';
+my.date = '20161021';
 
 disp( ['Starting analysis module ' my.name '  Version ' my.version ' ' my.date] );
 
