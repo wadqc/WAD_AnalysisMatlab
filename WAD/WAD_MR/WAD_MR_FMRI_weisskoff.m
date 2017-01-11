@@ -1,8 +1,8 @@
 % ------------------------------------------------------------------------
-% WAD_MR is an MRI analysis module written for IQC.
-% NVKF WAD IQC software is a framework for automatic analysis of DICOM objects.
+% WAD_MR is an MRI analysis module written for WAD-QC software.
+% NVKF WAD-QC software is a framework for automatic analysis of DICOM objects.
 % 
-% Copyright 2012-2013  Joost Kuijer / jpa.kuijer@vumc.nl
+% Copyright 2012-2015  Joost Kuijer / jpa.kuijer@vumc.nl
 % 
 % 
 % This program is free software: you can redistribute it and/or modify
@@ -19,10 +19,10 @@
 % along with this program.  If not, see <http://www.gnu.org/licenses/>.
 % ------------------------------------------------------------------------
 
-function WAD_MR_FMRI_weisskoff( i_iSeries, sSeries, sParams, sLimits )
+function WAD_MR_FMRI_weisskoff( i_iSeries, sSeries, sParams )
 % FMRI-specific QC procedures on EPI images
 % ------------------------------------------------------------------------
-% WAd MR
+% WAD MR
 % file: WAD_MR_FMRI_weisskoff
 % ------------------------------------------------------------------------
 % VUmc, Amsterdam, NL / Joost Kuijer / jpa.kuijer@vumc.nl
@@ -30,66 +30,109 @@ function WAD_MR_FMRI_weisskoff( i_iSeries, sSeries, sParams, sLimits )
 % first version
 % ------------------------------------------------------------------------
 % VUmc, Amsterdam, NL / Joost Kuijer / jpa.kuijer@vumc.nl
-% 2012-12-05 / JK
+% 2015-11-02 / JK
 % adapted to WAD
 % ------------------------------------------------------------------------
 % Implementation of QC tests for fMRI purposes:
 % Relevant references:
 % - Lee Friedman and Gary H. Glover. Report on a Multicenter fMRI Quality
-%   Assurance Protocol. J Magn Res Imag 23:827–839 (2006)
+%   Assurance Protocol. J Magn Res Imag 23:827ï¿½839 (2006)
 % - Weisskoff RM. Simple measurement of scanner stability for functional NMR
 %   imaging of activation in the brain. Magn Reson Med 1996;36:643-645
 % - Bodurka et al, ISMRM 14 (2006), p. 1094
+%
+% ------------------------------------------------------------------------
+% Optional parameters:
+% 	<params>
+%	    <!-- welk beeld (slice nummer) te gebruiken? -->
+%	    <!-- toegestaan: <nummmer>, firstInSeries, lastInSeries -->
+%	    <image>1</image>
+%       <roisize>20</roisize>
+%       <WK_MxRoisize>20</WK_MxRoisize>
+%       <detrendOrder>5</detrendOrder>
+%       <nVolumesToSkip>2</nVolumesToSkip>
+%       <innerLoop></innerLoop>
+% 	</params>
+% ------------------------------------------------------------------------
+% 2017-01-11 / JK
+% replaced imshow() by imagesc(); imshow produces error when in Linux
+% called from WAD-Processor running as a service (without a display).
+% ------------------------------------------------------------------------
 
 
-% produce a figure on the screen or be quiet...
-%quiet = true;
-isInteractive = true;
 
-
-% version info
+%% version info
 my.name = 'WAD_MR_FMRI_weisskoff';
-my.version = '0.1';
-my.date = '20121205';
+my.version = '0.3.1';
+my.date = '20170111';
 WAD_vbprint( ['Module ' my.name ' Version ' my.version ' (' my.date ')'] );
 
 
-% *** TODO: configurable parameters ***
-% *** TODO: get from sParams (from configuration XML file) ***
+% produce a figure on the screen or be quiet...
+quiet = true;
+isInteractive = false;
 
-% slice to analyse
-iSlice = 10;
+if quiet 
+    fig_visible = 'off';
+else
+    fig_visible = 'on';
+end
 
-% ROI size for summary statistics (SNR, FSNR etc)
-roisize = 20; % size
+
+
+%% Parameters
+% <roisize>
+% ROI size for detrending and summary statistics (SNR, FSNR etc)
+if isfield( sParams, 'roisize' ) && ~isempty( sParams.roisize )
+    roisize = sParams.roisize;
+else
+    roisize = 20; % default ROI size
+end
 
 % max ROI size for Weisskoff plot
-WK_MxRoisize = 20;
+if isfield( sParams, 'WK_MxRoisize' ) && ~isempty( sParams.WK_MxRoisize )
+    WK_MxRoisize = sParams.WK_MxRoisize;
+else
+    WK_MxRoisize = 20; % default ROI size
+end
 
 % detrending: order of polynomal fit
-detrendOrder = 5;
+if isfield( sParams, 'detrendOrder' ) && ~isempty( sParams.detrendOrder )
+    detrendOrder = sParams.detrendOrder;
+else
+    detrendOrder = 5; % default detrend order
+end
 
-% % ---------------------------------------------
-% % select the plain water image without features
-% % ---------------------------------------------
-% % default: use configured slice
-% inum = handles.config.MR.img4SNR;
-% % may be overruled by series config...
-% if isfield( handles.imdb.series(cs), 'img4SNR' ) && ~isempty( handles.imdb.series(cs).img4SNR )
-%     inum = handles.imdb.series(cs).img4SNR;
-%     % handle specials...
-%     if inum == handles.config.MR.combinedImageFirst
-%         inum = 1;
-%     elseif inum == handles.config.MR.combinedImageLast
-%         inum = length( handles.imdb.series(cs).image );
-%     end
-% end
-% % is it just one slice? then we use it...
-% if length( handles.imdb.series(cs).image ) == 1
-%     inum = 1;
-% end
-% 
+% initial volumes (measurements, acquisitions, samples, whatever you like to call them) to skip
+if isfield( sParams, 'nVolumesToSkip' ) && ~isempty( sParams.nVolumesToSkip )
+    nVolumesToSkip = sParams.nVolumesToSkip;
+else
+    nVolumesToSkip = 2; % default volumes to skip
+end
+WAD_vbprint( ['Skipping first ' num2str(nVolumesToSkip) ' volumes.'] );
 
+% ordering of slice-time loop
+if isfield( sParams, 'innerloop' ) && ~isempty( sParams.innerloop )
+    switch sParams.innerloop
+        case 'auto'
+            innerloopIsAuto = true;
+        case 'time'
+            innerloopIsAuto  = false;
+            innerloopIsSlice = false;
+        case 'slice'
+            innerloopIsAuto  = false;
+            innerloopIsSlice = true;
+        otherwise
+            WAD_vbprint( ['WARNING: configured innerloop value ' sParams.innerloop ' is invalid, using auto.'] );
+            innerloopIsAuto = true;            
+    end
+else
+    % use default: auto
+    innerloopIsAuto = true;
+end    
+
+
+%% Check input images
 % list of instance numbers
 instanceNumber = [sSeries.instance(:).number];
 nImages = length( instanceNumber );
@@ -97,10 +140,6 @@ WAD_vbprint( ['Number of images: ' num2str(nImages) ] );
 
 % sort instances to instance number
 [ sorted_nums, instanceNumSortedIndex ] = sort( instanceNumber );
-
-% initial volumes (measurements, acquisitions, samples, whatever you like to call them) to skip
-nVolumesToSkip = 2;
-WAD_vbprint( ['Skipping first ' num2str(nVolumesToSkip) ' volumes.'] );
 
 % Probe first image
 infoFirst = dicominfo( sSeries.instance( instanceNumSortedIndex(1) ).filename );
@@ -114,19 +153,50 @@ if mod( nImages, nVolumesTotal )
 end
 
 nSlices = floor( nImages ./ nVolumesTotal );
+WAD_vbprint( [ 'Number of slices: ' num2str(nSlices) ] );
+
+
+%% Slice to analyse; default is mid slice
+if isfield( sParams, 'image' ) && ~isempty( sParams.image )
+    switch sParams.image
+        case {'midslice', 'auto'}
+            iSlice = ceil( nSlices / 2.0 );
+        case WAD.const.firstInSeries
+            iSlice = 1;
+        case WAD.const.lastInSeries
+            iSlice = nSlices;
+        otherwise
+            iSlice = sParams.image;
+    end
+else
+    % use default; mid slice
+    iSlice = ceil( nSlices / 2.0 );
+end
+
+% check validity
+if ~isnumeric(iSlice)
+    WAD_vbprint( [ 'Warning: configured slice number "' iSlice '" is invalid. Using default (mid slice)' ] );
+    iSlice = ceil( nSlices / 2.0 );
+elseif iSlice < 1 || iSlice > nSlices
+    WAD_vbprint( [ 'Warning: configured slice number ' num2str(iSlice) ' is invalid. Using default (mid slice)' ] );
+    iSlice = ceil( nSlices / 2.0 );
+end
+
+WAD_vbprint( [ 'Analyzing slice number: ' num2str(iSlice) ] );
+
 
 % Check: non-square images not tested yet...
 if infoFirst.Width ~= infoFirst.Height
-    WAD_vbprint( 'Error: FMRI number of images not a multiple of number of volumes.' );
+    WAD_vbprint( 'Error: non-square image matrix not supported yet.' );
     myErrordlg( isInteractive, 'Sorry: non-square image matrix not supported yet.', 'FMRI', 'on' );
     return
 end
 
 
-% allocate space for images
+%% Read images (or create data when in simulation mode)
+% Allocate space for images
 WAD_vbprint( [ 'Allocating space for images: ' num2str(nVolumes) ' x ' num2str(infoFirst.Height) ' x ' num2str(infoFirst.Width) ] );
 imgs = zeros( nVolumes, infoFirst.Height, infoFirst.Width );
-
 
 
 SIMULATIONMODE = false;
@@ -143,34 +213,52 @@ if SIMULATIONMODE
         imgs(v,:,:) = imgs(v,:,:) + simuLambda * simuSignal * randn(1,1);
     end
 else
-    % read DICOM images
+    % read input data from DICOM images
+    if innerloopIsAuto
+        vendor = infoFirst.Manufacturer;
+        WAD_vbprint( ['Manufacturer = ' vendor ] );
+
+        switch vendor
+            case {'GE MEDICAL SYSTEMS', 'SIEMENS', 'TOSHIBA'}
+                % Siemens / GE / Toshiba give all slices of a volume
+                WAD_vbprint('Siemens / GE / Toshiba slice/time order.');
+                innerloopIsSlice = true;
+            case {'Philips Medical Systems'}
+                % Philips give all time points of a slice
+                WAD_vbprint('Philips slice/time order.');
+                innerloopIsSlice = false;
+            otherwise
+                WAD_vbprint('WARNING: Unknown manufacturer. Cannot determine slice/time ordering of images.');
+                WAD_vbprint('         Using default: all slices per time point (GE/Siemens/Toshiba).');
+                innerloopIsSlice = true;            
+        end
+    else
+        WAD_vbprint(['Using configured slice/time order; innerloop = ' sParams.innerloop ]);
+    end
+
     % display waitbar in interactive mode
     if isInteractive, h = waitbar( 0, 'Reading images...' ); end
 
-    %h1 = figure();
     % loop over images
     i_icVol = 1;
-    % Siemens / GE give all slices of a volume
-    disp('Siemens / GE / Toshiba slice/time order!!!')
-    for i_icNum = iSlice + nVolumesToSkip*nSlices : nSlices : nImages
-    % Philips give all time points of a slice
-    %disp('Philips slice/time order!!!')
-    %for i_icNum = 1 + iSlice*nVolumesTotal + nVolumesToSkip : (iSlice+1)*nVolumesTotal
-        %disp( i_icNum )
-        % read image   
-        img = dicomread( sSeries.instance( instanceNumSortedIndex(i_icNum) ).filename );
-        %figure(h1);
-        %imshow(img,[])
-        imgs( i_icVol, : , : ) = img;
-        i_icVol = i_icVol + 1;
-        % update waitbar
-        % Siemens / GE
-        if isInteractive, waitbar( i_icNum / nImages, h ); end
-        % Philips
-        %if isInteractive, waitbar( i_icNum / nVolumes, h ); end
+    if innerloopIsSlice
+        for i_icNum = iSlice + nVolumesToSkip*nSlices : nSlices : nImages
+            % read image
+            imgs( i_icVol, : , : ) = dicomread( sSeries.instance( instanceNumSortedIndex(i_icNum) ).filename );
+            i_icVol = i_icVol + 1;
+            % update waitbar
+            if isInteractive, waitbar( i_icNum / nImages, h ); end
+        end
+    else
+        for i_icNum = 1 + (iSlice-1)*nVolumesTotal + nVolumesToSkip : (iSlice)*nVolumesTotal
+            % read image
+            imgs( i_icVol, : , : ) = dicomread( sSeries.instance( instanceNumSortedIndex(i_icNum) ).filename );
+            i_icVol = i_icVol + 1;
+            % update waitbar
+            if isInteractive, waitbar( i_icNum / nVolumes, h ); end
+        end    
     end
-    %imshow(reshape(imgs(1,:,:),infoFirst.Height,infoFirst.Width),[])
-
+    
     % close waitbar in interactive mode
     if isInteractive, close( h ), end
 end
@@ -178,10 +266,21 @@ end
 % display waitbar in interactive mode
 if isInteractive, h = waitbar( 0, 'Calculating...' ); end
 
-disp( ['Fitted polynomal order for detrending: ' num2str(detrendOrder)] )
+WAD_resultsAppendString( 1, '---------', '--- Weisskoff test ---' )
+WAD_resultsAppendString( 2, '---------', '--- Weisskoff test ---' )
+
+WAD_vbprint( ['Skipping first ' num2str(nVolumesToSkip) ' volumes.'] );
+WAD_resultsAppendFloat( 2, nVolumesToSkip, 'volumes skipped', [], 'Volumes' );
+
+
+%% ROI detrending and summary statistics
+WAD_vbprint( ['Fitted polynomal order for detrending: ' num2str(detrendOrder)] )
+WAD_resultsAppendFloat( 2, detrendOrder, 'polynomal fit order', [], 'Detrending' );
 
 % square ROI for summary statistics
-disp( ['ROI size for summary statistics: ' num2str(roisize) ' pixels'] )
+WAD_vbprint( ['ROI size for summary statistics: ' num2str(roisize) ' pixels'] )
+WAD_resultsAppendFloat( 2, roisize, 'size', 'pixels', 'ROI' );
+
 i_iRoiX = floor( (infoFirst.Width -roisize)/2 )+1 : ceil( (infoFirst.Width +roisize)/2 ); % index
 i_iRoiY = floor( (infoFirst.Height-roisize)/2 )+1 : ceil( (infoFirst.Height+roisize)/2 ); % index
 
@@ -196,14 +295,16 @@ detrendVal = polyval( detrendCoeff, time_s, [], muScale );
 % trend is max difference in signal between start and end
 % trend expressed as percentage of mean signal
 ROI_trend_percent = ( max(detrendVal) - min(detrendVal) ) ./ mean( timeseriesRoiSignal ) * 100;
-disp( ['ROI trend      : ' num2str(ROI_trend_percent) ' %'] );
+WAD_vbprint( ['ROI trend      : ' num2str(ROI_trend_percent) ' %'] );
+WAD_resultsAppendFloat( 1, ROI_trend_percent, 'trend', '%', 'ROI' );
 
 % fluctuation is SD of residual after detrending
 ROI_fluctuation = std( timeseriesRoiSignal - detrendVal ) ./ mean( timeseriesRoiSignal ) * 100;
-disp( ['ROI fluctuation: ' num2str(ROI_fluctuation) ' %'] );
+WAD_vbprint( ['ROI fluctuation: ' num2str(ROI_fluctuation) ' %'] );
+WAD_resultsAppendFloat( 1, ROI_fluctuation, 'fluctuation', '%', 'ROI' );
 
 
-% create ROI-signal detrended images
+%% create ROI-signal detrended images
 imgs_ROI_detrended = zeros( nVolumes, infoFirst.Height, infoFirst.Width );
 for i_ix = 1:infoFirst.Width
     for i_iy = 1:infoFirst.Height
@@ -213,7 +314,7 @@ for i_ix = 1:infoFirst.Width
 end
 
 
-% create pixel-wise detrended images
+%% create pixel-wise detrended images
 imgs_pix_detrended = zeros( nVolumes, infoFirst.Height, infoFirst.Width );
 WAD_vbprint( 'Start pixel-wise detrending...' );
 time_s = (0:nVolumes-1)' .* infoFirst.RepetitionTime ./ 1000;
@@ -231,59 +332,143 @@ end
 
 
 % mean is simply the mean of all images
-meanimg = mean( imgs );
+meanimg = squeeze( mean( imgs ) );
 
 % temporal flucturation noise: sd of residuals after detrending
-stdimg = std( imgs_pix_detrended );
+stdimg = squeeze( std( imgs_pix_detrended ) );
+
+% following fBIRN definition: signal fluctuation to noise ratio (sfnr)
+sfnrimg = meanimg ./ stdimg;
 
 % if the images in the timeseries exhibit no drift in amplitude or geometry,
 % the noiseAvg image will display no structure from the phantom, and the 
 % variance in this image will be a measure of the intrinsic noise.
 meanOddimg = mean( imgs_pix_detrended(1:2:end, :, :) );
 meanEvenimg = mean( imgs_pix_detrended(2:2:end, :, :) );
-noiseAvgimg = meanOddimg - meanEvenimg;
-
-% following fBIRN definition: signal fluctuation to noise ratio (sfnr)
-sfnrimg = meanimg ./ stdimg;
+noiseAvgimg = squeeze( meanOddimg - meanEvenimg );
 
 
-hFigStats = figure();
+%% ROI detrended stats
+hFigStats = figure( 'Visible', fig_visible, 'MenuBar', 'none', 'Name', 'Summary Images');
 subplot(2,2,1)
-imshow( reshape(meanimg(1,:,:),infoFirst.Height,infoFirst.Width), [] )
+colormap( gray(256) );
+imagesc( meanimg )
+hold on
+% show largest ROI as overlay
+rectangle( 'Position', [i_iRoiY(1), i_iRoiX(1), roisize, roisize] );
+hold off
+axis image
+axis square
+axis off
 title( 'Mean signal' )
 
 subplot(2,2,2)
-imshow( reshape(stdimg(1,:,:),infoFirst.Height,infoFirst.Width), [] )
-title( 'SD signal' )
+imagesc( stdimg )
+axis image
+axis square
+axis off
+title( 'Fluctuation noise' )
 
 subplot(2,2,3)
-imshow( reshape(noiseAvgimg(1,:,:),infoFirst.Height,infoFirst.Width), [] )
-title( 'Mean noise' )
+imagesc( noiseAvgimg )
+axis image
+axis square
+axis off
+title( 'Static noise' )
 
 subplot(2,2,4)
-imshow( reshape(sfnrimg(1,:,:),infoFirst.Height,infoFirst.Width), [] )
-title( 'SFNR = mean/SD' )
+imagesc( sfnrimg )
+axis image
+axis square
+axis off
+title( 'SFNR = mean/FN' )
+
+WAD_resultsAppendFigure( 1, hFigStats, 'WK_summary', 'summary images' );
+if quiet, delete( hFigStats ); end  % delete non-visible image
 
 
-% TODO: ROI display on images for visual check.
-
-% ROI statistics
-meanroi = mean2( meanimg( 1, i_iRoiY, i_iRoiX ) );
-sdnoise = std2( noiseAvgimg( 1, i_iRoiY, i_iRoiX ) );
+%% ROI statistics
+meanroi = mean2( meanimg( i_iRoiY, i_iRoiX ) );
+sdnoise = std2( noiseAvgimg( i_iRoiY, i_iRoiX ) );
 
 % Noise image was averaged over nVolumes / 2, reducing the SD with factor 
 % sqrt( nVolumes / 2 ), and subtraction increases the SD with a factor
 % sqrt( 2 ), gives total factor of 2 / sqrt( nVolumes )
 SNR = meanroi / ( sdnoise / 2 * sqrt( nVolumes ) );
-disp( ['SNR : ' num2str(SNR)] )
-% signal fluctuation - to - noise ratio
-% calculated over largest ROI size
-SFNR = mean2( sfnrimg( 1, i_iRoiY, i_iRoiX ) );
-disp( ['SFNR : ' num2str(SFNR)] )
+WAD_vbprint( ['ROI SNR : ' num2str(SNR)] )
+WAD_resultsAppendFloat( 1, SNR, 'SNR (mean/noise)', [], 'ROI' );
+
+
+% signal - to - fluctuation noise ratio, calculated over ROI
+SFNR = mean2( sfnrimg( i_iRoiY, i_iRoiX ) );
+WAD_vbprint( ['ROI SFNR : ' num2str(SFNR)] )
+WAD_resultsAppendFloat( 1, SFNR, 'SFNR (mean/fluctuation noise)', [], 'ROI' );
+
+% fluctuation noise - to - static noise ratio
+%FNNR = SFNR ./ SNR;
+%WAD_vbprint( ['ROI FFNR : ' num2str(FNNR)] )
+%WAD_resultsAppendFloat( 1, FNNR, 'FFNR (fluctuation noise/noise)', [], 'ROI' );
+
+
+%% mask statistics
+% create mask using Otsu threshold
+meanimgGray = mat2gray( meanimg );
+thrLevel = graythresh( meanimgGray );
+mask = im2bw( meanimgGray, thrLevel );
+
+hFigMask = figure( 'Visible', fig_visible, 'MenuBar', 'none', 'Name', 'Mask image');
+colormap( gray(256) );
+imagesc( mask )
+axis image
+axis square
+axis off
+title( 'Mask' )
+WAD_resultsAppendFigure( 2, hFigMask, 'WK_mask', 'mask image' );
+if quiet, delete( hFigMask ); end  % delete non-visible image
+
+
+meanmask = mean2( meanimg(mask) );
+sdnoisemask = std2( noiseAvgimg(mask) );
+
+% Noise image was averaged over nVolumes / 2, reducing the SD with factor 
+% sqrt( nVolumes / 2 ), and subtraction increases the SD with a factor
+% sqrt( 2 ), gives total factor of 2 / sqrt( nVolumes )
+SNR = meanmask / ( sdnoisemask / 2 * sqrt( nVolumes ) );
+WAD_vbprint( ['mask SNR : ' num2str(SNR)] )
+WAD_resultsAppendFloat( 1, SNR, 'SNR (mean/noise)', [], 'mask' );
+
+% signal - to - fluctuation noise ratio, calculated over mask
+SFNR = mean2( sfnrimg(mask) );
+WAD_vbprint( ['mask SFNR : ' num2str(SFNR)] )
+WAD_resultsAppendFloat( 1, SFNR, 'SFNR (mean/fluctuation noise)', [], 'mask' );
+
+
+WAD_resultsAppendFloat( 2, mean( meanimg(mask) ), 'mean', [], 'mask' );
+WAD_resultsAppendFloat( 2, sqrt( mean ( stdimg(mask) .^2 ) ), 'FN', [], 'mask' );
+
+prctileSD = prctile( stdimg(mask), [ 50 75 90 95 ] );
+WAD_resultsAppendFloat( 2, prctileSD(1) , 'FN 50% percentile', [], 'mask' );
+WAD_resultsAppendFloat( 2, prctileSD(2) , 'FN 75% percentile', [], 'mask' );
+WAD_resultsAppendFloat( 2, prctileSD(3) , 'FN 90% percentile', [], 'mask' );
+WAD_resultsAppendFloat( 2, prctileSD(4) , 'FN 95% percentile', [], 'mask' );
+
+
+hFigHist = figure( 'Visible', fig_visible, 'MenuBar', 'none', 'Name', 'Histogram of FN' );
+hist( stdimg(mask) );
+title( 'Histogram of FN image' );
+xlabel( 'fluctuation noise' )
+ylabel( 'count' )
+%hFigHistPosition = get(hFigHist, 'Position');
+%hFigHistPosition = [ hFigHistPosition(1:2) 200 200 ]; % make smaller size image... doesn't work??
+%set(hFigHist, 'Position', hFigHistPosition);
+
+WAD_resultsAppendFigure( 2, hFigHist, 'WK_histogram', 'histogram of fluctuation noise' );
+if quiet, delete( hFigHist ); end  % delete non-visible image
 
 
 
-hFigPlots1 = figure();
+%% Temporal and spectrum plots
+hFigPlots1 = figure( 'Visible', fig_visible, 'MenuBar', 'none', 'Name', 'Temporal plots' );
 % mean signal in ROI over time
 subplot(2, 1, 1)
 plot( time_s, detrendVal, '- g', time_s, timeseriesRoiSignal, '- b' );
@@ -300,7 +485,12 @@ title( 'Spectrum of mean ROI signal' );
 xlabel( 'Freq [Hz]' )
 ylabel( 'Magnitude [%]' )
 
-% Weisskoff plot
+WAD_resultsAppendFigure( 1, hFigPlots1, 'WK_temporal', 'Temporal Plots' );
+if quiet, delete( hFigPlots1 ); end  % delete non-visible image
+
+
+
+%% Weisskoff plot
 WK_Roisize = 1:WK_MxRoisize;
 WK_F = zeros(1,WK_MxRoisize);
 for roisize = WK_Roisize
@@ -326,17 +516,23 @@ for roisize = WK_Roisize
 end
 
 decorrelationDistance_pix = WK_F(1) ./ WK_F(WK_MxRoisize);
-disp( ['Decorrelation distance: ' num2str(decorrelationDistance_pix) ' pixels'] )
+WAD_vbprint( ['Decorrelation distance: ' num2str(decorrelationDistance_pix) ' pixels'] )
+WAD_resultsAppendFloat( 1, decorrelationDistance_pix, 'distance', 'pixels', 'decorrelation' );
 
-% Fit noise model from Bodurka et al, ISMRM 14 (2006), p. 1094
+
+%% Fit noise model from Bodurka et al, ISMRM 14 (2006), p. 1094
 % TSRNn = n * SNR / { sqrt( 1 + (n*lambda*SNR) ^2 ) }
 x0 = [ SNR, 0 ]; % function parameters: SNR and lambda*1E3
 lb = [0 0]; % lower bound: log can't handle negative values
 ub = [];    % upper bound: none
-[ x, resnorm ] = lsqcurvefit( @logTSNR, x0, WK_Roisize, log(WK_F), lb, ub );
+options = optimset('Display','off');
+[ x, resnorm ] = lsqcurvefit( @logTSNR, x0, WK_Roisize, log(WK_F), lb, ub, options );
 noisemodelSNR = x(1);
 noisemodelLamda = x(2) ./ 1E03;
-disp( ['Noise model SNR: ' num2str(noisemodelSNR) ' Lambda: ' num2str(noisemodelLamda) ] )
+WAD_vbprint( ['Noise model SNR: ' num2str(noisemodelSNR) ' Lambda: ' num2str(noisemodelLamda) ] )
+WAD_resultsAppendFloat( 2, noisemodelSNR, 'SNR', [], 'noise model' );
+WAD_resultsAppendFloat( 2, log10(noisemodelLamda), 'log10(lambda)', [], 'noise model' );
+
 
 
 % Theoretically 1/SNR should be equal to F(1).
@@ -344,18 +540,22 @@ disp( ['Noise model SNR: ' num2str(noisemodelSNR) ' Lambda: ' num2str(noisemodel
 % sqrt(number_of_pix_in_ROI) and this equals the 1D ROI size.
 % Therefore reference line is drawn as 1/SNR for F(1), devided by ROI size
 % for ROI size > 1.
-hFigPlots2 = figure();
+hFigPlots2 = figure( 'Visible', fig_visible, 'MenuBar', 'none', 'Name', 'Weisskoff Plot' );
 %loglog( WK_Roisize, (1/SNR) ./ double(WK_Roisize) * 100, '- g', WK_Roisize, TSNR(x,WK_Roisize) * 100, '-- g', WK_Roisize, WK_F * 100, '-ob' );
 loglog( WK_Roisize, WK_F(1) ./ double(WK_Roisize) * 100, '- g', WK_Roisize, TSNR(x,WK_Roisize) * 100, '-- g', WK_Roisize, WK_F * 100, '-ob' );
 title( 'Weisskoff plot' );
 xlabel( 'Full ROI size [pix]' )
-ylabel( 'Rel. STD [%]' )
+ylabel( 'Relative SD [%]' )
 axis tight
 %xlim( [WK_Roisize(1) WK_Roisize(end)] );
 ylim( [ 0.01 10 ] );
 grid on
 
-% close waitbar in interactive mode
+WAD_resultsAppendFigure( 1, hFigPlots2, 'WK_weisskoff', 'Weiskoff Plot' );
+if quiet, delete( hFigPlots1 ); end  % delete non-visible image
+
+
+%% close waitbar in interactive mode
 if isInteractive, close( h ), end
 
 return
