@@ -134,7 +134,7 @@ makefig = (nargout > 2) || ~quiet;
 if makefig
     hFig = figure( 'Visible', fig_visible, 'MenuBar', 'none', 'Name', 'Geometry fit' );
     %hFig = figure( 'Name', 'Geometry fit' );
-    colormap(gray);
+    colormap( gray(256) );
     imagesc(w);
     axis image
     axis square

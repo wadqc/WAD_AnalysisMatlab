@@ -233,6 +233,7 @@ if makefig
         % FdW: Blargest and Bsmallest and centra_plot added
         theImage = theImage - Blargest - Bsmallest + 10000*centra_plot;
     end
+    colormap( gray(256) );
     imagesc( log( theImage ) );
     axis image
     axis square
