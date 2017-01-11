@@ -1,0 +1,245 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+                "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html>
+<head>
+  <title>Description of WAD_MR_SNR</title>
+  <meta name="keywords" content="WAD_MR_SNR">
+  <meta name="description" content="------------------------------------------------------------------------">
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+  <meta name="generator" content="m2html &copy; 2005 Guillaume Flandin">
+  <meta name="robots" content="index, follow">
+  <link type="text/css" rel="stylesheet" href="../m2html.css">
+  <script type="text/javascript">
+    if (top.frames.length == 0) { top.location = "../index.html"; };
+  </script>
+</head>
+<body>
+<a name="_top"></a>
+<!-- menu.html WAD_MR -->
+<h1>WAD_MR_SNR
+</h1>
+
+<h2><a name="_name"></a>PURPOSE <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="box"><strong>------------------------------------------------------------------------</strong></div>
+
+<h2><a name="_synopsis"></a>SYNOPSIS <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="box"><strong>function WAD_MR_SNR( i_iSeries, sSeries, sParams ) </strong></div>
+
+<h2><a name="_description"></a>DESCRIPTION <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="fragment"><pre class="comment"> ------------------------------------------------------------------------
+ WAD_MR is an MRI analysis module written for IQC.
+ NVKF WAD IQC software is a framework for automatic analysis of DICOM objects.
+ 
+ Copyright 2012-2013  Joost Kuijer / jpa.kuijer@vumc.nl
+ 
+ 
+ This program is free software: you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation, either version 3 of the License, or
+ (at your option) any later version.
+ 
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+ 
+ You should have received a copy of the GNU General Public License
+ along with this program.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+ ------------------------------------------------------------------------</pre></div>
+
+<!-- crossreference -->
+<h2><a name="_cross"></a>CROSS-REFERENCE INFORMATION <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+This function calls:
+<ul style="list-style-image:url(../matlabicon.gif)">
+<li><a href="../WAD/WAD_ErrorMsg.html" class="code" title="function WAD_ErrorMsg( name, mymessage, err )">WAD_ErrorMsg</a>	------------------------------------------------------------------------</li><li><a href="../WAD/WAD_resultsAppendFigure.html" class="code" title="function WAD_resultsAppendFigure( level, handle, tag, description )">WAD_resultsAppendFigure</a>	------------------------------------------------------------------------</li><li><a href="../WAD/WAD_resultsAppendFloat.html" class="code" title="function WAD_resultsAppendFloat( level, value, variable, unit, description, sLimits, limits_field_name )">WAD_resultsAppendFloat</a>	------------------------------------------------------------------------</li><li><a href="../WAD/WAD_resultsAppendString.html" class="code" title="function WAD_resultsAppendString( level, value, description )">WAD_resultsAppendString</a>	------------------------------------------------------------------------</li><li><a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>	------------------------------------------------------------------------</li><li><a href="../WAD/myErrordlg.html" class="code" title="function h = myErrordlg(isInteractive,varargin)">myErrordlg</a>	------------------------------------------------------------------------</li><li><a href="WAD_MR_privateSNR_ghost.html" class="code" title="function [SNR, ghostRow_percent, ghostCol_percent, PIU, figureHandle] = WAD_MR_privateSNR_ghost( image, centrePos_pix, sParams, quiet )">WAD_MR_privateSNR_ghost</a>	*******************************************************************************</li><li><a href="WAD_MR_privateSizePos_pix.html" class="code" title="function [diameter_pix, centre_pix, figureHandle ] = WAD_MR_privateSizePos_pix( sImage, sParams, quiet )">WAD_MR_privateSizePos_pix</a>	------------------------------------------------------------------------</li></ul>
+This function is called by:
+<ul style="list-style-image:url(../matlabicon.gif)">
+</ul>
+<!-- crossreference -->
+
+
+
+<h2><a name="_source"></a>SOURCE CODE <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="fragment"><pre>0001 <span class="comment">% ------------------------------------------------------------------------</span>
+0002 <span class="comment">% WAD_MR is an MRI analysis module written for IQC.</span>
+0003 <span class="comment">% NVKF WAD IQC software is a framework for automatic analysis of DICOM objects.</span>
+0004 <span class="comment">%</span>
+0005 <span class="comment">% Copyright 2012-2013  Joost Kuijer / jpa.kuijer@vumc.nl</span>
+0006 <span class="comment">%</span>
+0007 <span class="comment">%</span>
+0008 <span class="comment">% This program is free software: you can redistribute it and/or modify</span>
+0009 <span class="comment">% it under the terms of the GNU General Public License as published by</span>
+0010 <span class="comment">% the Free Software Foundation, either version 3 of the License, or</span>
+0011 <span class="comment">% (at your option) any later version.</span>
+0012 <span class="comment">%</span>
+0013 <span class="comment">% This program is distributed in the hope that it will be useful,</span>
+0014 <span class="comment">% but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
+0015 <span class="comment">% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
+0016 <span class="comment">% GNU General Public License for more details.</span>
+0017 <span class="comment">%</span>
+0018 <span class="comment">% You should have received a copy of the GNU General Public License</span>
+0019 <span class="comment">% along with this program.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
+0020 <span class="comment">% ------------------------------------------------------------------------</span>
+0021 
+0022 <a name="_sub0" href="#_subfunctions" class="code">function WAD_MR_SNR( i_iSeries, sSeries, sParams )</a>
+0023 <span class="comment">% Evaluate SNR, ghosting and image uniformity of the central slice</span>
+0024 <span class="comment">%</span>
+0025 <span class="comment">% ------------------------------------------------------------------------</span>
+0026 <span class="comment">% WAD MR</span>
+0027 <span class="comment">% file: WAD_MR_SNR</span>
+0028 <span class="comment">% ------------------------------------------------------------------------</span>
+0029 <span class="comment">% VUmc, Amsterdam, NL / Joost Kuijer / jpa.kuijer@vumc.nl</span>
+0030 <span class="comment">% 2008-10-24 / JK</span>
+0031 <span class="comment">% first version</span>
+0032 <span class="comment">% ------------------------------------------------------------------------</span>
+0033 <span class="comment">% 2012-08-09 adapted to WAD</span>
+0034 <span class="comment">% ------------------------------------------------------------------------</span>
+0035 <span class="comment">% VUmc, Amsterdam, NL / Joost Kuijer / jpa.kuijer@vumc.nl</span>
+0036 <span class="comment">% 2013-12-19 bugfix: process hangs in WAD_MR_privateSNR_ghost()</span>
+0037 <span class="comment">% ------------------------------------------------------------------------</span>
+0038 
+0039 <span class="comment">% produce a figure on the screen or be quiet...</span>
+0040 quiet = true;
+0041 isInteractive = false;
+0042 
+0043 <span class="comment">% ----------------------</span>
+0044 <span class="comment">% GLOBALS</span>
+0045 <span class="comment">% ----------------------</span>
+0046 <span class="keyword">global</span> WAD
+0047 
+0048 <span class="comment">% version info</span>
+0049 my.name = <span class="string">'WAD_MR_SNR'</span>;
+0050 my.version = <span class="string">'1.1.1'</span>;
+0051 my.date = <span class="string">'20131219'</span>;
+0052 <a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [<span class="string">'Module '</span> my.name <span class="string">' Version '</span> my.version <span class="string">' ('</span> my.date <span class="string">')'</span>] );
+0053 
+0054 
+0055 
+0056 <span class="comment">% ---------------------------------------------</span>
+0057 <span class="comment">% select the plain water image without features</span>
+0058 <span class="comment">% ---------------------------------------------</span>
+0059 <span class="comment">% default: use configured slice of current series</span>
+0060 inum = 7;
+0061 <span class="comment">% may be overruled by series config...</span>
+0062 <span class="keyword">if</span> isfield( sParams, <span class="string">'image'</span> ) &amp;&amp; ~isempty( sParams.image )
+0063     inum = sParams.image;
+0064     <span class="comment">% handle specials...</span>
+0065     <span class="keyword">if</span> isequal( inum, WAD.const.firstInSeries )
+0066         inum = 1;
+0067     <span class="keyword">elseif</span> isequal( inum, WAD.const.lastInSeries )
+0068         inum = length( sSeries.instance );
+0069     <span class="keyword">end</span>
+0070 <span class="keyword">end</span>
+0071 <span class="comment">% is it just one slice? then we use it...</span>
+0072 <span class="keyword">if</span> length( sSeries.instance ) == 1
+0073     inum = 1;
+0074 <span class="keyword">end</span>
+0075 
+0076 
+0077 
+0078 <span class="comment">% ---------------------------------------------</span>
+0079 <span class="comment">% find the image</span>
+0080 <span class="comment">% ---------------------------------------------</span>
+0081 foundImage = false;
+0082 <span class="keyword">for</span> ii = 1:length( sSeries.instance )
+0083     <span class="keyword">if</span> sSeries.instance(ii).number == inum
+0084         ci = ii;
+0085         foundImage = true;
+0086         <span class="keyword">break</span>;
+0087     <span class="keyword">end</span>
+0088 <span class="keyword">end</span>
+0089 <span class="keyword">if</span> ~foundImage
+0090     <a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">': Error: could not find configured image '</span> num2str( inum ) <span class="string">' for geometry X Y evalutation'</span>] );
+0091     <a href="../WAD/myErrordlg.html" class="code" title="function h = myErrordlg(isInteractive,varargin)">myErrordlg</a>( isInteractive, [<span class="string">'Cannot find configured image '</span> num2str( inum ) <span class="string">' for geometry evaluation.'</span>], <span class="string">'Geomety X and Y'</span>, <span class="string">'on'</span> );
+0092     <span class="keyword">return</span>;
+0093 <span class="keyword">end</span>
+0094 
+0095 
+0096 
+0097 <span class="comment">% ---------------------------------------------</span>
+0098 <span class="comment">% do the evaluation...</span>
+0099 <span class="comment">% ---------------------------------------------</span>
+0100 <span class="comment">% display waitbar in interactive mode</span>
+0101 <span class="keyword">if</span> isInteractive, h = waitbar( 0, <span class="string">'Calculating SNR...'</span> ); <span class="keyword">end</span>
+0102 
+0103 <a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">':   Calculating centre coordinates ...'</span>] );
+0104 
+0105 <span class="keyword">if</span> ~isfield( sParams, <span class="string">'interpolPower'</span> ) || isempty( sParams.interpolPower )
+0106     sParams.interpolPower = 0; <span class="comment">% default setting: no interpolation for calculation of centre of phantom</span>
+0107 <span class="keyword">end</span>
+0108 <a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">':   Interpolation set to 2 ^ '</span> num2str(sParams.interpolPower) <span class="string">'. This is configurable in &lt;params&gt; &lt;interpolPower&gt;'</span> ] );
+0109 
+0110 <span class="comment">% SNR needs the centre coordinates, which are calculated by WAD_MR_privateSizePos_pix</span>
+0111 <span class="keyword">try</span>
+0112     [diameter_pix, centre_pix] = <a href="WAD_MR_privateSizePos_pix.html" class="code" title="function [diameter_pix, centre_pix, figureHandle ] = WAD_MR_privateSizePos_pix( sImage, sParams, quiet )">WAD_MR_privateSizePos_pix</a>( sSeries.instance(ci), sParams, quiet );
+0113 <span class="keyword">catch</span> err
+0114     <a href="../WAD/WAD_ErrorMsg.html" class="code" title="function WAD_ErrorMsg( name, mymessage, err )">WAD_ErrorMsg</a>( my.name, <span class="string">'ERROR calculating centre coordinates.'</span>, err );
+0115     <span class="keyword">return</span>
+0116 <span class="keyword">end</span>
+0117 <a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">':   Centre location at '</span> num2str(centre_pix)] );
+0118 
+0119 <span class="comment">% configured parameters for ROI's</span>
+0120 <span class="comment">% SNR needs distance of background ROI's from phantom centre</span>
+0121 <span class="keyword">if</span> ~isfield( sParams, <span class="string">'backgroundROIshift'</span> ) || isempty( sParams.backgroundROIshift )
+0122     <span class="comment">% no ROI shift configured, use default</span>
+0123     sParams.backgroundROIshift = WAD.const.defaultBackgroundRoiShift;
+0124     <a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">':   No parameter &lt;backgroundROIshift&gt; configured, using default value = '</span> num2str(sParams.backgroundROIshift) <span class="string">' mm'</span>] );
+0125 <span class="keyword">end</span>
+0126 <a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">':   Configured ROI shift = '</span> num2str(sParams.backgroundROIshift) <span class="string">' mm'</span>] );
+0127 
+0128 <span class="keyword">if</span> ~isfield( sParams, <span class="string">'ROIradius'</span> ) || isempty( sParams.ROIradius )
+0129     <span class="comment">% no ROI radius configured, use default</span>
+0130     sParams.ROIradius = WAD.const.defaultRoiRadius;
+0131     <a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">':   No parameter &lt;ROIradius&gt; configured, using default value = '</span> num2str(sParams.ROIradius) <span class="string">' mm'</span>] );
+0132 <span class="keyword">end</span>
+0133 <a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">':   Configured ROI radius = '</span> num2str(sParams.ROIradius) <span class="string">' mm'</span>] );
+0134 
+0135 <span class="keyword">if</span> ~isfield( sParams, <span class="string">'backgroundROIsize'</span> ) || isempty( sParams.backgroundROIsize )
+0136     <span class="comment">% no ROI radius configured, use default</span>
+0137     sParams.backgroundROIsize = WAD.const.defaultBackgroundRoiSize;
+0138     <a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">':   No parameter &lt;backgroundROIsize&gt; configured, using default value = '</span> num2str(sParams.backgroundROIsize) <span class="string">' mm'</span>] );
+0139 <span class="keyword">end</span>
+0140 <a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">':   Configured ROI radius = '</span> num2str(sParams.backgroundROIsize) <span class="string">' mm'</span>] );
+0141 
+0142 
+0143 <span class="keyword">if</span> isInteractive, waitbar( 0.5, h ); <span class="keyword">end</span>
+0144 
+0145 <span class="comment">% ---------------------------------------------</span>
+0146 <span class="comment">% calculate the SNR and ghosting and percentage image uniformity (PIU)</span>
+0147 <span class="comment">% ---------------------------------------------</span>
+0148 [SNR, ghostRow_percent, ghostCol_percent, imageUniformity_percent, hFigSNR] = <a href="WAD_MR_privateSNR_ghost.html" class="code" title="function [SNR, ghostRow_percent, ghostCol_percent, PIU, figureHandle] = WAD_MR_privateSNR_ghost( image, centrePos_pix, sParams, quiet )">WAD_MR_privateSNR_ghost</a>( sSeries.instance(ci), centre_pix, sParams, quiet );
+0149 
+0150 <span class="comment">% factor 0.655 corrects for reduced noise in background of magnitude image.</span>
+0151 <span class="comment">% See Henkelman. Not exact for phased array coils, e.g. 8-channnel should</span>
+0152 <span class="comment">% be ~0.70</span>
+0153 SNR_henk = SNR * 0.655;
+0154 
+0155 <a href="../WAD/WAD_resultsAppendFloat.html" class="code" title="function WAD_resultsAppendFloat( level, value, variable, unit, description, sLimits, limits_field_name )">WAD_resultsAppendFloat</a>( 1, SNR_henk, <span class="string">'SNR'</span>, [], <span class="string">'Combined coils'</span> );
+0156 <a href="../WAD/WAD_resultsAppendFloat.html" class="code" title="function WAD_resultsAppendFloat( level, value, variable, unit, description, sLimits, limits_field_name )">WAD_resultsAppendFloat</a>( 1, ghostRow_percent, <span class="string">'Ghosting'</span>, <span class="string">'%'</span>, <span class="string">'Row'</span> );
+0157 <a href="../WAD/WAD_resultsAppendFloat.html" class="code" title="function WAD_resultsAppendFloat( level, value, variable, unit, description, sLimits, limits_field_name )">WAD_resultsAppendFloat</a>( 1, ghostCol_percent, <span class="string">'Ghosting'</span>, <span class="string">'%'</span>, <span class="string">'Col'</span> );
+0158 <span class="comment">% present results together with phase encoding direction</span>
+0159 <span class="keyword">try</span>
+0160     info = dicominfo( sSeries.instance(ci).filename );
+0161     <span class="keyword">if</span> isfield( info, <span class="string">'InPlanePhaseEncodingDirection'</span> )
+0162         <a href="../WAD/WAD_resultsAppendString.html" class="code" title="function WAD_resultsAppendString( level, value, description )">WAD_resultsAppendString</a>( 1, info.InPlanePhaseEncodingDirection, <span class="string">'Fase-coderingsrichting'</span> );
+0163     <span class="keyword">end</span>
+0164 <span class="keyword">catch</span> err
+0165     <a href="../WAD/WAD_ErrorMsg.html" class="code" title="function WAD_ErrorMsg( name, mymessage, err )">WAD_ErrorMsg</a>( my.name, [<span class="string">'ERROR getting phase enc. dir. from file: &quot;'</span> sSeries.instance(ci).filename <span class="string">'&quot;'</span>], err );
+0166 <span class="keyword">end</span>
+0167     
+0168 <span class="comment">% image uniformity</span>
+0169 <a href="../WAD/WAD_resultsAppendFloat.html" class="code" title="function WAD_resultsAppendFloat( level, value, variable, unit, description, sLimits, limits_field_name )">WAD_resultsAppendFloat</a>( 1, imageUniformity_percent, <span class="string">'Uniformity'</span>, <span class="string">'%'</span>, <span class="string">'Image'</span> );
+0170 <a href="../WAD/WAD_resultsAppendString.html" class="code" title="function WAD_resultsAppendString( level, value, description )">WAD_resultsAppendString</a>( 2, [<span class="string">'SNR on series: '</span> num2str(sSeries.number) <span class="string">' / image: '</span> num2str(inum)], <span class="string">'SNR'</span> );
+0171 
+0172 <a href="../WAD/WAD_resultsAppendFigure.html" class="code" title="function WAD_resultsAppendFigure( level, handle, tag, description )">WAD_resultsAppendFigure</a>( 2, hFigSNR, <span class="string">'SNR_ROI'</span>, <span class="string">'ROIs for SNR and ghosting'</span> );
+0173 
+0174 <span class="keyword">if</span> quiet
+0175     <span class="comment">% delete non-visible image</span>
+0176     delete( hFigSNR );
+0177 <span class="keyword">end</span>
+0178 
+0179 <span class="comment">% close waitbar</span>
+0180 <span class="keyword">if</span> isInteractive, close( h ), <span class="keyword">end</span></pre></div>
+<hr><address>Generated on Fri 07-Aug-2015 09:34:21 by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" target="_parent">m2html</a></strong> &copy; 2005</address>
+</body>
+</html>

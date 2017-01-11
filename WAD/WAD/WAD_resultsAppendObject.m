@@ -31,6 +31,15 @@ function WAD_resultsAppendObject( level, filename, description )
 % 2012-11-07 / JK
 % first version
 % ------------------------------------------------------------------------
+% VUmc, Amsterdam, NL / Joost Kuijer / jpa.kuijer@vumc.nl
+% 2013-11-26 / JK
+% V1.1  - New style XML definition of action limit in config file.
+%         Old style definition still supported.
+%       - Support for configurable action field <resultsNamePrefix> to
+%         allow configuration of a single analysis function in multiple
+%         actions, and still get unique identifiers in the results
+%         database.
+% ------------------------------------------------------------------------
 
 global WAD
 
@@ -45,6 +54,15 @@ WAD.out.results{end}.niveau = level;
 % object file path and name, fullfile() works on all platforms
 % (Windows/Linux)
 WAD.out.results{end}.object_naam_pad = fullfile( WAD.in.analysemodule_outputdir, filename );
+
+% check if <resultsTag> was added for this action
+if isfield( WAD, 'currentActionResultsNamePrefix' ) && ~isempty( WAD.currentActionResultsNamePrefix )
+    if ~isempty( description )
+        description = [ WAD.currentActionResultsNamePrefix ' ' description ];
+    else
+        description = WAD.currentActionResultsNamePrefix;        
+    end
+end
 
 if ~isempty( description ), ...
     WAD.out.results{end}.omschrijving = description;

@@ -1,0 +1,578 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+                "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html>
+<head>
+  <title>Description of xml_write</title>
+  <meta name="keywords" content="xml_write">
+  <meta name="description" content="XML_WRITE  Writes Matlab data structures to XML file">
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+  <meta name="generator" content="m2html &copy; 2005 Guillaume Flandin">
+  <meta name="robots" content="index, follow">
+  <link type="text/css" rel="stylesheet" href="../m2html.css">
+  <script type="text/javascript">
+    if (top.frames.length == 0) { top.location = "../index.html"; };
+  </script>
+</head>
+<body>
+<a name="_top"></a>
+<!-- menu.html xml_io_tools -->
+<h1>xml_write
+</h1>
+
+<h2><a name="_name"></a>PURPOSE <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="box"><strong>XML_WRITE  Writes Matlab data structures to XML file</strong></div>
+
+<h2><a name="_synopsis"></a>SYNOPSIS <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="box"><strong>function DOMnode = xml_write(filename, tree, RootName, Pref) </strong></div>
+
+<h2><a name="_description"></a>DESCRIPTION <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="fragment"><pre class="comment">XML_WRITE  Writes Matlab data structures to XML file
+
+ DESCRIPTION
+ xml_write( filename, tree) Converts Matlab data structure 'tree' containing
+ cells, structs, numbers and strings to Document Object Model (DOM) node
+ tree, then saves it to XML file 'filename' using Matlab's xmlwrite
+ function. Optionally one can also use alternative version of xmlwrite
+ function which directly calls JAVA functions for XML writing without
+ MATLAB middleware. This function is provided as a patch to existing
+ bugs in xmlwrite (in R2006b).
+
+ xml_write(filename, tree, RootName, Pref) allows you to specify
+ additional preferences about file format
+
+ DOMnode = xml_write([], tree) same as above except that DOM node is
+ not saved to the file but returned.
+
+ INPUT
+   filename     file name
+   tree         Matlab structure tree to store in xml file.
+   RootName     String with XML tag name used for root (top level) node
+                Optionally it can be a string cell array storing: Name of
+                root node, document &quot;Processing Instructions&quot; data and
+                document &quot;comment&quot; string
+   Pref         Other preferences:
+     Pref.ItemName - default 'item' -  name of a special tag used to
+                     itemize cell or struct arrays
+     Pref.XmlEngine - let you choose the XML engine. Currently default is
+       'Xerces', which is using directly the apache xerces java file.
+       Other option is 'Matlab' which uses MATLAB's xmlwrite and its
+       XMLUtils java file. Both options create identical results except in
+       case of CDATA sections where xmlwrite fails.
+     Pref.CellItem - default 'true' - allow cell arrays to use 'item'
+       notation. See below.
+    Pref.RootOnly - default true - output variable 'tree' corresponds to
+       xml file root element, otherwise it correspond to the whole file.
+     Pref.StructItem - default 'true' - allow arrays of structs to use
+       'item' notation. For example &quot;Pref.StructItem = true&quot; gives:
+         &lt;a&gt;
+           &lt;b&gt;
+             &lt;item&gt; ... &lt;\item&gt;
+             &lt;item&gt; ... &lt;\item&gt;
+           &lt;\b&gt;
+         &lt;\a&gt;
+       while &quot;Pref.StructItem = false&quot; gives:
+         &lt;a&gt;
+           &lt;b&gt; ... &lt;\b&gt;
+           &lt;b&gt; ... &lt;\b&gt;
+         &lt;\a&gt;
+
+
+ Several special xml node types can be created if special tags are used
+ for field names of 'tree' nodes:
+  - node.CONTENT - stores data section of the node if other fields
+    (usually ATTRIBUTE are present. Usually data section is stored
+    directly in 'node'.
+  - node.ATTRIBUTE.name - stores node's attribute called 'name'.
+  - node.COMMENT - create comment child node from the string. For global
+    comments see &quot;RootName&quot; input variable.
+  - node.PROCESSING_INSTRUCTIONS - create &quot;processing instruction&quot; child
+    node from the string. For global &quot;processing instructions&quot; see
+    &quot;RootName&quot; input variable.
+  - node.CDATA_SECTION - stores node's CDATA section (string). Only works
+    if Pref.XmlEngine='Xerces'. For more info, see comments of F_xmlwrite.
+  - other special node types like: document fragment nodes, document type
+    nodes, entity nodes and notation nodes are not being handled by
+    'xml_write' at the moment.
+
+ OUTPUT
+   DOMnode      Document Object Model (DOM) node tree in the format
+                required as input to xmlwrite. (optional)
+
+ EXAMPLES:
+   MyTree=[];
+   MyTree.MyNumber = 13;
+   MyTree.MyString = 'Hello World';
+   xml_write('test.xml', MyTree);
+   type('test.xml')
+   %See also xml_tutorial.m
+
+ See also
+   <a href="xml_read.html" class="code" title="function [tree, RootName, DOMnode] = xml_read(xmlfile, Pref)">xml_read</a>, xmlread, xmlwrite
+
+ Written by Jarek Tuszynski, SAIC, jaroslaw.w.tuszynski_at_saic.com</pre></div>
+
+<!-- crossreference -->
+<h2><a name="_cross"></a>CROSS-REFERENCE INFORMATION <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+This function calls:
+<ul style="list-style-image:url(../matlabicon.gif)">
+</ul>
+This function is called by:
+<ul style="list-style-image:url(../matlabicon.gif)">
+<li><a href="../WAD/WAD_main.html" class="code" title="function WAD_main( wadInputFileXML )">WAD_main</a>	------------------------------------------------------------------------</li></ul>
+<!-- crossreference -->
+
+<h2><a name="_subfunctions"></a>SUBFUNCTIONS <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<ul style="list-style-image:url(../matlabicon.gif)">
+<li><a href="#_sub1" class="code">function [] = struct2DOMnode(xml, parent, s, TagName, Pref)</a></li><li><a href="#_sub2" class="code">function [] = array2DOMnode(xml, parent, s, TagName, Pref)</a></li><li><a href="#_sub3" class="code">function str = var2str(object, PreserveSpace)</a></li><li><a href="#_sub4" class="code">function str = varName2str(str)</a></li></ul>
+
+<h2><a name="_source"></a>SOURCE CODE <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="fragment"><pre>0001 <a name="_sub0" href="#_subfunctions" class="code">function DOMnode = xml_write(filename, tree, RootName, Pref)</a>
+0002 <span class="comment">%XML_WRITE  Writes Matlab data structures to XML file</span>
+0003 <span class="comment">%</span>
+0004 <span class="comment">% DESCRIPTION</span>
+0005 <span class="comment">% xml_write( filename, tree) Converts Matlab data structure 'tree' containing</span>
+0006 <span class="comment">% cells, structs, numbers and strings to Document Object Model (DOM) node</span>
+0007 <span class="comment">% tree, then saves it to XML file 'filename' using Matlab's xmlwrite</span>
+0008 <span class="comment">% function. Optionally one can also use alternative version of xmlwrite</span>
+0009 <span class="comment">% function which directly calls JAVA functions for XML writing without</span>
+0010 <span class="comment">% MATLAB middleware. This function is provided as a patch to existing</span>
+0011 <span class="comment">% bugs in xmlwrite (in R2006b).</span>
+0012 <span class="comment">%</span>
+0013 <span class="comment">% xml_write(filename, tree, RootName, Pref) allows you to specify</span>
+0014 <span class="comment">% additional preferences about file format</span>
+0015 <span class="comment">%</span>
+0016 <span class="comment">% DOMnode = xml_write([], tree) same as above except that DOM node is</span>
+0017 <span class="comment">% not saved to the file but returned.</span>
+0018 <span class="comment">%</span>
+0019 <span class="comment">% INPUT</span>
+0020 <span class="comment">%   filename     file name</span>
+0021 <span class="comment">%   tree         Matlab structure tree to store in xml file.</span>
+0022 <span class="comment">%   RootName     String with XML tag name used for root (top level) node</span>
+0023 <span class="comment">%                Optionally it can be a string cell array storing: Name of</span>
+0024 <span class="comment">%                root node, document &quot;Processing Instructions&quot; data and</span>
+0025 <span class="comment">%                document &quot;comment&quot; string</span>
+0026 <span class="comment">%   Pref         Other preferences:</span>
+0027 <span class="comment">%     Pref.ItemName - default 'item' -  name of a special tag used to</span>
+0028 <span class="comment">%                     itemize cell or struct arrays</span>
+0029 <span class="comment">%     Pref.XmlEngine - let you choose the XML engine. Currently default is</span>
+0030 <span class="comment">%       'Xerces', which is using directly the apache xerces java file.</span>
+0031 <span class="comment">%       Other option is 'Matlab' which uses MATLAB's xmlwrite and its</span>
+0032 <span class="comment">%       XMLUtils java file. Both options create identical results except in</span>
+0033 <span class="comment">%       case of CDATA sections where xmlwrite fails.</span>
+0034 <span class="comment">%     Pref.CellItem - default 'true' - allow cell arrays to use 'item'</span>
+0035 <span class="comment">%       notation. See below.</span>
+0036 <span class="comment">%    Pref.RootOnly - default true - output variable 'tree' corresponds to</span>
+0037 <span class="comment">%       xml file root element, otherwise it correspond to the whole file.</span>
+0038 <span class="comment">%     Pref.StructItem - default 'true' - allow arrays of structs to use</span>
+0039 <span class="comment">%       'item' notation. For example &quot;Pref.StructItem = true&quot; gives:</span>
+0040 <span class="comment">%         &lt;a&gt;</span>
+0041 <span class="comment">%           &lt;b&gt;</span>
+0042 <span class="comment">%             &lt;item&gt; ... &lt;\item&gt;</span>
+0043 <span class="comment">%             &lt;item&gt; ... &lt;\item&gt;</span>
+0044 <span class="comment">%           &lt;\b&gt;</span>
+0045 <span class="comment">%         &lt;\a&gt;</span>
+0046 <span class="comment">%       while &quot;Pref.StructItem = false&quot; gives:</span>
+0047 <span class="comment">%         &lt;a&gt;</span>
+0048 <span class="comment">%           &lt;b&gt; ... &lt;\b&gt;</span>
+0049 <span class="comment">%           &lt;b&gt; ... &lt;\b&gt;</span>
+0050 <span class="comment">%         &lt;\a&gt;</span>
+0051 <span class="comment">%</span>
+0052 <span class="comment">%</span>
+0053 <span class="comment">% Several special xml node types can be created if special tags are used</span>
+0054 <span class="comment">% for field names of 'tree' nodes:</span>
+0055 <span class="comment">%  - node.CONTENT - stores data section of the node if other fields</span>
+0056 <span class="comment">%    (usually ATTRIBUTE are present. Usually data section is stored</span>
+0057 <span class="comment">%    directly in 'node'.</span>
+0058 <span class="comment">%  - node.ATTRIBUTE.name - stores node's attribute called 'name'.</span>
+0059 <span class="comment">%  - node.COMMENT - create comment child node from the string. For global</span>
+0060 <span class="comment">%    comments see &quot;RootName&quot; input variable.</span>
+0061 <span class="comment">%  - node.PROCESSING_INSTRUCTIONS - create &quot;processing instruction&quot; child</span>
+0062 <span class="comment">%    node from the string. For global &quot;processing instructions&quot; see</span>
+0063 <span class="comment">%    &quot;RootName&quot; input variable.</span>
+0064 <span class="comment">%  - node.CDATA_SECTION - stores node's CDATA section (string). Only works</span>
+0065 <span class="comment">%    if Pref.XmlEngine='Xerces'. For more info, see comments of F_xmlwrite.</span>
+0066 <span class="comment">%  - other special node types like: document fragment nodes, document type</span>
+0067 <span class="comment">%    nodes, entity nodes and notation nodes are not being handled by</span>
+0068 <span class="comment">%    'xml_write' at the moment.</span>
+0069 <span class="comment">%</span>
+0070 <span class="comment">% OUTPUT</span>
+0071 <span class="comment">%   DOMnode      Document Object Model (DOM) node tree in the format</span>
+0072 <span class="comment">%                required as input to xmlwrite. (optional)</span>
+0073 <span class="comment">%</span>
+0074 <span class="comment">% EXAMPLES:</span>
+0075 <span class="comment">%   MyTree=[];</span>
+0076 <span class="comment">%   MyTree.MyNumber = 13;</span>
+0077 <span class="comment">%   MyTree.MyString = 'Hello World';</span>
+0078 <span class="comment">%   xml_write('test.xml', MyTree);</span>
+0079 <span class="comment">%   type('test.xml')</span>
+0080 <span class="comment">%   %See also xml_tutorial.m</span>
+0081 <span class="comment">%</span>
+0082 <span class="comment">% See also</span>
+0083 <span class="comment">%   xml_read, xmlread, xmlwrite</span>
+0084 <span class="comment">%</span>
+0085 <span class="comment">% Written by Jarek Tuszynski, SAIC, jaroslaw.w.tuszynski_at_saic.com</span>
+0086 
+0087 <span class="comment">%% Check Matlab Version</span>
+0088 v = ver(<span class="string">'MATLAB'</span>);
+0089 v = str2double(regexp(v.Version, <span class="string">'\d.\d'</span>,<span class="string">'match'</span>,<span class="string">'once'</span>));
+0090 <span class="keyword">if</span> (v&lt;7)
+0091   error(<span class="string">'Your MATLAB version is too old. You need version 7.0 or newer.'</span>);
+0092 <span class="keyword">end</span>
+0093 
+0094 <span class="comment">%% default preferences</span>
+0095 DPref.TableName  = {<span class="string">'tr'</span>,<span class="string">'td'</span>}; <span class="comment">% name of a special tags used to itemize 2D cell arrays</span>
+0096 DPref.ItemName   = <span class="string">'item'</span>; <span class="comment">% name of a special tag used to itemize 1D cell arrays</span>
+0097 DPref.StructItem = true;  <span class="comment">% allow arrays of structs to use 'item' notation</span>
+0098 DPref.CellItem   = true;  <span class="comment">% allow cell arrays to use 'item' notation</span>
+0099 DPref.StructTable= <span class="string">'Html'</span>;
+0100 DPref.CellTable  = <span class="string">'Html'</span>;
+0101 DPref.XmlEngine  = <span class="string">'Matlab'</span>;  <span class="comment">% use matlab provided XMLUtils</span>
+0102 <span class="comment">%DPref.XmlEngine  = 'Xerces';  % use Xerces xml generator directly</span>
+0103 DPref.PreserveSpace = false; <span class="comment">% Preserve or delete spaces at the beggining and the end of stings?</span>
+0104 RootOnly         = true;  <span class="comment">% Input is root node only</span>
+0105 GlobalProcInst = [];
+0106 GlobalComment  = [];
+0107 GlobalDocType  = [];
+0108 
+0109 <span class="comment">%% read user preferences</span>
+0110 <span class="keyword">if</span> (nargin&gt;3)
+0111   <span class="keyword">if</span> (isfield(Pref, <span class="string">'TableName'</span> )),  DPref.TableName  = Pref.TableName; <span class="keyword">end</span>
+0112   <span class="keyword">if</span> (isfield(Pref, <span class="string">'ItemName'</span>  )), DPref.ItemName   = Pref.ItemName;   <span class="keyword">end</span>
+0113   <span class="keyword">if</span> (isfield(Pref, <span class="string">'StructItem'</span>)), DPref.StructItem = Pref.StructItem; <span class="keyword">end</span>
+0114   <span class="keyword">if</span> (isfield(Pref, <span class="string">'CellItem'</span>  )), DPref.CellItem   = Pref.CellItem;   <span class="keyword">end</span>
+0115   <span class="keyword">if</span> (isfield(Pref, <span class="string">'CellTable'</span>)),   DPref.CellTable  = Pref.CellTable; <span class="keyword">end</span>
+0116   <span class="keyword">if</span> (isfield(Pref, <span class="string">'StructTable'</span>)), DPref.StructTable= Pref.StructTable; <span class="keyword">end</span>
+0117   <span class="keyword">if</span> (isfield(Pref, <span class="string">'XmlEngine'</span> )), DPref.XmlEngine  = Pref.XmlEngine;  <span class="keyword">end</span>
+0118   <span class="keyword">if</span> (isfield(Pref, <span class="string">'RootOnly'</span>  )), RootOnly         = Pref.RootOnly;   <span class="keyword">end</span>
+0119   <span class="keyword">if</span> (isfield(Pref, <span class="string">'PreserveSpace'</span>)), DPref.PreserveSpace = Pref.PreserveSpace; <span class="keyword">end</span>
+0120 <span class="keyword">end</span>
+0121 <span class="keyword">if</span> (nargin&lt;3 || isempty(RootName)), RootName=inputname(2); <span class="keyword">end</span>
+0122 <span class="keyword">if</span> (isempty(RootName)), RootName=<span class="string">'ROOT'</span>; <span class="keyword">end</span>
+0123 <span class="keyword">if</span> (iscell(RootName)) <span class="comment">% RootName also stores global text node data</span>
+0124   rName = RootName;
+0125   RootName = char(rName{1});
+0126   <span class="keyword">if</span> (length(rName)&gt;1), GlobalProcInst = char(rName{2}); <span class="keyword">end</span>
+0127   <span class="keyword">if</span> (length(rName)&gt;2), GlobalComment  = char(rName{3}); <span class="keyword">end</span>
+0128   <span class="keyword">if</span> (length(rName)&gt;3), GlobalDocType  = char(rName{4}); <span class="keyword">end</span>
+0129 <span class="keyword">end</span>
+0130 <span class="keyword">if</span>(~RootOnly &amp;&amp; isstruct(tree))  <span class="comment">% if struct than deal with each field separatly</span>
+0131   fields = fieldnames(tree);
+0132   <span class="keyword">for</span> i=1:length(fields)
+0133     field = fields{i};
+0134     x = tree(1).(field);
+0135     <span class="keyword">if</span> (strcmp(field, <span class="string">'COMMENT'</span>))
+0136       GlobalComment = x;
+0137     <span class="keyword">elseif</span> (strcmp(field, <span class="string">'PROCESSING_INSTRUCTION'</span>))
+0138       GlobalProcInst = x;
+0139     <span class="keyword">elseif</span> (strcmp(field, <span class="string">'DOCUMENT_TYPE'</span>))
+0140       GlobalDocType = x;
+0141     <span class="keyword">else</span>
+0142       RootName = field;
+0143       t = x;
+0144     <span class="keyword">end</span>
+0145   <span class="keyword">end</span>
+0146   tree = t;
+0147 <span class="keyword">end</span>
+0148 
+0149 <span class="comment">%% Initialize jave object that will store xml data structure</span>
+0150 RootName = <a href="#_sub4" class="code" title="subfunction str = varName2str(str)">varName2str</a>(RootName);
+0151 <span class="keyword">if</span> (~isempty(GlobalDocType))
+0152   <span class="comment">%   n = strfind(GlobalDocType, ' ');</span>
+0153   <span class="comment">%   if (~isempty(n))</span>
+0154   <span class="comment">%     dtype = com.mathworks.xml.XMLUtils.createDocumentType(GlobalDocType);</span>
+0155   <span class="comment">%   end</span>
+0156   <span class="comment">%   DOMnode = com.mathworks.xml.XMLUtils.createDocument(RootName, dtype);</span>
+0157   warning(<span class="string">'xml_io_tools:write:docType'</span>, <span class="keyword">...</span>
+0158     <span class="string">'DOCUMENT_TYPE node was encountered which is not supported yet. Ignoring.'</span>);
+0159 <span class="keyword">end</span>
+0160 DOMnode = com.mathworks.xml.XMLUtils.createDocument(RootName);
+0161 
+0162 
+0163 <span class="comment">%% Use recursive function to convert matlab data structure to XML</span>
+0164 root = DOMnode.getDocumentElement;
+0165 <a href="#_sub1" class="code" title="subfunction [] = struct2DOMnode(xml, parent, s, TagName, Pref)">struct2DOMnode</a>(DOMnode, root, tree, DPref.ItemName, DPref);
+0166 
+0167 <span class="comment">%% Remove the only child of the root node</span>
+0168 root   = DOMnode.getDocumentElement;
+0169 Child  = root.getChildNodes; <span class="comment">% create array of children nodes</span>
+0170 nChild = Child.getLength;    <span class="comment">% number of children</span>
+0171 <span class="keyword">if</span> (nChild==1)
+0172   node = root.removeChild(root.getFirstChild);
+0173   <span class="keyword">while</span>(node.hasChildNodes)
+0174     root.appendChild(node.removeChild(node.getFirstChild));
+0175   <span class="keyword">end</span>
+0176   <span class="keyword">while</span>(node.hasAttributes)            <span class="comment">% copy all attributes</span>
+0177     root.setAttributeNode(node.removeAttributeNode(node.getAttributes.item(0)));
+0178   <span class="keyword">end</span>
+0179 <span class="keyword">end</span>
+0180 
+0181 <span class="comment">%% Save exotic Global nodes</span>
+0182 <span class="keyword">if</span> (~isempty(GlobalComment))
+0183   DOMnode.insertBefore(DOMnode.createComment(GlobalComment), DOMnode.getFirstChild());
+0184 <span class="keyword">end</span>
+0185 <span class="keyword">if</span> (~isempty(GlobalProcInst))
+0186   n = strfind(GlobalProcInst, <span class="string">' '</span>);
+0187   <span class="keyword">if</span> (~isempty(n))
+0188     proc = DOMnode.createProcessingInstruction(GlobalProcInst(1:(n(1)-1)),<span class="keyword">...</span>
+0189       GlobalProcInst((n(1)+1):end));
+0190     DOMnode.insertBefore(proc, DOMnode.getFirstChild());
+0191   <span class="keyword">end</span>
+0192 <span class="keyword">end</span>
+0193 <span class="comment">% Not supported yet as the code below does not work</span>
+0194 <span class="comment">% if (~isempty(GlobalDocType))</span>
+0195 <span class="comment">%   n = strfind(GlobalDocType, ' ');</span>
+0196 <span class="comment">%   if (~isempty(n))</span>
+0197 <span class="comment">%     dtype = DOMnode.createDocumentType(GlobalDocType);</span>
+0198 <span class="comment">%     DOMnode.insertBefore(dtype, DOMnode.getFirstChild());</span>
+0199 <span class="comment">%   end</span>
+0200 <span class="comment">% end</span>
+0201 
+0202 <span class="comment">%% save java DOM tree to XML file</span>
+0203 <span class="keyword">if</span> (~isempty(filename))
+0204   <span class="keyword">if</span> (strcmpi(DPref.XmlEngine, <span class="string">'Xerces'</span>))
+0205     xmlwrite_xerces(filename, DOMnode);
+0206   <span class="keyword">else</span>
+0207     xmlwrite(filename, DOMnode);
+0208   <span class="keyword">end</span>
+0209 <span class="keyword">end</span>
+0210 
+0211 
+0212 <span class="comment">%% =======================================================================</span>
+0213 <span class="comment">%  === struct2DOMnode Function ===========================================</span>
+0214 <span class="comment">%  =======================================================================</span>
+0215 <a name="_sub1" href="#_subfunctions" class="code">function [] = struct2DOMnode(xml, parent, s, TagName, Pref)</a>
+0216 <span class="comment">% struct2DOMnode is a recursive function that converts matlab's structs to</span>
+0217 <span class="comment">% DOM nodes.</span>
+0218 <span class="comment">% INPUTS:</span>
+0219 <span class="comment">%  xml - jave object that will store xml data structure</span>
+0220 <span class="comment">%  parent - parent DOM Element</span>
+0221 <span class="comment">%  s - Matlab data structure to save</span>
+0222 <span class="comment">%  TagName - name to be used in xml tags describing 's'</span>
+0223 <span class="comment">%  Pref - preferenced</span>
+0224 <span class="comment">% OUTPUT:</span>
+0225 <span class="comment">%  parent - modified 'parent'</span>
+0226 
+0227 <span class="comment">% perform some conversions</span>
+0228 <span class="keyword">if</span> (ischar(s) &amp;&amp; min(size(s))&gt;1) <span class="comment">% if 2D array of characters</span>
+0229   s=cellstr(s);                  <span class="comment">% than convert to cell array</span>
+0230 <span class="keyword">end</span>
+0231 <span class="comment">% if (strcmp(TagName, 'CONTENT'))</span>
+0232 <span class="comment">%   while (iscell(s) &amp;&amp; length(s)==1), s = s{1}; end % unwrap cell arrays of length 1</span>
+0233 <span class="comment">% end</span>
+0234 TagName  = <a href="#_sub4" class="code" title="subfunction str = varName2str(str)">varName2str</a>(TagName);
+0235 
+0236 <span class="comment">%% == node is a 2D cell array ==</span>
+0237 <span class="comment">% convert to some other format prior to further processing</span>
+0238 nDim = nnz(size(s)&gt;1);  <span class="comment">% is it a scalar, vector, 2D array, 3D cube, etc?</span>
+0239 <span class="keyword">if</span> (iscell(s) &amp;&amp; nDim==2 &amp;&amp; strcmpi(Pref.CellTable, <span class="string">'Matlab'</span>))
+0240   s = <a href="#_sub3" class="code" title="subfunction str = var2str(object, PreserveSpace)">var2str</a>(s, Pref.PreserveSpace);
+0241 <span class="keyword">end</span>
+0242 <span class="keyword">if</span> (nDim==2 &amp;&amp; (iscell  (s) &amp;&amp; strcmpi(Pref.CellTable,   <span class="string">'Vector'</span>)) || <span class="keyword">...</span>
+0243                (isstruct(s) &amp;&amp; strcmpi(Pref.StructTable, <span class="string">'Vector'</span>)))
+0244   s = s(:);
+0245 <span class="keyword">end</span>
+0246 <span class="keyword">if</span> (nDim&gt;2), s = s(:); <span class="keyword">end</span> <span class="comment">% can not handle this case well</span>
+0247 nItem = numel(s);
+0248 nDim  = nnz(size(s)&gt;1);  <span class="comment">% is it a scalar, vector, 2D array, 3D cube, etc?</span>
+0249 
+0250 <span class="comment">%% == node is a cell ==</span>
+0251 <span class="keyword">if</span> (iscell(s)) <span class="comment">% if this is a cell or cell array</span>
+0252   <span class="keyword">if</span> ((nDim==2 &amp;&amp; strcmpi(Pref.CellTable,<span class="string">'Html'</span>)) || (nDim&lt; 2 &amp;&amp; Pref.CellItem))
+0253     <span class="comment">% if 2D array of cells than can use HTML-like notation or if 1D array</span>
+0254     <span class="comment">% than can use item notation</span>
+0255     <span class="keyword">if</span> (strcmp(TagName, <span class="string">'CONTENT'</span>)) <span class="comment">% CONTENT nodes already have &lt;TagName&gt; ... &lt;/TagName&gt;</span>
+0256       <a href="#_sub2" class="code" title="subfunction [] = array2DOMnode(xml, parent, s, TagName, Pref)">array2DOMnode</a>(xml, parent, s, Pref.ItemName, Pref ); <span class="comment">% recursive call</span>
+0257     <span class="keyword">else</span>
+0258       node = xml.createElement(TagName);   <span class="comment">% &lt;TagName&gt; ... &lt;/TagName&gt;</span>
+0259       <a href="#_sub2" class="code" title="subfunction [] = array2DOMnode(xml, parent, s, TagName, Pref)">array2DOMnode</a>(xml, node, s, Pref.ItemName, Pref ); <span class="comment">% recursive call</span>
+0260       parent.appendChild(node);
+0261     <span class="keyword">end</span>
+0262   <span class="keyword">else</span> <span class="comment">% use  &lt;TagName&gt;...&lt;\TagName&gt; &lt;TagName&gt;...&lt;\TagName&gt; notation</span>
+0263     <a href="#_sub2" class="code" title="subfunction [] = array2DOMnode(xml, parent, s, TagName, Pref)">array2DOMnode</a>(xml, parent, s, TagName, Pref ); <span class="comment">% recursive call</span>
+0264   <span class="keyword">end</span>
+0265 <span class="comment">%% == node is a struct ==</span>
+0266 <span class="keyword">elseif</span> (isstruct(s))  <span class="comment">% if struct than deal with each field separatly</span>
+0267   <span class="keyword">if</span> ((nDim==2 &amp;&amp; strcmpi(Pref.StructTable,<span class="string">'Html'</span>)) || (nItem&gt;1 &amp;&amp; Pref.StructItem))
+0268     <span class="comment">% if 2D array of structs than can use HTML-like notation or</span>
+0269     <span class="comment">% if 1D array of structs than can use 'items' notation</span>
+0270     node = xml.createElement(TagName);
+0271     <a href="#_sub2" class="code" title="subfunction [] = array2DOMnode(xml, parent, s, TagName, Pref)">array2DOMnode</a>(xml, node, s, Pref.ItemName, Pref ); <span class="comment">% recursive call</span>
+0272     parent.appendChild(node);
+0273   <span class="keyword">elseif</span> (nItem&gt;1) <span class="comment">% use  &lt;TagName&gt;...&lt;\TagName&gt; &lt;TagName&gt;...&lt;\TagName&gt; notation</span>
+0274     <a href="#_sub2" class="code" title="subfunction [] = array2DOMnode(xml, parent, s, TagName, Pref)">array2DOMnode</a>(xml, parent, s, TagName, Pref ); <span class="comment">% recursive call</span>
+0275   <span class="keyword">else</span> <span class="comment">% otherwise save each struct separatelly</span>
+0276     fields = fieldnames(s);
+0277     node = xml.createElement(TagName);
+0278     <span class="keyword">for</span> i=1:length(fields) <span class="comment">% add field by field to the node</span>
+0279       field = fields{i};
+0280       x = s.(field);
+0281       <span class="keyword">switch</span> field
+0282         <span class="keyword">case</span> {<span class="string">'COMMENT'</span>, <span class="string">'CDATA_SECTION'</span>, <span class="string">'PROCESSING_INSTRUCTION'</span>}
+0283           <span class="keyword">if</span> iscellstr(x)  <span class="comment">% cell array of strings -&gt; add them one by one</span>
+0284             <a href="#_sub2" class="code" title="subfunction [] = array2DOMnode(xml, parent, s, TagName, Pref)">array2DOMnode</a>(xml, node, x(:), field, Pref ); <span class="comment">% recursive call will modify 'node'</span>
+0285           <span class="keyword">elseif</span> ischar(x) <span class="comment">% single string -&gt; add it</span>
+0286             <a href="#_sub1" class="code" title="subfunction [] = struct2DOMnode(xml, parent, s, TagName, Pref)">struct2DOMnode</a>(xml, node, x, field, Pref ); <span class="comment">% recursive call will modify 'node'</span>
+0287           <span class="keyword">else</span> <span class="comment">% not a string - Ignore</span>
+0288             warning(<span class="string">'xml_io_tools:write:badSpecialNode'</span>, <span class="keyword">...</span>
+0289              [<span class="string">'Struct field named '</span>,field,<span class="string">' encountered which was not a string. Ignoring.'</span>]);
+0290           <span class="keyword">end</span>
+0291         <span class="keyword">case</span> <span class="string">'ATTRIBUTE'</span> <span class="comment">% set attributes of the node</span>
+0292           <span class="keyword">if</span> (isempty(x)), <span class="keyword">continue</span>; <span class="keyword">end</span>
+0293           <span class="keyword">if</span> (isstruct(x))
+0294             attName = fieldnames(x);       <span class="comment">% get names of all the attributes</span>
+0295             <span class="keyword">for</span> k=1:length(attName)        <span class="comment">% attach them to the node</span>
+0296               att = xml.createAttribute(<a href="#_sub4" class="code" title="subfunction str = varName2str(str)">varName2str</a>(attName(k)));
+0297               att.setValue(<a href="#_sub3" class="code" title="subfunction str = var2str(object, PreserveSpace)">var2str</a>(x.(attName{k}),Pref.PreserveSpace));
+0298               node.setAttributeNode(att);
+0299             <span class="keyword">end</span>
+0300           <span class="keyword">else</span>
+0301             warning(<span class="string">'xml_io_tools:write:badAttribute'</span>, <span class="keyword">...</span>
+0302               <span class="string">'Struct field named ATTRIBUTE encountered which was not a struct. Ignoring.'</span>);
+0303           <span class="keyword">end</span>
+0304         <span class="keyword">otherwise</span>                            <span class="comment">% set children of the node</span>
+0305           <a href="#_sub1" class="code" title="subfunction [] = struct2DOMnode(xml, parent, s, TagName, Pref)">struct2DOMnode</a>(xml, node, x, field, Pref ); <span class="comment">% recursive call will modify 'node'</span>
+0306       <span class="keyword">end</span>
+0307     <span class="keyword">end</span>  <span class="comment">% end for i=1:nFields</span>
+0308     parent.appendChild(node);
+0309   <span class="keyword">end</span>
+0310 <span class="comment">%% == node is a leaf node ==</span>
+0311 <span class="keyword">else</span>  <span class="comment">% if not a struct and not a cell than it is a leaf node</span>
+0312   <span class="keyword">switch</span> TagName <span class="comment">% different processing depending on desired type of the node</span>
+0313     <span class="keyword">case</span> <span class="string">'COMMENT'</span>   <span class="comment">% create comment node</span>
+0314       com = xml.createComment(s);
+0315       parent.appendChild(com);
+0316     <span class="keyword">case</span> <span class="string">'CDATA_SECTION'</span> <span class="comment">% create CDATA Section</span>
+0317       cdt = xml.createCDATASection(s);
+0318       parent.appendChild(cdt);
+0319     <span class="keyword">case</span> <span class="string">'PROCESSING_INSTRUCTION'</span> <span class="comment">% set attributes of the node</span>
+0320       OK = false;
+0321       <span class="keyword">if</span> (ischar(s))
+0322         n = strfind(s, <span class="string">' '</span>);
+0323         <span class="keyword">if</span> (~isempty(n))
+0324           proc = xml.createProcessingInstruction(s(1:(n(1)-1)),s((n(1)+1):end));
+0325           parent.insertBefore(proc, parent.getFirstChild());
+0326           OK = true;
+0327         <span class="keyword">end</span>
+0328       <span class="keyword">end</span>
+0329       <span class="keyword">if</span> (~OK)
+0330         warning(<span class="string">'xml_io_tools:write:badProcInst'</span>, <span class="keyword">...</span>
+0331           [<span class="string">'Struct field named PROCESSING_INSTRUCTION need to be'</span>,<span class="keyword">...</span>
+0332           <span class="string">' a string, for example: xml-stylesheet type=&quot;text/css&quot; '</span>, <span class="keyword">...</span>
+0333           <span class="string">'href=&quot;myStyleSheet.css&quot;. Ignoring.'</span>]);
+0334       <span class="keyword">end</span>
+0335     <span class="keyword">case</span> <span class="string">'CONTENT'</span> <span class="comment">% this is text part of already existing node</span>
+0336       txt  = xml.createTextNode(<a href="#_sub3" class="code" title="subfunction str = var2str(object, PreserveSpace)">var2str</a>(s, Pref.PreserveSpace)); <span class="comment">% convert to text</span>
+0337       parent.appendChild(txt);
+0338     <span class="keyword">otherwise</span>      <span class="comment">% I guess it is a regular text leaf node</span>
+0339       txt  = xml.createTextNode(<a href="#_sub3" class="code" title="subfunction str = var2str(object, PreserveSpace)">var2str</a>(s, Pref.PreserveSpace));
+0340       node = xml.createElement(TagName);
+0341       node.appendChild(txt);
+0342       parent.appendChild(node);
+0343   <span class="keyword">end</span>
+0344 <span class="keyword">end</span> <span class="comment">% of struct2DOMnode function</span>
+0345 
+0346 <span class="comment">%% =======================================================================</span>
+0347 <span class="comment">%  === array2DOMnode Function ============================================</span>
+0348 <span class="comment">%  =======================================================================</span>
+0349 <a name="_sub2" href="#_subfunctions" class="code">function [] = array2DOMnode(xml, parent, s, TagName, Pref)</a>
+0350 <span class="comment">% Deal with 1D and 2D arrays of cell or struct. Will modify 'parent'.</span>
+0351 nDim = nnz(size(s)&gt;1);  <span class="comment">% is it a scalar, vector, 2D array, 3D cube, etc?</span>
+0352 <span class="keyword">switch</span> nDim
+0353   <span class="keyword">case</span> 2 <span class="comment">% 2D array</span>
+0354     <span class="keyword">for</span> r=1:size(s,1)
+0355       subnode = xml.createElement(Pref.TableName{1});
+0356       <span class="keyword">for</span> c=1:size(s,2)
+0357         v = s(r,c);
+0358         <span class="keyword">if</span> iscell(v), v = v{1}; <span class="keyword">end</span>
+0359         <a href="#_sub1" class="code" title="subfunction [] = struct2DOMnode(xml, parent, s, TagName, Pref)">struct2DOMnode</a>(xml, subnode, v, Pref.TableName{2}, Pref ); <span class="comment">% recursive call</span>
+0360       <span class="keyword">end</span>
+0361       parent.appendChild(subnode);
+0362     <span class="keyword">end</span>
+0363   <span class="keyword">case</span> 1 <span class="comment">%1D array</span>
+0364     <span class="keyword">for</span> iItem=1:numel(s)
+0365       v = s(iItem);
+0366       <span class="keyword">if</span> iscell(v), v = v{1}; <span class="keyword">end</span>
+0367       <a href="#_sub1" class="code" title="subfunction [] = struct2DOMnode(xml, parent, s, TagName, Pref)">struct2DOMnode</a>(xml, parent, v, TagName, Pref ); <span class="comment">% recursive call</span>
+0368     <span class="keyword">end</span>
+0369   <span class="keyword">case</span> 0 <span class="comment">% scalar -&gt; this case should never be called</span>
+0370     <span class="keyword">if</span> ~isempty(s) 
+0371       <span class="keyword">if</span> iscell(s), s = s{1}; <span class="keyword">end</span>
+0372       <a href="#_sub1" class="code" title="subfunction [] = struct2DOMnode(xml, parent, s, TagName, Pref)">struct2DOMnode</a>(xml, parent, s, TagName, Pref );
+0373     <span class="keyword">end</span>
+0374 <span class="keyword">end</span>
+0375 
+0376 <span class="comment">%% =======================================================================</span>
+0377 <span class="comment">%  === var2str Function ==================================================</span>
+0378 <span class="comment">%  =======================================================================</span>
+0379 <a name="_sub3" href="#_subfunctions" class="code">function str = var2str(object, PreserveSpace)</a>
+0380 <span class="comment">% convert matlab variables to a string</span>
+0381 <span class="keyword">switch</span> (1)
+0382   <span class="keyword">case</span> isempty(object)
+0383     str = <span class="string">''</span>;
+0384   <span class="keyword">case</span> (isnumeric(object) || islogical(object))
+0385     <span class="keyword">if</span> ndims(object)&gt;2, object=object(:); <span class="keyword">end</span>  <span class="comment">% can't handle arrays with dimention &gt; 2</span>
+0386     str=mat2str(object);           <span class="comment">% convert matrix to a string</span>
+0387     <span class="comment">% mark logical scalars with [] (logical arrays already have them) so the xml_read</span>
+0388     <span class="comment">% recognizes them as MATLAB objects instead of strings. Same with sparse</span>
+0389     <span class="comment">% matrices</span>
+0390     <span class="keyword">if</span> ((islogical(object) &amp;&amp; isscalar(object)) || issparse(object)),
+0391       str = [<span class="string">'['</span> str <span class="string">']'</span>];
+0392     <span class="keyword">end</span>
+0393     <span class="keyword">if</span> (isinteger(object)),
+0394       str = [<span class="string">'['</span>, class(object), <span class="string">'('</span>, str <span class="string">')]'</span>];
+0395     <span class="keyword">end</span>
+0396   <span class="keyword">case</span> iscell(object)
+0397     <span class="keyword">if</span> ndims(object)&gt;2, object=object(:); <span class="keyword">end</span>  <span class="comment">% can't handle cell arrays with dimention &gt; 2</span>
+0398     [nr nc] = size(object);
+0399     obj2 = object;
+0400     <span class="keyword">for</span> i=1:length(object(:))
+0401       str = <a href="#_sub3" class="code" title="subfunction str = var2str(object, PreserveSpace)">var2str</a>(object{i}, PreserveSpace);
+0402       <span class="keyword">if</span> (ischar(object{i})), object{i} = [<span class="string">''''</span> object{i} <span class="string">''''</span>]; <span class="keyword">else</span> object{i}=str; <span class="keyword">end</span>
+0403       obj2{i} = [object{i} <span class="string">','</span>];
+0404     <span class="keyword">end</span>
+0405     <span class="keyword">for</span> r = 1:nr, obj2{r,nc} = [object{r,nc} <span class="string">';'</span>]; <span class="keyword">end</span>
+0406     obj2 = obj2.';
+0407     str = [<span class="string">'{'</span> obj2{:} <span class="string">'}'</span>];
+0408   <span class="keyword">case</span> isstruct(object)
+0409     str=<span class="string">''</span>;
+0410     warning(<span class="string">'xml_io_tools:write:var2str'</span>, <span class="keyword">...</span>
+0411       <span class="string">'Struct was encountered where string was expected. Ignoring.'</span>);
+0412   <span class="keyword">case</span> isa(object, <span class="string">'function_handle'</span>)
+0413     str = [<span class="string">'[@'</span> char(object) <span class="string">']'</span>];
+0414   <span class="keyword">case</span> ischar(object)
+0415     str = object;
+0416   <span class="keyword">otherwise</span>
+0417     str = char(object);
+0418 <span class="keyword">end</span>
+0419 
+0420 <span class="comment">%% string clean-up</span>
+0421 str=str(:); str=str.';            <span class="comment">% make sure this is a row vector of char's</span>
+0422 <span class="keyword">if</span> (~isempty(str))
+0423   str(str&lt;32|str==127)=<span class="string">' '</span>;       <span class="comment">% convert no-printable characters to spaces</span>
+0424   <span class="keyword">if</span> (~PreserveSpace)
+0425     str = strtrim(str);             <span class="comment">% remove spaces from begining and the end</span>
+0426     str = regexprep(str,<span class="string">'\s+'</span>,<span class="string">' '</span>); <span class="comment">% remove multiple spaces</span>
+0427   <span class="keyword">end</span>
+0428 <span class="keyword">end</span>
+0429 
+0430 <span class="comment">%% =======================================================================</span>
+0431 <span class="comment">%  === var2Namestr Function ==============================================</span>
+0432 <span class="comment">%  =======================================================================</span>
+0433 <a name="_sub4" href="#_subfunctions" class="code">function str = varName2str(str)</a>
+0434 <span class="comment">% convert matlab variable names to a sting</span>
+0435 str = char(str);
+0436 p   = strfind(str,<span class="string">'0x'</span>);
+0437 <span class="keyword">if</span> (~isempty(p))
+0438   <span class="keyword">for</span> i=1:length(p)
+0439     before = str( p(i)+(0:3) );          <span class="comment">% string to replace</span>
+0440     after  = char(hex2dec(before(3:4))); <span class="comment">% string to replace with</span>
+0441     str = regexprep(str,before,after, <span class="string">'once'</span>, <span class="string">'ignorecase'</span>);
+0442     p=p-3; <span class="comment">% since 4 characters were replaced with one - compensate</span>
+0443   <span class="keyword">end</span>
+0444 <span class="keyword">end</span>
+0445 str = regexprep(str,<span class="string">'_COLON_'</span>,<span class="string">':'</span>, <span class="string">'once'</span>, <span class="string">'ignorecase'</span>);
+0446 str = regexprep(str,<span class="string">'_DASH_'</span> ,<span class="string">'-'</span>, <span class="string">'once'</span>, <span class="string">'ignorecase'</span>);
+0447</pre></div>
+<hr><address>Generated on Fri 07-Aug-2015 09:34:21 by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" target="_parent">m2html</a></strong> &copy; 2005</address>
+</body>
+</html>

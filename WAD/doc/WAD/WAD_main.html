@@ -1,0 +1,298 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+                "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html>
+<head>
+  <title>Description of WAD_main</title>
+  <meta name="keywords" content="WAD_main">
+  <meta name="description" content="------------------------------------------------------------------------">
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+  <meta name="generator" content="m2html &copy; 2005 Guillaume Flandin">
+  <meta name="robots" content="index, follow">
+  <link type="text/css" rel="stylesheet" href="../m2html.css">
+  <script type="text/javascript">
+    if (top.frames.length == 0) { top.location = "../index.html"; };
+  </script>
+</head>
+<body>
+<a name="_top"></a>
+<!-- menu.html WAD -->
+<h1>WAD_main
+</h1>
+
+<h2><a name="_name"></a>PURPOSE <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="box"><strong>------------------------------------------------------------------------</strong></div>
+
+<h2><a name="_synopsis"></a>SYNOPSIS <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="box"><strong>function WAD_main( wadInputFileXML ) </strong></div>
+
+<h2><a name="_description"></a>DESCRIPTION <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="fragment"><pre class="comment"> ------------------------------------------------------------------------
+ This WAD folder provides a &quot;library&quot; of helper functions written for IQC.
+ NVKF WAD IQC software is a framework for automatic analysis of DICOM objects.
+ 
+ Copyright 2012-2013  Joost Kuijer / jpa.kuijer@vumc.nl
+ 
+ 
+ This program is free software: you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation, either version 3 of the License, or
+ (at your option) any later version.
+ 
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+ 
+ You should have received a copy of the GNU General Public License
+ along with this program.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+ ------------------------------------------------------------------------</pre></div>
+
+<!-- crossreference -->
+<h2><a name="_cross"></a>CROSS-REFERENCE INFORMATION <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+This function calls:
+<ul style="list-style-image:url(../matlabicon.gif)">
+<li><a href="WAD_resultsAppendObject.html" class="code" title="function WAD_resultsAppendObject( level, filename, description )">WAD_resultsAppendObject</a>	------------------------------------------------------------------------</li><li><a href="WAD_resultsAppendString.html" class="code" title="function WAD_resultsAppendString( level, value, description )">WAD_resultsAppendString</a>	------------------------------------------------------------------------</li><li><a href="WAD_runConfiguredAnalysis.html" class="code" title="function WAD_runConfiguredAnalysis">WAD_runConfiguredAnalysis</a>	------------------------------------------------------------------------</li><li><a href="WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>	------------------------------------------------------------------------</li><li><a href="WAD_vbprint_init.html" class="code" title="function WAD_vbprint_init( logfilename )">WAD_vbprint_init</a>	------------------------------------------------------------------------</li><li><a href="../xml_io_tools/gen_object2file.html" class="code" title="function gen_object2file( fid, obj_struct, indent )">gen_object2file</a>	</li><li><a href="../xml_io_tools/xml_read.html" class="code" title="function [tree, RootName, DOMnode] = xml_read(xmlfile, Pref)">xml_read</a>	XML_READ reads xml files and converts them into Matlab's struct tree.</li><li><a href="../xml_io_tools/xml_write.html" class="code" title="function DOMnode = xml_write(filename, tree, RootName, Pref)">xml_write</a>	XML_WRITE  Writes Matlab data structures to XML file</li></ul>
+This function is called by:
+<ul style="list-style-image:url(../matlabicon.gif)">
+<li><a href="../WAD_MG/WAD_MG.html" class="code" title="function WAD_MG( wadInputFileXML )">WAD_MG</a>	------------------------------------------------------------------------</li><li><a href="../WAD_MR/WAD_MR.html" class="code" title="function WAD_MR( wadInputFileXML )">WAD_MR</a>	------------------------------------------------------------------------</li><li><a href="../WAD_demo/WAD_demo.html" class="code" title="function WAD_demo( wadInputFileXML )">WAD_demo</a>	------------------------------------------------------------------------</li></ul>
+<!-- crossreference -->
+
+
+
+<h2><a name="_source"></a>SOURCE CODE <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="fragment"><pre>0001 <span class="comment">% ------------------------------------------------------------------------</span>
+0002 <span class="comment">% This WAD folder provides a &quot;library&quot; of helper functions written for IQC.</span>
+0003 <span class="comment">% NVKF WAD IQC software is a framework for automatic analysis of DICOM objects.</span>
+0004 <span class="comment">%</span>
+0005 <span class="comment">% Copyright 2012-2013  Joost Kuijer / jpa.kuijer@vumc.nl</span>
+0006 <span class="comment">%</span>
+0007 <span class="comment">%</span>
+0008 <span class="comment">% This program is free software: you can redistribute it and/or modify</span>
+0009 <span class="comment">% it under the terms of the GNU General Public License as published by</span>
+0010 <span class="comment">% the Free Software Foundation, either version 3 of the License, or</span>
+0011 <span class="comment">% (at your option) any later version.</span>
+0012 <span class="comment">%</span>
+0013 <span class="comment">% This program is distributed in the hope that it will be useful,</span>
+0014 <span class="comment">% but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
+0015 <span class="comment">% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
+0016 <span class="comment">% GNU General Public License for more details.</span>
+0017 <span class="comment">%</span>
+0018 <span class="comment">% You should have received a copy of the GNU General Public License</span>
+0019 <span class="comment">% along with this program.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
+0020 <span class="comment">% ------------------------------------------------------------------------</span>
+0021 
+0022 <a name="_sub0" href="#_subfunctions" class="code">function WAD_main( wadInputFileXML )</a>
+0023 <span class="comment">% Main routine to be called from the WAD framework (WAD_Processor)</span>
+0024 <span class="comment">%</span>
+0025 <span class="comment">% The WAD analysis module allows a configurable collection of submodules</span>
+0026 <span class="comment">% for analysis.</span>
+0027 <span class="comment">%</span>
+0028 <span class="comment">% The main program performs the following tasks:</span>
+0029 <span class="comment">% - read the XML configuration file</span>
+0030 <span class="comment">% - read the XML input file</span>
+0031 <span class="comment">% - call WAD_runConfiguredAnalysis to look for series matching the</span>
+0032 <span class="comment">%   configured analysis, and call corresponding configured analysis</span>
+0033 <span class="comment">%   functions.</span>
+0034 <span class="comment">% - write the XML output file</span>
+0035 <span class="comment">%</span>
+0036 <span class="comment">% ------------------------------------------------------------------------</span>
+0037 <span class="comment">% WAD</span>
+0038 <span class="comment">% file: WAD_main</span>
+0039 <span class="comment">%</span>
+0040 <span class="comment">% Depends:</span>
+0041 <span class="comment">% xml_io_tools by Jaroslaw Tuszynski</span>
+0042 <span class="comment">% http://www.mathworks.com/matlabcentral/fileexchange/12907-xmliotools</span>
+0043 <span class="comment">% See xml_io_tools_license.txt for license conditions.</span>
+0044 <span class="comment">%</span>
+0045 <span class="comment">% ------------------------------------------------------------------------</span>
+0046 <span class="comment">% VUmc, Amsterdam, NL / Joost Kuijer / jpa.kuijer@vumc.nl</span>
+0047 <span class="comment">% 2012-08-06 / JK</span>
+0048 <span class="comment">% first WAD version named 0.95 converted from SQVID 0.95</span>
+0049 <span class="comment">% ------------------------------------------------------------------------</span>
+0050 <span class="comment">% Version 1.0.1 20140116</span>
+0051 <span class="comment">% Bugfix in WAD_findMatchingSeries:matchDicomTag</span>
+0052 <span class="comment">% - stop if DICOM file cannot be read</span>
+0053 <span class="comment">% - check numeric type for print in logfile (creates corrupted text file</span>
+0054 <span class="comment">%   which is not displayed by through web interface)</span>
+0055 <span class="comment">% ------------------------------------------------------------------------</span>
+0056 
+0057 
+0058 <span class="comment">% ----------------------</span>
+0059 <span class="comment">% GLOBALS</span>
+0060 <span class="comment">% ----------------------</span>
+0061 <span class="comment">% WAD provides access to</span>
+0062 <span class="comment">% - input file</span>
+0063 <span class="comment">% - configuration file</span>
+0064 <span class="comment">% - output/results</span>
+0065 <span class="comment">% - constants, these may be defined in modality specific wrappers</span>
+0066 <span class="keyword">global</span> WAD
+0067 
+0068 
+0069 <span class="comment">% ----------------------</span>
+0070 <span class="comment">% defines</span>
+0071 <span class="comment">% ----------------------</span>
+0072 <span class="comment">% version info</span>
+0073 my.name = <span class="string">'WAD_main'</span>;
+0074 my.version = <span class="string">'1.0.1'</span>;
+0075 my.date = <span class="string">'20140116'</span>;
+0076 
+0077 logfilename = <span class="string">'WAD_analysis_log.txt'</span>; <span class="comment">% in output dir</span>
+0078 
+0079 
+0080 <span class="comment">% ----------------------</span>
+0081 <span class="comment">% initialize empty structs</span>
+0082 <span class="comment">% ----------------------</span>
+0083 WAD.cfg = []; <span class="comment">% configuration</span>
+0084 WAD.in  = [];  <span class="comment">% input file</span>
+0085 WAD.results_index = 0; <span class="comment">% global index number for all output types</span>
+0086 WAD.out.results = []; <span class="comment">% results array</span>
+0087 
+0088 <span class="comment">% ----------------------</span>
+0089 <span class="comment">% read XML input file</span>
+0090 <span class="comment">% ----------------------</span>
+0091 <span class="keyword">if</span> nargin &lt; 1
+0092     disp( [<span class="string">'ERROR in '</span> my.name <span class="string">' main program: missing WAD XML input file.'</span>] );
+0093     disp( [<span class="string">'Usage: '</span> my.name <span class="string">' &lt;XMLInputFile&gt;'</span>] );
+0094     disp( [<span class="string">'Aborting '</span> my.name <span class="string">' main program.'</span>] );
+0095     <span class="keyword">return</span>
+0096 <span class="keyword">end</span>
+0097 
+0098 <span class="keyword">try</span>
+0099     WAD.in = <a href="../xml_io_tools/xml_read.html" class="code" title="function [tree, RootName, DOMnode] = xml_read(xmlfile, Pref)">xml_read</a>( wadInputFileXML );
+0100     <span class="comment">% make sure .in exists</span>
+0101     <span class="keyword">if</span> ~isfield( WAD, <span class="string">'in'</span> ), disp(<span class="string">'Failed reading WAD input file'</span>); <span class="keyword">end</span>
+0102 <span class="keyword">catch</span> err
+0103     <span class="comment">% not much we can do now, don't even know where to write log...</span>
+0104     disp( [<span class="string">'ERROR in '</span> my.name <span class="string">' main program:'</span>] );
+0105     disp( [<span class="string">'Cannot read WAD input file &quot;'</span> wadInputFileXML <span class="string">'&quot;'</span>] );
+0106     disp( err.message );
+0107     disp( [<span class="string">'Aborting '</span> my.name <span class="string">' main program.'</span>] );
+0108     <span class="keyword">return</span>
+0109 <span class="keyword">end</span>
+0110 
+0111 
+0112 <span class="comment">% ----------------------</span>
+0113 <span class="comment">% check input for config file</span>
+0114 <span class="comment">% ----------------------</span>
+0115 <span class="keyword">if</span> ~isfield( WAD.in, <span class="string">'analysemodule_cfg'</span> )
+0116     <span class="comment">% this module needs a configuration file</span>
+0117     disp( [<span class="string">'ERROR in '</span> my.name <span class="string">' main program: no configuration file.'</span>] );
+0118     disp( [my.name <span class="string">' needs a configuration file!'</span>] );
+0119     disp( [<span class="string">'Aborting '</span> my.name <span class="string">' main program.'</span>] );
+0120     <span class="keyword">return</span>
+0121 <span class="keyword">end</span>
+0122 
+0123 
+0124 <span class="comment">% ----------------------</span>
+0125 <span class="comment">% read XML config file</span>
+0126 <span class="comment">% ----------------------</span>
+0127 <span class="keyword">try</span>
+0128     WAD.cfg = <a href="../xml_io_tools/xml_read.html" class="code" title="function [tree, RootName, DOMnode] = xml_read(xmlfile, Pref)">xml_read</a>( WAD.in.analysemodule_cfg );
+0129     <span class="keyword">if</span> ~isfield( WAD, <span class="string">'cfg'</span> ), error(<span class="string">'Failed reading WAD_MR module config file'</span>); <span class="keyword">end</span>
+0130 <span class="keyword">catch</span> err
+0131     <span class="comment">% not much we can do now</span>
+0132     disp( [<span class="string">'ERROR in '</span> my.name <span class="string">' main program:'</span>] );
+0133     disp( [<span class="string">'Cannot read WAD config file &quot;'</span> WAD.in.analysemodule_cfg <span class="string">'&quot;'</span>] );
+0134     disp( err.message );
+0135     disp( [<span class="string">'Aborting '</span> my.name <span class="string">' main program.'</span>] );
+0136     <span class="keyword">return</span>
+0137 <span class="keyword">end</span>
+0138 
+0139 
+0140 <span class="comment">% ----------------------</span>
+0141 <span class="comment">% check / split ouput file/directory</span>
+0142 <span class="comment">% ----------------------</span>
+0143 <span class="keyword">if</span> ~isfield( WAD.in, <span class="string">'analysemodule_output'</span> )
+0144     <span class="comment">% we need an output file!</span>
+0145     disp( [<span class="string">'ERROR in '</span> my.name <span class="string">' main program: no output file.'</span>] );
+0146     disp( [<span class="string">'Aborting '</span> my.name <span class="string">' main program.'</span>] );
+0147     <span class="keyword">return</span>
+0148 <span class="keyword">end</span>
+0149 
+0150 <span class="comment">% get the output directory</span>
+0151 WAD.in.analysemodule_outputdir = fileparts( WAD.in.analysemodule_output );
+0152 <span class="comment">% check if output directory exists</span>
+0153 <span class="keyword">if</span> ~isdir( WAD.in.analysemodule_outputdir )
+0154     <span class="comment">% cannot find it...</span>
+0155     disp( [<span class="string">'ERROR in '</span> my.name <span class="string">' main program:'</span>] );
+0156     disp( [<span class="string">'Cannot find output directory &quot;'</span> WAD.in.analysemodule_output <span class="string">'&quot;.'</span> ] );
+0157     disp( [<span class="string">'Aborting '</span> my.name <span class="string">' main program.'</span>] );
+0158     <span class="keyword">return</span>
+0159 <span class="keyword">end</span>
+0160 
+0161 
+0162 <span class="comment">% ----------------------</span>
+0163 <span class="comment">% initialize logfile</span>
+0164 <span class="comment">% ----------------------</span>
+0165 <a href="WAD_vbprint_init.html" class="code" title="function WAD_vbprint_init( logfilename )">WAD_vbprint_init</a>( logfilename );
+0166 <a href="WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [<span class="string">'Starting '</span> my.name <span class="string">' Version '</span> my.version <span class="string">' ('</span> my.date <span class="string">') at '</span> datestr( now, <span class="string">'yyyy-mm-dd HH:MM:SS'</span> ) ] );
+0167 <a href="WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [<span class="string">'Config file: &quot;'</span> WAD.in.analysemodule_cfg <span class="string">'&quot;'</span>] );
+0168 <span class="comment">% dump module config to logfile</span>
+0169 <span class="keyword">if</span> WAD.cfg.logverbose.fid ~= -1
+0170     <a href="../xml_io_tools/gen_object2file.html" class="code" title="function gen_object2file( fid, obj_struct, indent )">gen_object2file</a>( WAD.cfg.logverbose.fid, WAD.cfg );
+0171 <span class="keyword">end</span>
+0172 
+0173 
+0174 <span class="comment">% ----------------------</span>
+0175 <span class="comment">% config info to level 2 results</span>
+0176 <span class="comment">% ----------------------</span>
+0177 <span class="keyword">if</span> isfield( WAD.cfg, <span class="string">'name'</span> )
+0178     <a href="WAD_resultsAppendString.html" class="code" title="function WAD_resultsAppendString( level, value, description )">WAD_resultsAppendString</a>( 2, WAD.cfg.name, <span class="string">'Configuratie naam'</span> );
+0179 <span class="keyword">end</span>
+0180 <span class="keyword">if</span> isfield( WAD.cfg, <span class="string">'description'</span> )
+0181     <a href="WAD_resultsAppendString.html" class="code" title="function WAD_resultsAppendString( level, value, description )">WAD_resultsAppendString</a>( 2, WAD.cfg.description, <span class="string">'Configuratie beschrijving'</span> );
+0182 <span class="keyword">end</span>
+0183 <span class="keyword">if</span> isfield( WAD.cfg, <span class="string">'version'</span> )
+0184     <span class="keyword">if</span> isnumeric( WAD.cfg.version ), WAD.cfg.version = num2str( WAD.cfg.version ); <span class="keyword">end</span>
+0185     <a href="WAD_resultsAppendString.html" class="code" title="function WAD_resultsAppendString( level, value, description )">WAD_resultsAppendString</a>( 2, WAD.cfg.version, <span class="string">'Configuratie versie'</span> );
+0186 <span class="keyword">end</span>
+0187 
+0188 
+0189 <span class="comment">% ----------------------</span>
+0190 <span class="comment">% run the analysis</span>
+0191 <span class="comment">% - call WAD_runConfiguredAnalysis to look for series matching the</span>
+0192 <span class="comment">%   configured analysis, and call corresponding configured analysis</span>
+0193 <span class="comment">%   functions.</span>
+0194 <span class="comment">% ----------------------</span>
+0195 <span class="keyword">try</span>
+0196     <a href="WAD_runConfiguredAnalysis.html" class="code" title="function WAD_runConfiguredAnalysis">WAD_runConfiguredAnalysis</a>;
+0197 <span class="keyword">catch</span> err
+0198     disp( [<span class="string">'ERROR in '</span> my.name <span class="string">' during image analysis.'</span>] );
+0199     disp( err.message );
+0200     <span class="keyword">for</span> i=1:length( err.stack )
+0201         disp( [<span class="string">'File: '</span> err.stack(i).file <span class="string">'  Function: '</span> err.stack(i).name <span class="string">'  Line: '</span> num2str(err.stack(i).line)] );
+0202     <span class="keyword">end</span>
+0203     disp( [<span class="string">'Aborting '</span> my.name <span class="string">' main program.'</span>] );
+0204     <a href="WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( <span class="string">'ERROR during image analysis.'</span>, 1 );
+0205 <span class="keyword">end</span>
+0206 
+0207 
+0208 <span class="comment">% ----------------------</span>
+0209 <span class="comment">% finish</span>
+0210 <span class="comment">% ----------------------</span>
+0211 <span class="comment">% link log file to output, fullfile was set by WAD_vbprint_init()</span>
+0212 <a href="WAD_resultsAppendObject.html" class="code" title="function WAD_resultsAppendObject( level, filename, description )">WAD_resultsAppendObject</a>( 2, logfilename, <span class="string">'Log file'</span> );
+0213 
+0214 <span class="comment">% write XML output file</span>
+0215 <span class="keyword">try</span>
+0216     wPrefs = [];
+0217     wPrefs.CellItem = false;
+0218     <span class="comment">%wPrefs.NoCells = 1;</span>
+0219     wPrefs.StructItem = true;
+0220     <a href="../xml_io_tools/xml_write.html" class="code" title="function DOMnode = xml_write(filename, tree, RootName, Pref)">xml_write</a>( WAD.in.analysemodule_output, WAD.out, <span class="string">'WAD'</span>, wPrefs );
+0221     <span class="comment">%type( WAD.in.analysemodule_output );</span>
+0222 <span class="keyword">catch</span> err
+0223     disp( [<span class="string">'ERROR in '</span> my.name <span class="string">' while writing results to XML file &quot;'</span> WAD.in.analysemodule_output <span class="string">'&quot;'</span>] );
+0224     disp( err.message );
+0225     disp( [<span class="string">'Aborting '</span> my.name <span class="string">' main program.'</span>] );
+0226     <a href="WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [<span class="string">'ERROR writing results to XML file &quot;'</span> WAD.in.analysemodule_output <span class="string">'&quot;'</span>] , 1 );
+0227 <span class="keyword">end</span>
+0228 
+0229 <span class="comment">% close log file</span>
+0230 <span class="keyword">if</span> ( WAD.cfg.logverbose.fid &gt; -1 )
+0231     disp( <span class="string">'Closing log file'</span> );
+0232     fclose( WAD.cfg.logverbose.fid );
+0233 <span class="keyword">end</span></pre></div>
+<hr><address>Generated on Fri 07-Aug-2015 09:34:21 by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" target="_parent">m2html</a></strong> &copy; 2005</address>
+</body>
+</html>

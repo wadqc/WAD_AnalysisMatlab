@@ -1,0 +1,215 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+                "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html>
+<head>
+  <title>Description of WAD_MR_B0_readSiemensPhaseDifference</title>
+  <meta name="keywords" content="WAD_MR_B0_readSiemensPhaseDifference">
+  <meta name="description" content="------------------------------------------------------------------------">
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+  <meta name="generator" content="m2html &copy; 2005 Guillaume Flandin">
+  <meta name="robots" content="index, follow">
+  <link type="text/css" rel="stylesheet" href="../m2html.css">
+  <script type="text/javascript">
+    if (top.frames.length == 0) { top.location = "../index.html"; };
+  </script>
+</head>
+<body>
+<a name="_top"></a>
+<!-- menu.html WAD_MR -->
+<h1>WAD_MR_B0_readSiemensPhaseDifference
+</h1>
+
+<h2><a name="_name"></a>PURPOSE <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="box"><strong>------------------------------------------------------------------------</strong></div>
+
+<h2><a name="_synopsis"></a>SYNOPSIS <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="box"><strong>function [magnitude, phase] = WAD_MR_B0_readSiemensPhaseDifference( i_iSeries, sSeries, sParams ) </strong></div>
+
+<h2><a name="_description"></a>DESCRIPTION <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="fragment"><pre class="comment"> ------------------------------------------------------------------------
+ WAD_MR is an MRI analysis module written for IQC.
+ NVKF WAD IQC software is a framework for automatic analysis of DICOM objects.
+ 
+ Copyright 2012-2013  Joost Kuijer / jpa.kuijer@vumc.nl
+ 
+ 
+ This program is free software: you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation, either version 3 of the License, or
+ (at your option) any later version.
+ 
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+ 
+ You should have received a copy of the GNU General Public License
+ along with this program.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+ ------------------------------------------------------------------------</pre></div>
+
+<!-- crossreference -->
+<h2><a name="_cross"></a>CROSS-REFERENCE INFORMATION <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+This function calls:
+<ul style="list-style-image:url(../matlabicon.gif)">
+<li><a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>	------------------------------------------------------------------------</li></ul>
+This function is called by:
+<ul style="list-style-image:url(../matlabicon.gif)">
+</ul>
+<!-- crossreference -->
+
+
+
+<h2><a name="_source"></a>SOURCE CODE <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="fragment"><pre>0001 <span class="comment">% ------------------------------------------------------------------------</span>
+0002 <span class="comment">% WAD_MR is an MRI analysis module written for IQC.</span>
+0003 <span class="comment">% NVKF WAD IQC software is a framework for automatic analysis of DICOM objects.</span>
+0004 <span class="comment">%</span>
+0005 <span class="comment">% Copyright 2012-2013  Joost Kuijer / jpa.kuijer@vumc.nl</span>
+0006 <span class="comment">%</span>
+0007 <span class="comment">%</span>
+0008 <span class="comment">% This program is free software: you can redistribute it and/or modify</span>
+0009 <span class="comment">% it under the terms of the GNU General Public License as published by</span>
+0010 <span class="comment">% the Free Software Foundation, either version 3 of the License, or</span>
+0011 <span class="comment">% (at your option) any later version.</span>
+0012 <span class="comment">%</span>
+0013 <span class="comment">% This program is distributed in the hope that it will be useful,</span>
+0014 <span class="comment">% but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
+0015 <span class="comment">% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
+0016 <span class="comment">% GNU General Public License for more details.</span>
+0017 <span class="comment">%</span>
+0018 <span class="comment">% You should have received a copy of the GNU General Public License</span>
+0019 <span class="comment">% along with this program.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
+0020 <span class="comment">% ------------------------------------------------------------------------</span>
+0021 
+0022 <a name="_sub0" href="#_subfunctions" class="code">function [magnitude, phase] = WAD_MR_B0_readSiemensPhaseDifference( i_iSeries, sSeries, sParams )</a>
+0023 <span class="comment">% Import function for BO uniformity Siemens phase difference field map</span>
+0024 <span class="comment">% (part of the fMRI product package). Acquisition must be single slice.</span>
+0025 <span class="comment">%</span>
+0026 <span class="comment">% This is a import function to be called from WAD_MR_B0_uniformity()</span>
+0027 <span class="comment">%</span>
+0028 <span class="comment">% Configuration name for the &lt;params&gt;&lt;type&gt; field:</span>
+0029 <span class="comment">% SiemensPhaseDifference</span>
+0030 <span class="comment">%</span>
+0031 <span class="comment">% Known limitations:</span>
+0032 <span class="comment">% - Needs Explicit DICOM files. TODO: check type of field, if uint8 convert</span>
+0033 <span class="comment">%   it to whatever is expected.</span>
+0034 <span class="comment">% ------------------------------------------------------------------------</span>
+0035 <span class="comment">% WAD MR</span>
+0036 <span class="comment">% file: WAD_MR_B0_uniformity_SiemensPhaseDifference</span>
+0037 <span class="comment">%</span>
+0038 <span class="comment">% ------------------------------------------------------------------------</span>
+0039 <span class="comment">% VUmc, Amsterdam, NL / Joost Kuijer / jpa.kuijer@vumc.nl</span>
+0040 <span class="comment">% 2009-12-22 / JK</span>
+0041 <span class="comment">% first version implemented from Eline Verwer's code.</span>
+0042 <span class="comment">% ------------------------------------------------------------------------</span>
+0043 <span class="comment">% 2010-04-20 / JK</span>
+0044 <span class="comment">% V0.94: added support for Philips double-echo GRE</span>
+0045 <span class="comment">% ------------------------------------------------------------------------</span>
+0046 <span class="comment">% 2012-08-13 / JK</span>
+0047 <span class="comment">% V0.95</span>
+0048 <span class="comment">% - adapted to WAD framework</span>
+0049 <span class="comment">% - import of phase images in separate &quot;import&quot; function, configurable</span>
+0050 <span class="comment">%   through the &lt;type&gt; parameter. The actual function name gets a prefix</span>
+0051 <span class="comment">%   &quot;WAD_MR_B0_read&quot;.</span>
+0052 <span class="comment">% ------------------------------------------------------------------------</span>
+0053 <span class="comment">% 20131127 / JK</span>
+0054 <span class="comment">% V1.1</span>
+0055 <span class="comment">% - new (v1.1) style action limits</span>
+0056 <span class="comment">% ------------------------------------------------------------------------</span>
+0057 
+0058 
+0059 <span class="comment">% ----------------------</span>
+0060 <span class="comment">% GLOBALS</span>
+0061 <span class="comment">% ----------------------</span>
+0062 <span class="keyword">global</span> WAD
+0063 
+0064 <span class="comment">% version info</span>
+0065 my.name = <span class="string">'WAD_MR_B0_readSiemensPhaseDifference'</span>;
+0066 my.version = <span class="string">'1.1'</span>;
+0067 my.date = <span class="string">'20131127'</span>;
+0068 <a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [<span class="string">'Module '</span> my.name <span class="string">' Version '</span> my.version <span class="string">' ('</span> my.date <span class="string">')'</span>] );
+0069 
+0070 <span class="comment">% output arguments</span>
+0071 magnitude = [];
+0072 phase = [];
+0073 
+0074 <span class="comment">% ----------------------------------------------------</span>
+0075 <span class="comment">% check image type, get dicom header of first file</span>
+0076 <span class="comment">% ----------------------------------------------------</span>
+0077 fname = sSeries.instance( 1 ).filename;
+0078 <a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">':   Check type of B0 map... reading DICOM header of file '</span> fname ] );
+0079 info = dicominfo( fname );
+0080 
+0081 <span class="comment">% test for Siemens phase difference map, based on sequence name</span>
+0082 <span class="keyword">if</span> isfield( info, <span class="string">'SequenceName'</span> ) &amp;&amp; strcmp( info.SequenceName, <span class="string">'*fm2d2'</span> )
+0083     <span class="comment">% Siemens product phase difference sequence for FMRI</span>
+0084     <a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">':   Detected Siemens phase difference.'</span>] );
+0085 <span class="keyword">else</span>
+0086     <a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">':   Could not detect Siemens phase difference: SequenceName not equal to &quot;*fm2d2&quot;'</span>] );
+0087     error( <span class="string">'Error reading Siemens phase difference images.'</span> )
+0088 <span class="keyword">end</span>
+0089 
+0090 
+0091 <a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">':   Setting type of B0 map to Siemens phase difference.'</span>] );
+0092 <span class="comment">% Siemens phase map has B0 map in two series:</span>
+0093 <span class="comment">% - first series has the 2 magnitude images</span>
+0094 <span class="comment">% - second series has the phase difference image (must be skipped</span>
+0095 <span class="comment">% if selected!!</span>
+0096 <span class="keyword">if</span> length( sSeries.instance ) ~= 2
+0097     <a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">':   ERROR: B0 map has more than one slice, or phase series selected. Skipping analysis'</span>] );
+0098     error( <span class="string">'Error during import of phase images.'</span> )
+0099 <span class="keyword">end</span>
+0100 
+0101 <span class="comment">% -----------------------</span>
+0102 <span class="comment">% find the next series...</span>
+0103 <span class="comment">% -----------------------</span>
+0104 foundNextSeries = false;
+0105 curStudy = WAD.in.patient(1).study(1);
+0106 i_nSeries = length( curStudy.series );
+0107 <span class="keyword">for</span> ii = 1:i_nSeries
+0108     <span class="keyword">if</span> ( curStudy.series( ii ).number == sSeries.number + 1 )
+0109         sPhsSeries = curStudy.series( ii );
+0110         foundNextSeries = true;
+0111         <span class="keyword">break</span>;
+0112     <span class="keyword">end</span>
+0113 <span class="keyword">end</span>
+0114 <span class="keyword">if</span> ~foundNextSeries
+0115     <a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">': ERROR: could not find next series for phase image. Skip analysis.'</span>] );
+0116     error( <span class="string">'Error during import of phase images.'</span> )
+0117 <span class="keyword">end</span>
+0118 
+0119 <span class="comment">% magnitude series / image</span>
+0120 mci = 1;
+0121 <span class="comment">% phase series / image</span>
+0122 pci = 1;
+0123 
+0124 <span class="comment">% if next series belongs to this one, it should have same name, and just one image.</span>
+0125 <span class="keyword">if</span> ~strcmp( sSeries.description, sPhsSeries.description ) || length( sPhsSeries.instance ) ~= 1
+0126     <a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">':   ERROR: phase image is in next series, but the next series doesn''t have same series description or doesn''t have 1 image. Skip analysis'</span>] );
+0127     error( <span class="string">'Error during import of phase images.'</span> )
+0128 <span class="keyword">end</span>
+0129 
+0130 <span class="comment">% ----------------------------------------------------</span>
+0131 <span class="comment">% read DICOM images</span>
+0132 <span class="comment">% ----------------------------------------------------</span>
+0133 magnitude.filename = sSeries.instance( mci ).filename;
+0134 magnitude.info  = dicominfo( magnitude.filename );
+0135 magnitude.image = double( dicomread( magnitude.info ) );
+0136 
+0137 phase.filename  = sPhsSeries.instance( pci ).filename;
+0138 phase.info      = dicominfo( phase.filename );
+0139 phase.image     = double( dicomread( phase.info ) );
+0140 
+0141 <span class="comment">% conversion phase map from pixel values to radians</span>
+0142 factor = 2*pi/4096;
+0143 offset = pi;
+0144 
+0145 <span class="comment">% convert from phase image from pixel values to radians</span>
+0146 phase.dPhi_rad = phase.image * factor - offset;
+0147 
+0148 <span class="comment">% Siemens doesn't store the delta TE in the DICOM header but it's</span>
+0149 <span class="comment">% fixed in the product sequence</span>
+0150 phase.dTE = 4.76;</pre></div>
+<hr><address>Generated on Fri 07-Aug-2015 09:34:21 by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" target="_parent">m2html</a></strong> &copy; 2005</address>
+</body>
+</html>

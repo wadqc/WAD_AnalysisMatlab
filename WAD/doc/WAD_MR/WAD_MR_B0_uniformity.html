@@ -1,0 +1,421 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+                "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html>
+<head>
+  <title>Description of WAD_MR_B0_uniformity</title>
+  <meta name="keywords" content="WAD_MR_B0_uniformity">
+  <meta name="description" content="------------------------------------------------------------------------">
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+  <meta name="generator" content="m2html &copy; 2005 Guillaume Flandin">
+  <meta name="robots" content="index, follow">
+  <link type="text/css" rel="stylesheet" href="../m2html.css">
+  <script type="text/javascript">
+    if (top.frames.length == 0) { top.location = "../index.html"; };
+  </script>
+</head>
+<body>
+<a name="_top"></a>
+<!-- menu.html WAD_MR -->
+<h1>WAD_MR_B0_uniformity
+</h1>
+
+<h2><a name="_name"></a>PURPOSE <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="box"><strong>------------------------------------------------------------------------</strong></div>
+
+<h2><a name="_synopsis"></a>SYNOPSIS <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="box"><strong>function WAD_MR_B0_uniformity( i_iSeries, sSeries, sParams ) </strong></div>
+
+<h2><a name="_description"></a>DESCRIPTION <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="fragment"><pre class="comment"> ------------------------------------------------------------------------
+ WAD_MR is an MRI analysis module written for IQC.
+ NVKF WAD IQC software is a framework for automatic analysis of DICOM objects.
+ 
+ Copyright 2012-2013  Joost Kuijer / jpa.kuijer@vumc.nl
+ 
+ 
+ This program is free software: you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation, either version 3 of the License, or
+ (at your option) any later version.
+ 
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+ 
+ You should have received a copy of the GNU General Public License
+ along with this program.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+ ------------------------------------------------------------------------</pre></div>
+
+<!-- crossreference -->
+<h2><a name="_cross"></a>CROSS-REFERENCE INFORMATION <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+This function calls:
+<ul style="list-style-image:url(../matlabicon.gif)">
+<li><a href="../WAD/WAD_ErrorMsg.html" class="code" title="function WAD_ErrorMsg( name, mymessage, err )">WAD_ErrorMsg</a>	------------------------------------------------------------------------</li><li><a href="../WAD/WAD_resultsAppendFigure.html" class="code" title="function WAD_resultsAppendFigure( level, handle, tag, description )">WAD_resultsAppendFigure</a>	------------------------------------------------------------------------</li><li><a href="../WAD/WAD_resultsAppendFloat.html" class="code" title="function WAD_resultsAppendFloat( level, value, variable, unit, description, sLimits, limits_field_name )">WAD_resultsAppendFloat</a>	------------------------------------------------------------------------</li><li><a href="../WAD/WAD_resultsAppendString.html" class="code" title="function WAD_resultsAppendString( level, value, description )">WAD_resultsAppendString</a>	------------------------------------------------------------------------</li><li><a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>	------------------------------------------------------------------------</li><li><a href="WAD_MR_privateSizePos_pix.html" class="code" title="function [diameter_pix, centre_pix, figureHandle ] = WAD_MR_privateSizePos_pix( sImage, sParams, quiet )">WAD_MR_privateSizePos_pix</a>	------------------------------------------------------------------------</li></ul>
+This function is called by:
+<ul style="list-style-image:url(../matlabicon.gif)">
+</ul>
+<!-- crossreference -->
+
+<h2><a name="_subfunctions"></a>SUBFUNCTIONS <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<ul style="list-style-image:url(../matlabicon.gif)">
+<li><a href="#_sub1" class="code">function [B,M] = ROImask(a,b,cent,I,valfill)</a></li><li><a href="#_sub2" class="code">function [image_out] = unwrap2D(image_in, center)</a></li><li><a href="#_sub3" class="code">function image_out = unwrap_line(image_out,x,y,size_image,orientation)</a></li></ul>
+
+<h2><a name="_source"></a>SOURCE CODE <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="fragment"><pre>0001 <span class="comment">% ------------------------------------------------------------------------</span>
+0002 <span class="comment">% WAD_MR is an MRI analysis module written for IQC.</span>
+0003 <span class="comment">% NVKF WAD IQC software is a framework for automatic analysis of DICOM objects.</span>
+0004 <span class="comment">%</span>
+0005 <span class="comment">% Copyright 2012-2013  Joost Kuijer / jpa.kuijer@vumc.nl</span>
+0006 <span class="comment">%</span>
+0007 <span class="comment">%</span>
+0008 <span class="comment">% This program is free software: you can redistribute it and/or modify</span>
+0009 <span class="comment">% it under the terms of the GNU General Public License as published by</span>
+0010 <span class="comment">% the Free Software Foundation, either version 3 of the License, or</span>
+0011 <span class="comment">% (at your option) any later version.</span>
+0012 <span class="comment">%</span>
+0013 <span class="comment">% This program is distributed in the hope that it will be useful,</span>
+0014 <span class="comment">% but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
+0015 <span class="comment">% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
+0016 <span class="comment">% GNU General Public License for more details.</span>
+0017 <span class="comment">%</span>
+0018 <span class="comment">% You should have received a copy of the GNU General Public License</span>
+0019 <span class="comment">% along with this program.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
+0020 <span class="comment">% ------------------------------------------------------------------------</span>
+0021 
+0022 <a name="_sub0" href="#_subfunctions" class="code">function WAD_MR_B0_uniformity( i_iSeries, sSeries, sParams )</a>
+0023 <span class="comment">% Calculate BO uniformity from a double echo phase difference.</span>
+0024 <span class="comment">% Acquisition must be single slice.</span>
+0025 <span class="comment">%</span>
+0026 <span class="comment">% Algorithm:</span>
+0027 <span class="comment">% - load dicom images using a vendor-specific &quot;import&quot; function</span>
+0028 <span class="comment">%   + name of import function must be configured as parameter</span>
+0029 <span class="comment">% - find centre and diameter of phantom using WAD_MR_privateSizePos_pix</span>
+0030 <span class="comment">% - unwrap phase images</span>
+0031 <span class="comment">% - convert phase pixel value to B0 map using delta-TE</span>
+0032 <span class="comment">% - Optional TODO: low-pass filter to lower noise, or use ROI analysis.</span>
+0033 <span class="comment">% - find min / max values, difference is result (in ppm)</span>
+0034 <span class="comment">%</span>
+0035 <span class="comment">% Known limitations:</span>
+0036 <span class="comment">% - Needs Explicit DICOM files. TODO: check type of field, if uint8 convert</span>
+0037 <span class="comment">%   it to whatever is expected.</span>
+0038 <span class="comment">% ------------------------------------------------------------------------</span>
+0039 <span class="comment">% WAD MR</span>
+0040 <span class="comment">% file: WAD_MR_B0_uniformity</span>
+0041 <span class="comment">%</span>
+0042 <span class="comment">% ------------------------------------------------------------------------</span>
+0043 <span class="comment">% VUmc, Amsterdam, NL / Joost Kuijer / jpa.kuijer@vumc.nl</span>
+0044 <span class="comment">% 2009-12-22 / JK</span>
+0045 <span class="comment">% first version implemented from Eline Verwer's code.</span>
+0046 <span class="comment">% ------------------------------------------------------------------------</span>
+0047 <span class="comment">% 2010-04-20 / JK</span>
+0048 <span class="comment">% V0.94: added support for Philips double-echo GRE</span>
+0049 <span class="comment">% ------------------------------------------------------------------------</span>
+0050 <span class="comment">% 2012-08-13 / JK</span>
+0051 <span class="comment">% V0.95</span>
+0052 <span class="comment">% - adapted to WAD framework</span>
+0053 <span class="comment">% - import of phase images in separate &quot;import&quot; function, configurable</span>
+0054 <span class="comment">%   through the &lt;type&gt; parameter. The actual function name gets a prefix</span>
+0055 <span class="comment">%   &quot;WAD_MR_B0_read&quot;.</span>
+0056 <span class="comment">% ------------------------------------------------------------------------</span>
+0057 <span class="comment">% 20131127 / JK</span>
+0058 <span class="comment">% V1.1</span>
+0059 <span class="comment">% - new (v1.1) style action limits</span>
+0060 <span class="comment">% ------------------------------------------------------------------------</span>
+0061 <span class="comment">% 20140207 / JK</span>
+0062 <span class="comment">% V1.1.1</span>
+0063 <span class="comment">% - support for B0 maps in ppm or Hz</span>
+0064 <span class="comment">% ------------------------------------------------------------------------</span>
+0065 
+0066 <span class="comment">% ----------------------</span>
+0067 <span class="comment">% GLOBALS</span>
+0068 <span class="comment">% ----------------------</span>
+0069 <span class="comment">%global WAD</span>
+0070 
+0071 <span class="comment">% version info</span>
+0072 my.name = <span class="string">'WAD_MR_B0_uniformity'</span>;
+0073 my.version = <span class="string">'1.1.1'</span>;
+0074 my.date = <span class="string">'20140207'</span>;
+0075 <a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [<span class="string">'Module '</span> my.name <span class="string">' Version '</span> my.version <span class="string">' ('</span> my.date <span class="string">')'</span>] );
+0076 
+0077 
+0078 
+0079 quiet = 1;
+0080 <span class="comment">% create figure for B0 map on screen</span>
+0081 <span class="keyword">if</span> quiet 
+0082     fig_visible = <span class="string">'off'</span>;
+0083 <span class="keyword">else</span>
+0084     fig_visible = <span class="string">'on'</span>;
+0085 <span class="keyword">end</span>
+0086 isInteractive = false;
+0087 
+0088 
+0089 
+0090 <span class="comment">% ----------------------------------------------------</span>
+0091 <span class="comment">% defines for analysis</span>
+0092 <span class="comment">% ----------------------------------------------------</span>
+0093 szROI = 0.95; <span class="comment">% diameter of ROI relative to diameter of phantom</span>
+0094 ignoreTop = 0.8; <span class="comment">% top part of ROI to be ignored (air bubble), relative to ROI size</span>
+0095 
+0096 
+0097 
+0098 <span class="comment">% display waitbar in interactive mode</span>
+0099 <span class="keyword">if</span> isInteractive, h = waitbar( 0, <span class="string">'Calculating B0 uniformity...'</span> ); <span class="keyword">end</span>
+0100 
+0101 
+0102 <span class="comment">% check param for import function</span>
+0103 <span class="keyword">if</span> ~isfield( sParams, <span class="string">'type'</span> ) || isempty( sParams.type )
+0104     <a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">' : Import function type not defined in configuration!'</span> ], 1 );
+0105     <span class="keyword">return</span>
+0106 <span class="keyword">end</span>    
+0107     
+0108 <span class="comment">% check if type is function (in a .m file) with configured name exists</span>
+0109 importFuncName = [ <span class="string">'WAD_MR_B0_read'</span> sParams.type ];
+0110 <span class="keyword">if</span> exist( importFuncName, <span class="string">'file'</span> ) ~= 2
+0111     <span class="comment">% funtion does not exist</span>
+0112     <a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">': ERROR: Configured import function named &quot;'</span> importFuncName <span class="string">'&quot; does not exist!'</span> ], 1 );
+0113     <span class="keyword">return</span>
+0114 <span class="keyword">end</span>
+0115 <span class="comment">% construct function handle</span>
+0116 importfh = str2func( importFuncName );
+0117 
+0118 <span class="comment">% import images</span>
+0119 <span class="keyword">try</span>
+0120     [magnitude, phase] = importfh( i_iSeries, sSeries, sParams );
+0121 <span class="keyword">catch</span> err
+0122     <a href="../WAD/WAD_ErrorMsg.html" class="code" title="function WAD_ErrorMsg( name, mymessage, err )">WAD_ErrorMsg</a>( my.name, <span class="string">'ERROR during reading/conversion of phase map.'</span>, err );
+0123     <span class="keyword">return</span>
+0124 <span class="keyword">end</span>
+0125 
+0126 <span class="keyword">if</span> isempty( magnitude ) || isempty( phase )
+0127     <span class="comment">% didn't get results back</span>
+0128     <a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">': no magnitude or phase data read for quantification.'</span> ], 1 );
+0129     <span class="keyword">return</span>
+0130 <span class="keyword">end</span>
+0131 
+0132 <span class="comment">% check type of data, options are:</span>
+0133 <span class="comment">% - dPhi_rad: (wrapped) phase in radians [default]</span>
+0134 <span class="comment">% - dB0_ppm : B0 in ppm</span>
+0135 <span class="comment">% - dB0_Hz  : B0 in Hz</span>
+0136 <span class="keyword">if</span> ~isfield( phase, <span class="string">'type'</span> ) || isempty( phase.type )
+0137     <span class="comment">% apply default</span>
+0138     phase.type = <span class="string">'dPhi_rad'</span>;
+0139 <span class="keyword">end</span>
+0140 
+0141 <span class="comment">% consistency check</span>
+0142 <span class="keyword">if</span> ~isfield( phase, phase.type )
+0143     <span class="comment">% image data not consistent with give data type</span>
+0144     <a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">': consistency check failed! Phase type '</span> phase.type <span class="string">' but field phase.'</span> phase.type <span class="string">' doesn''t exist.'</span> ], 1 );
+0145     <span class="keyword">return</span>
+0146 <span class="keyword">end</span>
+0147 
+0148 
+0149 <span class="comment">% update waitbar</span>
+0150 <span class="keyword">if</span> isInteractive, waitbar( 0.2, h ); <span class="keyword">end</span>
+0151 
+0152 
+0153 <span class="comment">% ----------------------------------------------------</span>
+0154 <span class="comment">% find centre and diameter of phantom</span>
+0155 <span class="comment">% ----------------------------------------------------</span>
+0156 <span class="comment">% vind fantoom in magnitudeplaatje</span>
+0157 interpolPower=0;
+0158 quiet=1; <span class="comment">% no image from geometry fit</span>
+0159 
+0160 <span class="comment">% TO DO: WAD_MR_sizePos_pix reads the DICOM image again... avoid double read</span>
+0161 <span class="comment">% action...</span>
+0162 [diameter_pix, centre_pix ] = <a href="WAD_MR_privateSizePos_pix.html" class="code" title="function [diameter_pix, centre_pix, figureHandle ] = WAD_MR_privateSizePos_pix( sImage, sParams, quiet )">WAD_MR_privateSizePos_pix</a>( magnitude, interpolPower, quiet );
+0163 
+0164 <span class="comment">% update waitbar</span>
+0165 <span class="keyword">if</span> isInteractive, waitbar( 0.5, h ); <span class="keyword">end</span>
+0166 
+0167 <span class="comment">% definieer masker</span>
+0168 axis_x = floor( szROI * diameter_pix(1) / 2 );
+0169 axis_y = floor( szROI * diameter_pix(2) / 2 );
+0170 
+0171 [phase.masked, mask] = <a href="#_sub1" class="code" title="subfunction [B,M] = ROImask(a,b,cent,I,valfill)">ROImask</a>( axis_x, axis_y, centre_pix, phase.(phase.type), 0 );
+0172 
+0173 magnitude.masked = magnitude.image .* mask;
+0174 
+0175 <span class="comment">% ----------------------------------------------------</span>
+0176 <span class="comment">% haalt bovenste stuk fantoom af omdat daar afwijkende geometrie,</span>
+0177 <span class="comment">% anders gaat daarop berekening B0 uniformiteit en fase unwrapping mis</span>
+0178 <span class="comment">% LET OP: centre_pix heeft x en y omgedraaid... why??</span>
+0179 <span class="comment">% ----------------------------------------------------</span>
+0180 phasemask(:,:) = mask(:,:);
+0181 ignoreTopRows = floor( centre_pix(2) - ignoreTop*axis_x );
+0182 phasemask( 1:ignoreTopRows, : ) = 0;
+0183 
+0184 phase.masked = phase.masked .* phasemask;
+0185 
+0186 <span class="comment">% update waitbar</span>
+0187 <span class="keyword">if</span> isInteractive, waitbar( 0.6, h ); <span class="keyword">end</span>
+0188 
+0189 <span class="comment">% ----------------------------------------------------</span>
+0190 <span class="comment">% unwrappen</span>
+0191 <span class="comment">% ----------------------------------------------------</span>
+0192 <span class="comment">% procedure start in centerpixel van fantoom (aanname: geen wrapping nabij</span>
+0193 <span class="comment">% center pixel)</span>
+0194 x_pix=floor(centre_pix(1));
+0195 y_pix=floor(centre_pix(2));
+0196 
+0197 
+0198 <span class="comment">% ----------------------------------------------------</span>
+0199 <span class="comment">% bereken B0 in ppm</span>
+0200 <span class="comment">% ----------------------------------------------------</span>
+0201 magnet_T = phase.info.MagneticFieldStrength;  <span class="comment">% in Tesla</span>
+0202 
+0203 <span class="comment">% unwrapping fasehoek, en conversie naar B0 in ppm</span>
+0204 <span class="keyword">if</span> strcmp( phase.type, <span class="string">'dPhi_rad'</span> )
+0205     phase.unwrapped = <a href="#_sub2" class="code" title="subfunction [image_out] = unwrap2D(image_in, center)">unwrap2D</a>( phase.masked, [x_pix,y_pix]);
+0206     phase.maskedandunwrapped = phase.unwrapped .* phasemask;
+0207     <span class="comment">% update waitbar</span>
+0208     <span class="keyword">if</span> isInteractive, waitbar( 0.8, h ); <span class="keyword">end</span>
+0209 
+0210     gamma_rad_ms_T = 267513; <span class="comment">% 42576 * 2 * pi;  % gyromatric frequency in rad/ms*1/T</span>
+0211     dB0_T = phase.maskedandunwrapped / (gamma_rad_ms_T .* phase.dTE); <span class="comment">% in Tesla</span>
+0212     dB0_ppm = dB0_T / magnet_T * 1000000; <span class="comment">% in ppm</span>
+0213 <span class="keyword">elseif</span> strcmp( phase.type, <span class="string">'dB0_Hz'</span> )
+0214     <span class="comment">% Convert B0 in Hz to ppm</span>
+0215     gamma_Hz_T = 42.576E06;
+0216     dB0_ppm = ( phase.dB0_Hz ./ gamma_Hz_T ) ./ magnet_T * 1000000; <span class="comment">% in ppm</span>
+0217     dB0_ppm = dB0_ppm .* phasemask;
+0218 <span class="keyword">else</span>
+0219     <span class="comment">% For B0 mapin ppm: just apply the mask</span>
+0220     dB0_ppm = phase.dB0_ppm .* phasemask;
+0221 <span class="keyword">end</span>
+0222 
+0223 <span class="comment">% write B0 map to calculations log file</span>
+0224 hFig = figure( <span class="string">'Visible'</span>, fig_visible, <span class="string">'MenuBar'</span>, <span class="string">'none'</span>, <span class="string">'Name'</span>, <span class="string">'B0 map [ppm]'</span> );
+0225 <span class="comment">%imshow( dB0_ppm, [] ); % in ppm</span>
+0226 imagesc( dB0_ppm );
+0227 colormap(jet);
+0228 axis image
+0229 axis square
+0230 axis off
+0231 title(<span class="string">'B0 uniformity [ppm]'</span>, <span class="string">'Interpreter'</span>, <span class="string">'none'</span>);
+0232 colorbar
+0233 
+0234 <a href="../WAD/WAD_resultsAppendString.html" class="code" title="function WAD_resultsAppendString( level, value, description )">WAD_resultsAppendString</a>( 2, [<span class="string">'B0 map calculated from series: '</span> num2str(sSeries.number) ], <span class="string">'B0 uniformiteit'</span> );
+0235 <a href="../WAD/WAD_resultsAppendFigure.html" class="code" title="function WAD_resultsAppendFigure( level, handle, tag, description )">WAD_resultsAppendFigure</a>( 2, hFig, <span class="string">'B0map'</span>, <span class="string">'B0 uniformiteit'</span> );
+0236 
+0237 <span class="keyword">if</span> quiet
+0238     <span class="comment">% delete non-visible image</span>
+0239     delete( hFig );
+0240 <span class="keyword">end</span>
+0241 
+0242 <span class="comment">% update waitbar</span>
+0243 <span class="keyword">if</span> isInteractive, waitbar( 0.9, h ); <span class="keyword">end</span>
+0244 
+0245 <span class="comment">% ----------------------------------------------------</span>
+0246 <span class="comment">% bereken uniformiteit</span>
+0247 <span class="comment">% ----------------------------------------------------</span>
+0248 matrixsize_phase = size( dB0_ppm );
+0249 
+0250 smallest = +1.0E99; <span class="comment">% huge</span>
+0251 largest  = -1.0E99; <span class="comment">% negative huge</span>
+0252 
+0253 <span class="keyword">for</span> i=1:matrixsize_phase(1)
+0254     <span class="keyword">for</span> j=1:matrixsize_phase(2)
+0255         <span class="keyword">if</span> phasemask(i,j) == 1
+0256             <span class="keyword">if</span> dB0_ppm(i,j) &lt; smallest
+0257                 smallest = dB0_ppm(i,j);
+0258             <span class="keyword">end</span>
+0259             <span class="keyword">if</span> dB0_ppm(i,j) &gt; largest
+0260                 largest = dB0_ppm(i,j);
+0261             <span class="keyword">end</span>
+0262         <span class="keyword">end</span>
+0263     <span class="keyword">end</span>
+0264 <span class="keyword">end</span>
+0265 
+0266 <span class="comment">% update waitbar</span>
+0267 <span class="keyword">if</span> isInteractive, waitbar( 1.0, h ); <span class="keyword">end</span>
+0268 
+0269 
+0270 <span class="comment">% ----------------------------------------------------</span>
+0271 <span class="comment">% final result: difference in ppm</span>
+0272 <span class="comment">% ----------------------------------------------------</span>
+0273 B0_uniformity_ppm = largest - smallest; <span class="comment">% in ppm</span>
+0274 <a href="../WAD/WAD_resultsAppendFloat.html" class="code" title="function WAD_resultsAppendFloat( level, value, variable, unit, description, sLimits, limits_field_name )">WAD_resultsAppendFloat</a>( 1, B0_uniformity_ppm, <span class="string">'Uniformity'</span>, <span class="string">'ppm'</span>, <span class="string">'B0'</span> );
+0275 
+0276 <span class="comment">% log file</span>
+0277 <a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">':   B0 uniformity = '</span> num2str(B0_uniformity_ppm) <span class="string">' ppm'</span>] );
+0278 
+0279 
+0280 <span class="comment">% close waitbar in interactive mode</span>
+0281 <span class="keyword">if</span> isInteractive, close( h ), <span class="keyword">end</span>
+0282 
+0283 <span class="keyword">return</span>
+0284 <span class="keyword">end</span>
+0285 
+0286 
+0287 
+0288 <a name="_sub1" href="#_subfunctions" class="code">function [B,M] = ROImask(a,b,cent,I,valfill)</a>
+0289 <span class="comment">% -------------------------------------------------------------------------</span>
+0290 <span class="comment">% Creates an elliptical mask defined by paramaters a, b and cent. Multiples</span>
+0291 <span class="comment">% this mask to I and fills all pixels outside ellipse with valfill</span>
+0292 <span class="comment">% -------------------------------------------------------------------------</span>
+0293 centx = cent(1);
+0294 centy = cent(2);
+0295 [numr,numc] = size(I);
+0296 [x,y] = meshgrid( 1:numc, 1:numr );
+0297 M = double( ((x-centx).^2) ./ a.^2 + ((y-centy).^2) ./ b.^2 &lt;= 1 );
+0298 B = M .* I + ( 1.0 - M ) .* valfill;
+0299 <span class="keyword">end</span>
+0300 
+0301 
+0302 
+0303 <span class="comment">% -------------------------------------------------------------------------</span>
+0304 <a name="_sub2" href="#_subfunctions" class="code">function [image_out] = unwrap2D(image_in, center)</a>
+0305 <span class="comment">% in MatLab werkt de functie &quot;unwrap&quot; alleen van links naar rechts</span>
+0306 <span class="comment">% dit gaat mis als de waarde in het eerste pixel niet correct is</span>
+0307 <span class="comment">% aangezien aan de randen meer ruis te verwachten is, is ervoor gekozen om</span>
+0308 <span class="comment">% vanuit het centrum van het fantoom te unwrap-en.</span>
+0309 <span class="comment">% Allereest verticaal vanuit het centrum naar boven en naar beneden.</span>
+0310 <span class="comment">% Vervolgens vanuit deze ge-unwrapte kolom per element steeds naar links en naar rechts</span>
+0311 <span class="comment">% -------------------------------------------------------------------------</span>
+0312 image_out=image_in;
+0313 orientation=1;
+0314 
+0315 size_image=size(image_in);
+0316 
+0317 x=center(1);
+0318 y=center(2);
+0319 
+0320 col_end   = image_in(x:size_image(1),y); <span class="comment">% laatste deel kolom selecteren zodat center pixel eerste pixel</span>
+0321 col_start = flipud(image_in(1:x,y));     <span class="comment">% eerste deel kolom omkeren zodat centerpixel meest eerste pixel</span>
+0322 
+0323 <span class="comment">% beide delen unwrappen:</span>
+0324 result_end=unwrap(col_end,[],orientation);
+0325 result_start=unwrap(col_start,[],orientation);
+0326 
+0327 <span class="comment">%ge-unwrapte delen weer invoegen in uiteindelijke image:</span>
+0328 image_out(x:size_image(1),y)=result_end(:,:);
+0329 image_out(1:x-1,y)=flipud(result_start(2:x,1));
+0330 
+0331 <span class="comment">% in x-richting:</span>
+0332 <span class="keyword">for</span> count=1:size_image(1)
+0333     image_out=<a href="#_sub3" class="code" title="subfunction image_out = unwrap_line(image_out,x,y,size_image,orientation)">unwrap_line</a>(image_out(:,:),count,y,size_image,2);
+0334 <span class="keyword">end</span>
+0335 
+0336 <span class="keyword">end</span>
+0337 
+0338 
+0339 
+0340 
+0341 <span class="comment">% -------------------------------------------------------------------------</span>
+0342 <a name="_sub3" href="#_subfunctions" class="code">function image_out = unwrap_line(image_out,x,y,size_image,orientation)</a>
+0343 <span class="comment">% -------------------------------------------------------------------------</span>
+0344 row_end   = image_out( x, y:size_image(2) ); <span class="comment">% laatste deel rij selecteren zodat center pixel meest links</span>
+0345 row_start = fliplr( image_out( x, 1:y ) );   <span class="comment">% eerste deel rij omkeren zodat centerpixel meest links</span>
+0346 
+0347 <span class="comment">% beide delen unwrappen:</span>
+0348 result_end   = unwrap( row_end,   [], orientation);
+0349 result_start = unwrap( row_start, [], orientation);
+0350 
+0351 <span class="comment">% ge-unwrapte delen weer invoegen in uiteindelijke image:</span>
+0352 image_out(x, y:size_image(2))  = result_end( :,: );
+0353 image_out(x, 1:y-1          )  = fliplr( result_start( 1, 2:y ) );
+0354 <span class="keyword">end</span></pre></div>
+<hr><address>Generated on Fri 07-Aug-2015 09:34:21 by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" target="_parent">m2html</a></strong> &copy; 2005</address>
+</body>
+</html>

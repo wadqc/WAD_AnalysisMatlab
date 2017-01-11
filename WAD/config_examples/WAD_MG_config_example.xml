@@ -1,0 +1,185 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+    Configuratie voor WAD MG analyse module
+-->
+
+<WAD_MG_config>
+    <!-- naam van de configuratie -->
+    <name>Selenia</name>
+
+    <!-- beschrijving -->
+    <description>WAD MG configuratie voor VUmc Hologic Selenia</description>
+
+    <!-- versie / datum -->
+    <version>1.1.0 / 20131127</version>
+        
+    <!-- Logfile verbose options -->
+    <logverbose>
+	<!-- mode: 0 = quiet, 1 = to logfile, 2 = to screen, 3 = to log + screen -->
+	<mode>1</mode>
+	<!-- level: 1 = normal, 2 = output series search -->
+	<level>1</level>
+    </logverbose>
+
+
+<!-- *** ACTIE LIMIETEN *** -->
+    <grens>
+	<!-- EXPOSURE: 54 +/- 5% en 8% -->
+	<grootheid>Exposure</grootheid>
+	<eenheid>mAs</eenheid>
+	<omschrijving>AEC</omschrijving>
+	<grens_relatief_referentie>54</grens_relatief_referentie>
+	<grens_relatief_kritisch>8%</grens_relatief_kritisch>
+	<grens_relatief_acceptabel>5%</grens_relatief_acceptabel>
+    </grens>
+    <grens>
+        <!-- EXPOSURE INDEX: 413 +/- 5% en 8% -->
+	<grootheid>Exposure Index</grootheid>
+	<omschrijving>AEC</omschrijving>
+	<grens_relatief_referentie>413</grens_relatief_referentie>
+	<grens_relatief_kritisch>8%</grens_relatief_kritisch>
+	<grens_relatief_acceptabel>5%</grens_relatief_acceptabel>
+    </grens>
+    <grens>
+	<!-- EXPOSURE TIME: 640.4 +/- 20% en 30% -->
+	<grootheid>Exposure Time</grootheid>
+	<omschrijving>AEC</omschrijving>
+	<grens_relatief_referentie>640.4</grens_relatief_referentie>
+	<grens_relatief_kritisch>30%</grens_relatief_kritisch>
+	<grens_relatief_acceptabel>20%</grens_relatief_acceptabel>
+    </grens>
+    <grens>
+	<!-- ORGAN DOSE: 0.01 +/- 50% en 60% -->
+	<grootheid>Organ Dose</grootheid>
+	<omschrijving>AEC</omschrijving>
+	<grens_relatief_referentie>0.01</grens_relatief_referentie>
+	<grens_relatief_kritisch>60%</grens_relatief_kritisch>
+	<grens_relatief_acceptabel>50%</grens_relatief_acceptabel>
+    </grens>
+    <grens>
+	<!-- ENTRANCE DOSE: 11.8 +/- 50% en 60% -->
+	<grootheid>EntranceDose</grootheid>
+	<eenheid>mGy</eenheid>
+	<omschrijving>AEC</omschrijving>
+	<grens_relatief_referentie>11.8</grens_relatief_referentie>
+	<grens_relatief_kritisch>60%</grens_relatief_kritisch>
+	<grens_relatief_acceptabel>50%</grens_relatief_acceptabel>
+    </grens>
+    <grens>
+	<!-- KVP: 28 -->
+	<grootheid>kVp</grootheid>
+	<grens_kritisch_onder>28</grens_kritisch_onder>
+	<grens_kritisch_boven>28</grens_kritisch_boven>
+	<grens_acceptabel_onder>28</grens_acceptabel_onder>
+	<grens_acceptabel_boven>28</grens_acceptabel_boven>
+    </grens>
+
+
+    <grens>
+	<!-- MEAN: 580 +/- 10% en 15% -->
+	<grootheid>Mean</grootheid>
+	<omschrijving>Flatfield Global</omschrijving>
+	<grens_relatief_referentie>580</grens_relatief_referentie>
+	<grens_relatief_kritisch>15%</grens_relatief_kritisch>
+	<grens_relatief_acceptabel>10%</grens_relatief_acceptabel>
+    </grens>
+    <grens>
+	<!-- ROI SNR: 54.1 +/- 10% en 15% -->
+	<grootheid>SNR</grootheid>
+	<omschrijving>Flatfield ROI</omschrijving>
+	<grens_relatief_referentie>54.1</grens_relatief_referentie>
+	<grens_relatief_kritisch>15%</grens_relatief_kritisch>
+	<grens_relatief_acceptabel>10%</grens_relatief_acceptabel>
+    </grens>
+
+
+
+
+<!-- *** ACTIES *** -->
+
+<!--
+    Lijst van analyses
+    De configuratie is per Matlab functie:
+    - <name> naam van de Matlab functie (zie documentatie voor valide funties)
+    - <match> series description: indien gelijk wordt de functie gestart
+      <match field="SeriesDescription"> idem
+      <match type="DCM4CHEE" field="SeriesDescription"> idem
+      <match field="ImagesInSeries"> aantal beelden in de DICOM serie: indien gelijk wordt de functie gestart
+      <match type="DICOM" field="SequenceName"> DICOM veld inhoud: indien gelijk wordt de functie gestart
+      Valide "DCM4CHEE" velden (uit de DCM4CHEE database) zijn SeriesDescription en ImagesInSeries (aantal beelden in serie).
+      NB: test op DICOM veld is trager dan "interne" velden.
+    - optioneel: <resultsNamePrefix> plak tekst vooraan het veld "omschrijving" van het resultaat. Maakt het mogelijk om
+                 onderscheid te maken tussen meerdere acties met dezelfde naam, bijv. dezelfde analyse op verschillende DICOM
+		 series of dezelfde analyse met andere parameters, op hetzelfde DICOM beeld. Actielimieten kunnen gedefinieerd
+		 worden op de aangepaste naam (voeg dezelfde tekst toe bij <omschrijving>, de prefix wordt gevolgd door een spatie).
+    - optioneel: <params> configuratie parameters per funtie
+-->
+
+
+    <action>
+	<!-- AEC -->
+	<name>WAD_MG_AEC</name>
+	<!-- series selectie -->
+	<!-- SOP class ForPresentation -->
+	<match type="DICOM" field="MediaStorageSOPClassUID">1.2.840.10008.5.1.4.1.1.1.2.1</match>
+	<!-- AEC mode Auto Time -->
+	<match type="DICOM" field="ExposureControlMode">AUTO_TIME</match>
+	<!-- Molybdenum filter -->
+	<match type="DICOM" field="FilterMaterial">MOLYBDENUM</match>
+	<!-- parameters -->
+	<params>
+	    <!-- where to find the exposure index -->
+	    <EI_field>RelativeXrayExposure</EI_field>
+	</params>
+    </action>
+
+
+    <action>
+	<!-- FlatField -->
+	<name>WAD_MG_flatField</name>
+	<!-- series selectie -->
+	<!-- SOP class ForPresentation -->
+	<match type="DICOM" field="MediaStorageSOPClassUID">1.2.840.10008.5.1.4.1.1.1.2.1</match>
+	<!-- AEC mode Manual -->
+	<match type="DICOM" field="ExposureControlMode">MANUAL</match>
+	<!-- Molybdenum filter -->
+	<match type="DICOM" field="FilterMaterial">MOLYBDENUM</match>
+	<!-- parameters -->
+	<params>
+	    <!-- number of rows to skip in FlatField -->
+	    <!-- use "auto" to find the first non-constant pixel -->
+	    <skipRows>auto</skipRows>
+	    <!-- relative threshold for deviating pixels in FlatField -->
+	    <threshold>0.2</threshold>
+	    <!-- relative threshold for deviating ROIs in FlatField -->
+	    <SNRthreshold>0.2</SNRthreshold>
+	</params>
+    </action>
+
+
+    <!-- Example how to run same analysis on another DICOM image in the study
+         Note the use of the optional tag <resultsNamePrefix> to get a unique description
+	 for this series. For corresponging action limits add the same tag (separated by single space).
+	 In this example that would be <omschrijving>Rh AEC</omschrijving>  -->
+    <action>
+	<!-- AEC -->
+	<name>WAD_MG_AEC</name>
+	<!-- series selectie -->
+	<!-- SOP class ForPresentation -->
+	<match type="DICOM" field="MediaStorageSOPClassUID">1.2.840.10008.5.1.4.1.1.1.2.1</match>
+	<!-- AEC mode Auto Time -->
+	<match type="DICOM" field="ExposureControlMode">AUTO_TIME</match>
+	<!-- Rhodium filter -->
+	<match type="DICOM" field="FilterMaterial">RHODIUM</match>
+	<!-- Add prefix to results description to distinguish from analysis on Mo -->
+	<resultsNamePrefix>Rh</resultsNamePrefix>
+	<!-- parameters -->
+	<params>
+	    <!-- where to find the exposure index -->
+	    <EI_field>RelativeXrayExposure</EI_field>
+	</params>
+    </action>
+
+
+</WAD_MG_config>

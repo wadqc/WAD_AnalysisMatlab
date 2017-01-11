@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+    Configuratie voor WAD demo analyse module
+-->
+
+<WAD_demo_config>
+    <!-- naam van de configuratie -->
+    <name>Demo1</name>
+
+    <!-- beschrijving -->
+    <description>WAD demo configuratie voor modaliteit X</description>
+
+    <!-- versie / datum -->
+    <version>1.1 / 20131127</version>
+        
+    <!-- Logfile verbose options -->
+    <logverbose>
+	<!-- mode: 0 = quiet, 1 = to logfile, 2 = to screen, 3 = to log + screen -->
+	<mode>1</mode>
+	<!-- level: 1 = normal, 2 = output series search -->
+	<level>1</level>
+    </logverbose>
+
+
+    <!-- *** ACTIELIMIETEN *** -->
+
+    <grens>
+        <!-- SIGNAL MEAN: 150 +/- 10% en 20% -->
+	<omschrijving>Signal</omschrijving>
+	<grootheid>Mean</grootheid>
+	<grens_relatief_referentie>150</grens_relatief_referentie>
+	<grens_relatief_kritisch>20%</grens_relatief_kritisch>
+	<grens_relatief_acceptabel>10%</grens_relatief_acceptabel>
+
+	<!-- alternatieve formuleringen met zelfde resultaat
+	*** relatief verschil ***
+	NB: let op syntax verschil, hieronder wordt geen %-teken gebruikt!
+	<grens_relatief_referentie>150</grens_relatief_referentie>
+	<grens_relatief_kritisch>30</grens_relatief_kritisch>
+	<grens_relatief_acceptabel>15</grens_relatief_acceptabel>
+	
+	*** absolute grenzen ***
+	<grens_kritisch_onder>120</grens_kritisch_onder>
+	<grens_kritisch_boven>180</grens_kritisch_boven>
+	<grens_acceptabel_onder>135</grens_acceptabel_onder>
+	<grens_acceptabel_boven>165</grens_acceptabel_boven>
+	-->
+    </grens>
+
+
+    <grens>
+        <!-- SIGNAL SD: max 10 en 20 % (NB: eenheid is %, limieten absoluut (dus ook in %)) -->
+	<omschrijving>Signal</omschrijving>
+	<grootheid>Relative SD</grootheid>
+	<eenheid>%</eenheid>
+	<grens_kritisch_onder>0</grens_kritisch_onder>
+	<grens_kritisch_boven>20</grens_kritisch_boven>
+	<grens_acceptabel_onder>0</grens_acceptabel_onder>
+	<grens_acceptabel_boven>10</grens_acceptabel_boven>
+    </grens>
+
+
+
+
+<!--
+    Lijst van analyses
+    De configuratie is per Matlab functie:
+    - <name> naam van de Matlab functie (zie documentatie voor valide funties)
+    - optioneel: <match> series description: indien gelijk wordt de functie gestart
+      <match field="SeriesDescription"> idem
+      <match type="DCM4CHEE" field="SeriesDescription"> idem
+      <match field="ImagesInSeries"> aantal beelden in de DICOM serie: indien gelijk wordt de functie gestart
+      <match type="DICOM" field="SequenceName"> DICOM veld inhoud: indien gelijk wordt de functie gestart
+      Valide "DCM4CHEE" velden (uit de DCM4CHEE database) zijn SeriesDescription en ImagesInSeries (aantal beelden in serie).
+      NB: test op DICOM veld is trager dan "interne" velden.
+      NB: als <match> wordt weggelaten, dan een match met elke serie
+    - optioneel: <autoComment> kopieer een tekst of float DICOM veld naar resultaten, bijv StudyComment
+    - optioneel: <resultsNamePrefix> plak tekst vooraan het veld "omschrijving" van het resultaat. Maakt het mogelijk om
+                 onderscheid te maken tussen meerdere acties met dezelfde naam, bijv. dezelfde analyse op verschillende DICOM
+		 series of dezelfde analyse met andere parameters, op hetzelfde DICOM beeld. Actielimieten kunnen gedefinieerd
+		 worden op de aangepaste naam (voeg dezelfde tekst toe bij <omschrijving>, de prefix wordt gevolgd door een spatie).
+    - optioneel: <params> configuratie parameters per funtie
+-->
+
+
+
+    <!-- *** ACTIES *** -->
+
+    <action>
+	<!-- actionOne -->
+	<name>WAD_demo_actionOne</name>
+	<!-- toon DICOM veld StudyComment in resultaten -->
+	<autoComment>
+	    <description>QC Study Comment</description>
+	    <field>StudyComment</field>
+	    <level>1</level>
+	</autoComment>
+    </action>
+
+
+    <action>
+	<!-- actionTwo -->
+	<name>WAD_demo_actionTwo</name>
+	<!-- series selectie -->
+	<match>B0_MAP</match>
+	<!-- optioneel: <resultsNamePrefix>, zie uitleg hierboven -->
+	<!-- parameters -->
+	<params>
+	    <!-- ROI definition, pixel index starts with 1 (not 0) -->
+	    <Xmin>32</Xmin>
+	    <Xmax>64</Xmax>
+	    <Ymin>60</Ymin>
+	    <Ymax>80</Ymax>
+	</params>
+    </action>
+
+</WAD_demo_config>

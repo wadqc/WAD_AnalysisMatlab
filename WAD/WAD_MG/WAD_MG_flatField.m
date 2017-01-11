@@ -2,7 +2,7 @@
 % WAD_MG is a mammography analysis module written for IQC.
 % NVKF WAD IQC software is a framework for automatic analysis of DICOM objects.
 % 
-% Copyright 2012-2013  Joost Kuijer / jpa.kuijer@vumc.nl
+% Copyright 2012-2016  Joost Kuijer / jpa.kuijer@vumc.nl
 % 
 % 
 % This program is free software: you can redistribute it and/or modify
@@ -19,7 +19,7 @@
 % along with this program.  If not, see <http://www.gnu.org/licenses/>.
 % ------------------------------------------------------------------------
 
-function WAD_MG_flatField( i_iSeries, sSeries, sParams, sLimits )
+function WAD_MG_flatField( i_iSeries, sSeries, sParams )
 % Implementation of the program flatfield.exe as distributed by EUREF.
 % The MG image is subdevided into square ROI's, and for each ROI the mean
 % and variance are calculated. Then the pixels deviating more than a certain
@@ -39,6 +39,16 @@ function WAD_MG_flatField( i_iSeries, sSeries, sParams, sLimits )
 % 2012-08-14 / JK
 % Adapted to WAD framework
 % ------------------------------------------------------------------------
+% 20131127 / JK
+% Support new (v1.1) style action limits
+% ------------------------------------------------------------------------
+% 20160330 / HK / JK
+% Changed definition of ROI SNR:
+% - old: average variance over ROIs to calculate SNR
+% - new: average SD over ROIs to calculate SNR
+% New definition has slightly different SNR when noise is inhomogeneous
+% over the detector.
+% ------------------------------------------------------------------------
 
 
 % ----------------------
@@ -48,8 +58,8 @@ function WAD_MG_flatField( i_iSeries, sSeries, sParams, sLimits )
 
 % version info
 my.name = 'WAD_MG_flatField';
-my.version = '1.0';
-my.date = '20120813';
+my.version = '1.1';
+my.date = '20160330';
 WAD_vbprint( ['Module ' my.name ' Version ' my.version ' (' my.date ')'] );
 
 
@@ -58,6 +68,9 @@ isInteractive = false;
 
 % image number?
 ci = 1;
+
+% limit of number of deviating pixels
+maxNumPix = 200;
 
 
 % load image
@@ -186,7 +199,6 @@ roiSNRsy = zeros(nRoiY+1,nRoiX+1);
 roiSNR   = zeros(nRoiY+1,nRoiX+1);
 
 % loop over ROI's
-maxNumPix = 200;
 for ix = 1:nRoiX+1
     % update waitbar
     if isInteractive, waitbar( ix/(nRoiX+1), h ); end
@@ -271,7 +283,10 @@ end
 % export results, only averaged ROI SNR and number of deviating pixels goes into results database
 roi.mean = roi.sumMean ./ roi.nRoi;
 roi.SD   = sqrt( roi.sumVar ./ roi.nRoi );
-SNR_ROI  = roi.mean ./ roi.SD;
+% Changed 24-3-2016 / HK: new definition of SNR_ROI.
+%SNR_ROI  = roi.mean ./ roi.SD;
+SNR_ROI = mean2( roiSNR );
+
 if roi.threshold > 0
     numDeviatingPix = nSievedDevPix;
 end
@@ -314,18 +329,18 @@ if isInteractive, close(h), end
 % write results
 WAD_resultsAppendString( 2, ['Analysis on series ' num2str( sSeries.number ) ' - image ' num2str(ci)], 'Flatfield' );
 % global stats
-WAD_resultsAppendFloat( 1, theMean, 'Mean', [], 'Flatfield Global', sLimits, 'mean' );
-WAD_resultsAppendFloat( 1, SD, 'SD', [], 'Flatfield Global', sLimits, 'SD' );
-WAD_resultsAppendFloat( 1, SNR, 'SNR', [], 'Flatfield Global', sLimits, 'SNR' );
+WAD_resultsAppendFloat( 1, theMean, 'Mean', [], 'Flatfield Global' );
+WAD_resultsAppendFloat( 1, SD, 'SD', [], 'Flatfield Global' );
+WAD_resultsAppendFloat( 1, SNR, 'SNR', [], 'Flatfield Global' );
 % ROI stats
-WAD_resultsAppendFloat( 2, roi.mean, 'Mean', [], 'Flatfield ROI', sLimits, 'mean_ROI' );
-WAD_resultsAppendFloat( 2, roi.SD, 'SD', [], 'Flatfield ROI', sLimits, 'SD_ROI' );
-WAD_resultsAppendFloat( 1, SNR_ROI, 'SNR', [], 'Flatfield ROI', sLimits, 'SNR_ROI' );
+WAD_resultsAppendFloat( 2, roi.mean, 'Mean', [], 'Flatfield ROI' );
+WAD_resultsAppendFloat( 2, roi.SD, 'SD', [], 'Flatfield ROI' );
+WAD_resultsAppendFloat( 1, SNR_ROI, 'SNR', [], 'Flatfield ROI' );
 
 % report stuff related to deviating pixels only if threshold was defined
 if roi.threshold > 0
     WAD_resultsAppendString( 2, ['Threshold for deviating pixels set at ' num2str(roi.threshold*100) '%.'], 'Flatfield' );
-    WAD_resultsAppendFloat( 1, numDeviatingPix, 'Deviating', 'pixels', 'Flatfield Deviating Pixels', sLimits, 'numDeviatingPix' );
+    WAD_resultsAppendFloat( 1, numDeviatingPix, 'Deviating', 'pixels', 'Flatfield Deviating Pixels' );
 
     % write deviating pixel coordinates to calculation log file
     WAD_resultsAppendString( 2, 'Deviating pixels (Coordinates in pixels starting at top-left corner)', 'Flatfield' );
@@ -363,7 +378,8 @@ if roi.threshold > 0
     % - reduce image size: show only one in imDispPx pixels
     % - with +/- 4 SD full scale mapping
     imDispPx = 5;
-    imshow( img(1:imDispPx:end,1:imDispPx:end), [theMean-4*SD theMean+4*SD] );
+    %imshow( img(1:imDispPx:end,1:imDispPx:end), [theMean-4*SD theMean+4*SD] );
+    imagesc( img(1:imDispPx:end,1:imDispPx:end), [theMean-4*SD theMean+4*SD] );
     axis image
     axis square
     axis off
@@ -396,7 +412,7 @@ end
 
 if SNRthreshold > 0
     WAD_resultsAppendString( 2, ['Threshold for deviating ROIs set at ' num2str(SNRthreshold*100) '%.'], 'Flatfield' );
-    WAD_resultsAppendFloat( 1, numDeviatingRoi, 'Deviating', 'ROIs', 'Flatfield Deviation ROI', sLimits, 'numDeviatingRoi' );
+    WAD_resultsAppendFloat( 1, numDeviatingRoi, 'Deviating', 'ROIs', 'Flatfield Deviation ROI' );
 else % deviating ROIs were not calculated...
     WAD_resultsAppendString( 2, 'Threshold for deviating ROIs was not defined, no deviating ROIs calculated.', 'Flatfield' );
 end

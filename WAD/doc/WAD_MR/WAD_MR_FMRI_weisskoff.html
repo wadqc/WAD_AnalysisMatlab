@@ -1,0 +1,444 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+                "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html>
+<head>
+  <title>Description of WAD_MR_FMRI_weisskoff</title>
+  <meta name="keywords" content="WAD_MR_FMRI_weisskoff">
+  <meta name="description" content="------------------------------------------------------------------------">
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+  <meta name="generator" content="m2html &copy; 2005 Guillaume Flandin">
+  <meta name="robots" content="index, follow">
+  <link type="text/css" rel="stylesheet" href="../m2html.css">
+  <script type="text/javascript">
+    if (top.frames.length == 0) { top.location = "../index.html"; };
+  </script>
+</head>
+<body>
+<a name="_top"></a>
+<!-- menu.html WAD_MR -->
+<h1>WAD_MR_FMRI_weisskoff
+</h1>
+
+<h2><a name="_name"></a>PURPOSE <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="box"><strong>------------------------------------------------------------------------</strong></div>
+
+<h2><a name="_synopsis"></a>SYNOPSIS <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="box"><strong>function WAD_MR_FMRI_weisskoff( i_iSeries, sSeries, sParams ) </strong></div>
+
+<h2><a name="_description"></a>DESCRIPTION <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="fragment"><pre class="comment"> ------------------------------------------------------------------------
+ WAD_MR is an MRI analysis module written for WAD-QC software.
+ NVKF WAD-QC software is a framework for automatic analysis of DICOM objects.
+ 
+ Copyright 2012-2015  Joost Kuijer / jpa.kuijer@vumc.nl
+ 
+ 
+ This program is free software: you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation, either version 3 of the License, or
+ (at your option) any later version.
+ 
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+ 
+ You should have received a copy of the GNU General Public License
+ along with this program.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+ ------------------------------------------------------------------------</pre></div>
+
+<!-- crossreference -->
+<h2><a name="_cross"></a>CROSS-REFERENCE INFORMATION <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+This function calls:
+<ul style="list-style-image:url(../matlabicon.gif)">
+<li><a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>	------------------------------------------------------------------------</li><li><a href="../WAD/myErrordlg.html" class="code" title="function h = myErrordlg(isInteractive,varargin)">myErrordlg</a>	------------------------------------------------------------------------</li><li><a href="../WAD/myWarndlg.html" class="code" title="function h = myWarndlg(isInteractive,varargin)">myWarndlg</a>	------------------------------------------------------------------------</li></ul>
+This function is called by:
+<ul style="list-style-image:url(../matlabicon.gif)">
+</ul>
+<!-- crossreference -->
+
+<h2><a name="_subfunctions"></a>SUBFUNCTIONS <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<ul style="list-style-image:url(../matlabicon.gif)">
+<li><a href="#_sub1" class="code">function F = TSNR( x, n )</a></li><li><a href="#_sub2" class="code">function F = logTSNR( x, n )</a></li></ul>
+
+<h2><a name="_source"></a>SOURCE CODE <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="fragment"><pre>0001 <span class="comment">% ------------------------------------------------------------------------</span>
+0002 <span class="comment">% WAD_MR is an MRI analysis module written for WAD-QC software.</span>
+0003 <span class="comment">% NVKF WAD-QC software is a framework for automatic analysis of DICOM objects.</span>
+0004 <span class="comment">%</span>
+0005 <span class="comment">% Copyright 2012-2015  Joost Kuijer / jpa.kuijer@vumc.nl</span>
+0006 <span class="comment">%</span>
+0007 <span class="comment">%</span>
+0008 <span class="comment">% This program is free software: you can redistribute it and/or modify</span>
+0009 <span class="comment">% it under the terms of the GNU General Public License as published by</span>
+0010 <span class="comment">% the Free Software Foundation, either version 3 of the License, or</span>
+0011 <span class="comment">% (at your option) any later version.</span>
+0012 <span class="comment">%</span>
+0013 <span class="comment">% This program is distributed in the hope that it will be useful,</span>
+0014 <span class="comment">% but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
+0015 <span class="comment">% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
+0016 <span class="comment">% GNU General Public License for more details.</span>
+0017 <span class="comment">%</span>
+0018 <span class="comment">% You should have received a copy of the GNU General Public License</span>
+0019 <span class="comment">% along with this program.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
+0020 <span class="comment">% ------------------------------------------------------------------------</span>
+0021 
+0022 <a name="_sub0" href="#_subfunctions" class="code">function WAD_MR_FMRI_weisskoff( i_iSeries, sSeries, sParams )</a>
+0023 <span class="comment">% FMRI-specific QC procedures on EPI images</span>
+0024 <span class="comment">% ------------------------------------------------------------------------</span>
+0025 <span class="comment">% WAd MR</span>
+0026 <span class="comment">% file: WAD_MR_FMRI_weisskoff</span>
+0027 <span class="comment">% ------------------------------------------------------------------------</span>
+0028 <span class="comment">% VUmc, Amsterdam, NL / Joost Kuijer / jpa.kuijer@vumc.nl</span>
+0029 <span class="comment">% 2010-11-10 / JK</span>
+0030 <span class="comment">% first version</span>
+0031 <span class="comment">% ------------------------------------------------------------------------</span>
+0032 <span class="comment">% VUmc, Amsterdam, NL / Joost Kuijer / jpa.kuijer@vumc.nl</span>
+0033 <span class="comment">% 2012-12-05 / JK</span>
+0034 <span class="comment">% adapted to WAD</span>
+0035 <span class="comment">% ------------------------------------------------------------------------</span>
+0036 <span class="comment">% Implementation of QC tests for fMRI purposes:</span>
+0037 <span class="comment">% Relevant references:</span>
+0038 <span class="comment">% - Lee Friedman and Gary H. Glover. Report on a Multicenter fMRI Quality</span>
+0039 <span class="comment">%   Assurance Protocol. J Magn Res Imag 23:827–839 (2006)</span>
+0040 <span class="comment">% - Weisskoff RM. Simple measurement of scanner stability for functional NMR</span>
+0041 <span class="comment">%   imaging of activation in the brain. Magn Reson Med 1996;36:643-645</span>
+0042 <span class="comment">% - Bodurka et al, ISMRM 14 (2006), p. 1094</span>
+0043 
+0044 
+0045 <span class="comment">% produce a figure on the screen or be quiet...</span>
+0046 <span class="comment">%quiet = true;</span>
+0047 isInteractive = true;
+0048 
+0049 
+0050 <span class="comment">% version info</span>
+0051 my.name = <span class="string">'WAD_MR_FMRI_weisskoff'</span>;
+0052 my.version = <span class="string">'0.2'</span>;
+0053 my.date = <span class="string">'20150108'</span>;
+0054 <a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [<span class="string">'Module '</span> my.name <span class="string">' Version '</span> my.version <span class="string">' ('</span> my.date <span class="string">')'</span>] );
+0055 
+0056 
+0057 <span class="comment">% *** TODO: configurable parameters ***</span>
+0058 <span class="comment">% *** TODO: get from sParams (from configuration XML file) ***</span>
+0059 
+0060 <span class="comment">% slice to analyse</span>
+0061 iSlice = 12;
+0062 
+0063 <span class="comment">% ROI size for summary statistics (SNR, FSNR etc)</span>
+0064 roisize = 20; <span class="comment">% size</span>
+0065 
+0066 <span class="comment">% max ROI size for Weisskoff plot</span>
+0067 WK_MxRoisize = 20;
+0068 
+0069 <span class="comment">% detrending: order of polynomal fit</span>
+0070 detrendOrder = 5;
+0071 
+0072 <span class="comment">% % ---------------------------------------------</span>
+0073 <span class="comment">% % select the plain water image without features</span>
+0074 <span class="comment">% % ---------------------------------------------</span>
+0075 <span class="comment">% % default: use configured slice</span>
+0076 <span class="comment">% inum = handles.config.MR.img4SNR;</span>
+0077 <span class="comment">% % may be overruled by series config...</span>
+0078 <span class="comment">% if isfield( handles.imdb.series(cs), 'img4SNR' ) &amp;&amp; ~isempty( handles.imdb.series(cs).img4SNR )</span>
+0079 <span class="comment">%     inum = handles.imdb.series(cs).img4SNR;</span>
+0080 <span class="comment">%     % handle specials...</span>
+0081 <span class="comment">%     if inum == handles.config.MR.combinedImageFirst</span>
+0082 <span class="comment">%         inum = 1;</span>
+0083 <span class="comment">%     elseif inum == handles.config.MR.combinedImageLast</span>
+0084 <span class="comment">%         inum = length( handles.imdb.series(cs).image );</span>
+0085 <span class="comment">%     end</span>
+0086 <span class="comment">% end</span>
+0087 <span class="comment">% % is it just one slice? then we use it...</span>
+0088 <span class="comment">% if length( handles.imdb.series(cs).image ) == 1</span>
+0089 <span class="comment">%     inum = 1;</span>
+0090 <span class="comment">% end</span>
+0091 <span class="comment">%</span>
+0092 
+0093 <span class="comment">% list of instance numbers</span>
+0094 instanceNumber = [sSeries.instance(:).number];
+0095 nImages = length( instanceNumber );
+0096 <a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [<span class="string">'Number of images: '</span> num2str(nImages) ] );
+0097 
+0098 <span class="comment">% sort instances to instance number</span>
+0099 [ sorted_nums, instanceNumSortedIndex ] = sort( instanceNumber );
+0100 
+0101 <span class="comment">% initial volumes (measurements, acquisitions, samples, whatever you like to call them) to skip</span>
+0102 nVolumesToSkip = 2;
+0103 <a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [<span class="string">'Skipping first '</span> num2str(nVolumesToSkip) <span class="string">' volumes.'</span>] );
+0104 
+0105 <span class="comment">% Probe first image</span>
+0106 infoFirst = dicominfo( sSeries.instance( instanceNumSortedIndex(1) ).filename );
+0107 
+0108 nVolumesTotal = infoFirst.NumberOfTemporalPositions;
+0109 nVolumes = nVolumesTotal - nVolumesToSkip;
+0110 
+0111 <span class="keyword">if</span> mod( nImages, nVolumesTotal )
+0112     <a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( <span class="string">'Warning: FMRI number of images not a multiple of number of volumes.'</span> );
+0113     <a href="../WAD/myWarndlg.html" class="code" title="function h = myWarndlg(isInteractive,varargin)">myWarndlg</a>( isInteractive, <span class="string">'Number of images not a multiple of number of volumes'</span>, <span class="string">'FMRI'</span>, <span class="string">'on'</span> );
+0114 <span class="keyword">end</span>
+0115 
+0116 nSlices = floor( nImages ./ nVolumesTotal );
+0117 
+0118 <span class="comment">% Check: non-square images not tested yet...</span>
+0119 <span class="keyword">if</span> infoFirst.Width ~= infoFirst.Height
+0120     <a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( <span class="string">'Error: FMRI number of images not a multiple of number of volumes.'</span> );
+0121     <a href="../WAD/myErrordlg.html" class="code" title="function h = myErrordlg(isInteractive,varargin)">myErrordlg</a>( isInteractive, <span class="string">'Sorry: non-square image matrix not supported yet.'</span>, <span class="string">'FMRI'</span>, <span class="string">'on'</span> );
+0122     <span class="keyword">return</span>
+0123 <span class="keyword">end</span>
+0124 
+0125 
+0126 <span class="comment">% allocate space for images</span>
+0127 <a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [ <span class="string">'Allocating space for images: '</span> num2str(nVolumes) <span class="string">' x '</span> num2str(infoFirst.Height) <span class="string">' x '</span> num2str(infoFirst.Width) ] );
+0128 imgs = zeros( nVolumes, infoFirst.Height, infoFirst.Width );
+0129 
+0130 
+0131 
+0132 SIMULATIONMODE = false;
+0133 
+0134 <span class="keyword">if</span> SIMULATIONMODE
+0135     <span class="comment">% generate random noise dataset</span>
+0136     <span class="comment">% Noise model from Bodurka et al, ISMRM 14 (2006), p. 1094</span>
+0137     <span class="comment">% TSRNn = n * SNR / { sqrt( 1 + (n*lambda*SNR) ^2 ) }</span>
+0138     simuSignal = 5000;
+0139     simuSNR = 250;
+0140     simuLambda = 0.0002;
+0141     imgs = simuSignal ./ simuSNR * randn(size(imgs)) + simuSignal;
+0142     <span class="keyword">for</span> v=1:nVolumes
+0143         imgs(v,:,:) = imgs(v,:,:) + simuLambda * simuSignal * randn(1,1);
+0144     <span class="keyword">end</span>
+0145 <span class="keyword">else</span>
+0146     <span class="comment">% read DICOM images</span>
+0147     <span class="comment">% display waitbar in interactive mode</span>
+0148     <span class="keyword">if</span> isInteractive, h = waitbar( 0, <span class="string">'Reading images...'</span> ); <span class="keyword">end</span>
+0149 
+0150     <span class="comment">%h1 = figure();</span>
+0151     <span class="comment">% loop over images</span>
+0152     i_icVol = 1;
+0153     <span class="comment">% Siemens / GE give all slices of a volume</span>
+0154     disp(<span class="string">'Siemens / GE / Toshiba slice/time order!!!'</span>)
+0155     <span class="keyword">for</span> i_icNum = iSlice + nVolumesToSkip*nSlices : nSlices : nImages
+0156     <span class="comment">% Philips give all time points of a slice</span>
+0157     <span class="comment">%disp('Philips slice/time order!!!')</span>
+0158     <span class="comment">%for i_icNum = 1 + iSlice*nVolumesTotal + nVolumesToSkip : (iSlice+1)*nVolumesTotal</span>
+0159         <span class="comment">%disp( i_icNum )</span>
+0160         <span class="comment">% read image</span>
+0161         img = dicomread( sSeries.instance( instanceNumSortedIndex(i_icNum) ).filename );
+0162         <span class="comment">%figure(h1);</span>
+0163         <span class="comment">%imshow(img,[])</span>
+0164         imgs( i_icVol, : , : ) = img;
+0165         i_icVol = i_icVol + 1;
+0166         <span class="comment">% update waitbar</span>
+0167         <span class="comment">% Siemens / GE</span>
+0168         <span class="keyword">if</span> isInteractive, waitbar( i_icNum / nImages, h ); <span class="keyword">end</span>
+0169         <span class="comment">% Philips</span>
+0170         <span class="comment">%if isInteractive, waitbar( i_icNum / nVolumes, h ); end</span>
+0171     <span class="keyword">end</span>
+0172     <span class="comment">%imshow(reshape(imgs(1,:,:),infoFirst.Height,infoFirst.Width),[])</span>
+0173 
+0174     <span class="comment">% close waitbar in interactive mode</span>
+0175     <span class="keyword">if</span> isInteractive, close( h ), <span class="keyword">end</span>
+0176 <span class="keyword">end</span>
+0177 
+0178 <span class="comment">% display waitbar in interactive mode</span>
+0179 <span class="keyword">if</span> isInteractive, h = waitbar( 0, <span class="string">'Calculating...'</span> ); <span class="keyword">end</span>
+0180 
+0181 disp( [<span class="string">'Fitted polynomal order for detrending: '</span> num2str(detrendOrder)] )
+0182 
+0183 <span class="comment">% square ROI for summary statistics</span>
+0184 disp( [<span class="string">'ROI size for summary statistics: '</span> num2str(roisize) <span class="string">' pixels'</span>] )
+0185 i_iRoiX = floor( (infoFirst.Width -roisize)/2 )+1 : ceil( (infoFirst.Width +roisize)/2 ); <span class="comment">% index</span>
+0186 i_iRoiY = floor( (infoFirst.Height-roisize)/2 )+1 : ceil( (infoFirst.Height+roisize)/2 ); <span class="comment">% index</span>
+0187 
+0188 <span class="comment">% Detrending of ROI time series</span>
+0189 <span class="comment">% time series of mean signal in ROI</span>
+0190 timeseriesRoiSignal = mean( mean( imgs( :, i_iRoiY, i_iRoiX ), 3), 2);
+0191 <span class="comment">% detrending with polynomal fit</span>
+0192 time_s = (0:nVolumes-1)' .* infoFirst.RepetitionTime ./ 1000;
+0193 [detrendCoeff, ~, muScale] = polyfit( time_s, timeseriesRoiSignal , detrendOrder);
+0194 detrendVal = polyval( detrendCoeff, time_s, [], muScale );
+0195 
+0196 <span class="comment">% trend is max difference in signal between start and end</span>
+0197 <span class="comment">% trend expressed as percentage of mean signal</span>
+0198 ROI_trend_percent = ( max(detrendVal) - min(detrendVal) ) ./ mean( timeseriesRoiSignal ) * 100;
+0199 disp( [<span class="string">'ROI trend      : '</span> num2str(ROI_trend_percent) <span class="string">' %'</span>] );
+0200 
+0201 <span class="comment">% fluctuation is SD of residual after detrending</span>
+0202 ROI_fluctuation = std( timeseriesRoiSignal - detrendVal ) ./ mean( timeseriesRoiSignal ) * 100;
+0203 disp( [<span class="string">'ROI fluctuation: '</span> num2str(ROI_fluctuation) <span class="string">' %'</span>] );
+0204 
+0205 
+0206 <span class="comment">% create ROI-signal detrended images</span>
+0207 imgs_ROI_detrended = zeros( nVolumes, infoFirst.Height, infoFirst.Width );
+0208 <span class="keyword">for</span> i_ix = 1:infoFirst.Width
+0209     <span class="keyword">for</span> i_iy = 1:infoFirst.Height
+0210         <span class="comment">% time series of pixel signal</span>
+0211         imgs_ROI_detrended( :, i_iy, i_ix ) = imgs( :, i_iy, i_ix ) - detrendVal;
+0212     <span class="keyword">end</span>
+0213 <span class="keyword">end</span>
+0214 
+0215 
+0216 <span class="comment">% create pixel-wise detrended images</span>
+0217 imgs_pix_detrended = zeros( nVolumes, infoFirst.Height, infoFirst.Width );
+0218 <a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( <span class="string">'Start pixel-wise detrending...'</span> );
+0219 time_s = (0:nVolumes-1)' .* infoFirst.RepetitionTime ./ 1000;
+0220 <span class="keyword">for</span> i_ix = 1:infoFirst.Width
+0221     <span class="keyword">for</span> i_iy = 1:infoFirst.Height
+0222         <span class="comment">% time series of pixel signal</span>
+0223         timeseriesPixelSignal = imgs( :, i_iy, i_ix );
+0224         <span class="comment">% mean signal</span>
+0225         meanPixelSignal = mean( timeseriesPixelSignal );
+0226         <span class="comment">% detrending with polynomal fit</span>
+0227         [detrendCoeff, ~, muScale] = polyfit( time_s, timeseriesPixelSignal - meanPixelSignal, detrendOrder);
+0228         imgs_pix_detrended( :, i_iy, i_ix ) = timeseriesPixelSignal - polyval( detrendCoeff, time_s, [], muScale );
+0229     <span class="keyword">end</span>
+0230 <span class="keyword">end</span>
+0231 
+0232 
+0233 <span class="comment">% mean is simply the mean of all images</span>
+0234 meanimg = mean( imgs );
+0235 
+0236 <span class="comment">% temporal flucturation noise: sd of residuals after detrending</span>
+0237 stdimg = std( imgs_pix_detrended );
+0238 
+0239 <span class="comment">% if the images in the timeseries exhibit no drift in amplitude or geometry,</span>
+0240 <span class="comment">% the noiseAvg image will display no structure from the phantom, and the</span>
+0241 <span class="comment">% variance in this image will be a measure of the intrinsic noise.</span>
+0242 meanOddimg = mean( imgs_pix_detrended(1:2:<span class="keyword">end</span>, :, :) );
+0243 meanEvenimg = mean( imgs_pix_detrended(2:2:<span class="keyword">end</span>, :, :) );
+0244 noiseAvgimg = meanOddimg - meanEvenimg;
+0245 
+0246 <span class="comment">% following fBIRN definition: signal fluctuation to noise ratio (sfnr)</span>
+0247 sfnrimg = meanimg ./ stdimg;
+0248 
+0249 
+0250 hFigStats = figure();
+0251 subplot(2,2,1)
+0252 imshow( reshape(meanimg(1,:,:),infoFirst.Height,infoFirst.Width), [] )
+0253 title( <span class="string">'Mean signal'</span> )
+0254 
+0255 subplot(2,2,2)
+0256 imshow( reshape(stdimg(1,:,:),infoFirst.Height,infoFirst.Width), [] )
+0257 title( <span class="string">'SD signal'</span> )
+0258 
+0259 subplot(2,2,3)
+0260 imshow( reshape(noiseAvgimg(1,:,:),infoFirst.Height,infoFirst.Width), [] )
+0261 title( <span class="string">'Mean noise'</span> )
+0262 
+0263 subplot(2,2,4)
+0264 imshow( reshape(sfnrimg(1,:,:),infoFirst.Height,infoFirst.Width), [] )
+0265 title( <span class="string">'SFNR = mean/SD'</span> )
+0266 
+0267 
+0268 <span class="comment">% TODO: ROI display on images for visual check.</span>
+0269 
+0270 <span class="comment">% ROI statistics</span>
+0271 meanroi = mean2( meanimg( 1, i_iRoiY, i_iRoiX ) );
+0272 sdnoise = std2( noiseAvgimg( 1, i_iRoiY, i_iRoiX ) );
+0273 
+0274 <span class="comment">% Noise image was averaged over nVolumes / 2, reducing the SD with factor</span>
+0275 <span class="comment">% sqrt( nVolumes / 2 ), and subtraction increases the SD with a factor</span>
+0276 <span class="comment">% sqrt( 2 ), gives total factor of 2 / sqrt( nVolumes )</span>
+0277 SNR = meanroi / ( sdnoise / 2 * sqrt( nVolumes ) );
+0278 disp( [<span class="string">'SNR : '</span> num2str(SNR)] )
+0279 <span class="comment">% signal fluctuation - to - noise ratio</span>
+0280 <span class="comment">% calculated over largest ROI size</span>
+0281 SFNR = mean2( sfnrimg( 1, i_iRoiY, i_iRoiX ) );
+0282 disp( [<span class="string">'SFNR : '</span> num2str(SFNR)] )
+0283 
+0284 
+0285 
+0286 hFigPlots1 = figure();
+0287 <span class="comment">% mean signal in ROI over time</span>
+0288 subplot(2, 1, 1)
+0289 plot( time_s, detrendVal, <span class="string">'- g'</span>, time_s, timeseriesRoiSignal, <span class="string">'- b'</span> );
+0290 title( <span class="string">'Mean ROI signal'</span> );
+0291 xlabel( <span class="string">'Time [s]'</span> )
+0292 ylabel( <span class="string">'Signal'</span> )
+0293 
+0294 <span class="comment">% spectrum of ROI signal</span>
+0295 subplot(2, 1, 2)
+0296 fSpectrum_Hz = (0:nVolumes-1)' ./ nVolumes ./ (infoFirst.RepetitionTime / 1000);
+0297 magnSpectrum = abs( fft( timeseriesRoiSignal - detrendVal ) );
+0298 plot( fSpectrum_Hz(1:nVolumes/2), magnSpectrum(1:nVolumes/2) / meanroi * 100, <span class="string">'- b'</span> );
+0299 title( <span class="string">'Spectrum of mean ROI signal'</span> );
+0300 xlabel( <span class="string">'Freq [Hz]'</span> )
+0301 ylabel( <span class="string">'Magnitude [%]'</span> )
+0302 
+0303 <span class="comment">% Weisskoff plot</span>
+0304 WK_Roisize = 1:WK_MxRoisize;
+0305 WK_F = zeros(1,WK_MxRoisize);
+0306 <span class="keyword">for</span> roisize = WK_Roisize
+0307     <span class="comment">% for ROI's smaller than max ROI size: move ROI over 20x20 pixel area</span>
+0308     <span class="comment">% and calculate average of</span>
+0309     <span class="comment">%pixToMove = floor( ( WK_MxRoisize - roisize ) /2 );</span>
+0310     pixToMove = 0;
+0311     <span class="comment">%disp( ['ROI size = ' num2str(roisize)] );</span>
+0312     count = 0;
+0313     <span class="keyword">for</span> roicentreX = -pixToMove : pixToMove
+0314         <span class="keyword">for</span> roicentreY = -pixToMove : pixToMove
+0315             i_iRoiX = floor( (infoFirst.Width  +roicentreX -roisize)/2 )+1 : ceil( (infoFirst.Width  +roicentreX +roisize)/2 ); <span class="comment">% index</span>
+0316             i_iRoiY = floor( (infoFirst.Height +roicentreY -roisize)/2 )+1 : ceil( (infoFirst.Height +roicentreY +roisize)/2 ); <span class="comment">% index</span>
+0317             <span class="comment">%disp( ['  X = ' num2str(i_iRoiX(1)) ':' num2str(i_iRoiX(end)) ' Y = ' num2str(i_iRoiY(1)) ':' num2str(i_iRoiY(end)) ] );</span>
+0318             <span class="comment">% time series of mean signal in ROI</span>
+0319             timeseriesRoiSignal = mean( mean( imgs_pix_detrended( :, i_iRoiY, i_iRoiX ), 3), 2);
+0320             WK_F(roisize) = WK_F(roisize) + std(timeseriesRoiSignal) ./ mean( timeseriesRoiSignal );
+0321             count = count + 1;
+0322         <span class="keyword">end</span>
+0323     <span class="keyword">end</span>
+0324     <span class="comment">%disp( ['  count = ' num2str(count)] );</span>
+0325     WK_F(roisize) = WK_F(roisize) ./ count;
+0326 <span class="keyword">end</span>
+0327 
+0328 decorrelationDistance_pix = WK_F(1) ./ WK_F(WK_MxRoisize);
+0329 disp( [<span class="string">'Decorrelation distance: '</span> num2str(decorrelationDistance_pix) <span class="string">' pixels'</span>] )
+0330 
+0331 <span class="comment">% Fit noise model from Bodurka et al, ISMRM 14 (2006), p. 1094</span>
+0332 <span class="comment">% TSRNn = n * SNR / { sqrt( 1 + (n*lambda*SNR) ^2 ) }</span>
+0333 x0 = [ SNR, 0 ]; <span class="comment">% function parameters: SNR and lambda*1E3</span>
+0334 lb = [0 0]; <span class="comment">% lower bound: log can't handle negative values</span>
+0335 ub = [];    <span class="comment">% upper bound: none</span>
+0336 [ x, resnorm ] = lsqcurvefit( @<a href="#_sub2" class="code" title="subfunction F = logTSNR( x, n )">logTSNR</a>, x0, WK_Roisize, log(WK_F), lb, ub );
+0337 noisemodelSNR = x(1);
+0338 noisemodelLamda = x(2) ./ 1E03;
+0339 disp( [<span class="string">'Noise model SNR: '</span> num2str(noisemodelSNR) <span class="string">' Lambda: '</span> num2str(noisemodelLamda) ] )
+0340 
+0341 
+0342 <span class="comment">% Theoretically 1/SNR should be equal to F(1).</span>
+0343 <span class="comment">% In case there is no noise correlation, F should decrease with</span>
+0344 <span class="comment">% sqrt(number_of_pix_in_ROI) and this equals the 1D ROI size.</span>
+0345 <span class="comment">% Therefore reference line is drawn as 1/SNR for F(1), devided by ROI size</span>
+0346 <span class="comment">% for ROI size &gt; 1.</span>
+0347 hFigPlots2 = figure();
+0348 <span class="comment">%loglog( WK_Roisize, (1/SNR) ./ double(WK_Roisize) * 100, '- g', WK_Roisize, TSNR(x,WK_Roisize) * 100, '-- g', WK_Roisize, WK_F * 100, '-ob' );</span>
+0349 loglog( WK_Roisize, WK_F(1) ./ double(WK_Roisize) * 100, <span class="string">'- g'</span>, WK_Roisize, <a href="#_sub1" class="code" title="subfunction F = TSNR( x, n )">TSNR</a>(x,WK_Roisize) * 100, <span class="string">'-- g'</span>, WK_Roisize, WK_F * 100, <span class="string">'-ob'</span> );
+0350 title( <span class="string">'Weisskoff plot'</span> );
+0351 xlabel( <span class="string">'Full ROI size [pix]'</span> )
+0352 ylabel( <span class="string">'Rel. STD [%]'</span> )
+0353 axis tight
+0354 <span class="comment">%xlim( [WK_Roisize(1) WK_Roisize(end)] );</span>
+0355 ylim( [ 0.01 10 ] );
+0356 grid on
+0357 
+0358 <span class="comment">% close waitbar in interactive mode</span>
+0359 <span class="keyword">if</span> isInteractive, close( h ), <span class="keyword">end</span>
+0360 
+0361 <span class="keyword">return</span>
+0362 
+0363 
+0364 
+0365 <a name="_sub1" href="#_subfunctions" class="code">function F = TSNR( x, n )</a>
+0366 <span class="comment">% Fit noise model from Bodurka et al, ISMRM 14 (2006), p. 1094</span>
+0367 <span class="comment">% TSRNn = n*SNR/{sqrt(1+(n*lambda*SNR)^2)}</span>
+0368 <span class="comment">% x(1) --&gt; SNR</span>
+0369 <span class="comment">% x(2) --&gt; lambda</span>
+0370 F = 1 ./ ( n .* x(1) ./ sqrt( 1 + ( n .* (x(2) ./ 1E03) .* x(1) ) .^2 ) );
+0371 
+0372 <a name="_sub2" href="#_subfunctions" class="code">function F = logTSNR( x, n )</a>
+0373 <span class="comment">% Fit noise model from Bodurka et al, ISMRM 14 (2006), p. 1094</span>
+0374 <span class="comment">% TSRNn = n*SNR/{sqrt(1+(n*lambda*SNR)^2)}</span>
+0375 <span class="comment">% x(1) --&gt; SNR</span>
+0376 <span class="comment">% x(2) --&gt; lambda</span>
+0377 F = log ( <a href="#_sub1" class="code" title="subfunction F = TSNR( x, n )">TSNR</a>( x, n ) );</pre></div>
+<hr><address>Generated on Fri 07-Aug-2015 09:34:21 by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" target="_parent">m2html</a></strong> &copy; 2005</address>
+</body>
+</html>

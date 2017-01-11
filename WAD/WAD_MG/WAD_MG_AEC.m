@@ -19,7 +19,7 @@
 % along with this program.  If not, see <http://www.gnu.org/licenses/>.
 % ------------------------------------------------------------------------
 
-function WAD_MG_AEC( i_iSeries, sSeries, sParams, sLimits )
+function WAD_MG_AEC( i_iSeries, sSeries, sParams )
 % Get the AEC related parameters from the DICOM header.
 % mAs, exposure index, ExposureTime, kVp, filtration,
 % ExposureControlModeDescription (=position of the AEC field)
@@ -36,6 +36,9 @@ function WAD_MG_AEC( i_iSeries, sSeries, sParams, sLimits )
 % 2012-08-14 / JK
 % Adapted to WAD framework
 % ------------------------------------------------------------------------
+% 20131127 / JK
+% Support new (v1.1) style action limits
+% ------------------------------------------------------------------------
 
 % ----------------------
 % GLOBALS
@@ -44,8 +47,8 @@ function WAD_MG_AEC( i_iSeries, sSeries, sParams, sLimits )
 
 % version info
 my.name = 'WAD_MG_AEC';
-my.version = '1.0';
-my.date = '20120814';
+my.version = '1.1';
+my.date = '20131127';
 WAD_vbprint( ['Module ' my.name ' Version ' my.version ' (' my.date ')'] );
 
 
@@ -69,11 +72,11 @@ end
 % mAs should be defined, but check anyway...
 [value, status] = getFieldFromDicomHdr( dicomheader, 'ExposureInuAs' );
 if status
-    WAD_resultsAppendFloat( 1, double(value) / 1000.0, 'Exposure', 'mAs', 'AEC', sLimits, 'Exposure' );
+    WAD_resultsAppendFloat( 1, double(value) / 1000.0, 'Exposure', 'mAs', 'AEC' );
 else
     [value, status] = getFieldFromDicomHdr( dicomheader, 'Exposure' );
     if status
-        WAD_resultsAppendFloat( 1, double(value), 'Exposure', 'mAs', 'AEC', sLimits, 'Exposure' );
+        WAD_resultsAppendFloat( 1, double(value), 'Exposure', 'mAs', 'AEC' );
     else
         WAD_vbprint( [my.name ':   ERROR: neither ExposureInuAs nor Exposure field are defined in DICOM header.'] );
     end
@@ -87,7 +90,7 @@ end
 if isfield( sParams, 'EI_field' ) && ~isempty( sParams.EI_field )
     [value, status] = getFieldFromDicomHdr( dicomheader, sParams.EI_field );
     if status
-        WAD_resultsAppendFloat( 1, double(value), 'Exposure Index', [], 'AEC', sLimits, 'ExposureIndex' );
+        WAD_resultsAppendFloat( 1, double(value), 'Exposure Index', [], 'AEC' );
     end
 else
     WAD_vbprint( [my.name ':   Error: no parameter for EI_field containing the DICOM field name for exposure index.'] );
@@ -102,7 +105,7 @@ end
 % ----------------------------
 [value, status] = getFieldFromDicomHdr( dicomheader, 'ExposureTime' );
 if status
-    WAD_resultsAppendFloat( 1, double(value), 'Exposure Time', [], 'AEC', sLimits, 'ExposureTime' );
+    WAD_resultsAppendFloat( 1, double(value), 'Exposure Time', [], 'AEC' );
 end
 
 
@@ -111,7 +114,7 @@ end
 % ----------------------------
 [value, status] = getFieldFromDicomHdr( dicomheader, 'OrganDose' );
 if status
-    WAD_resultsAppendFloat( 1, double(value), 'Organ Dose', [], 'AEC', sLimits, 'OrganDose' );
+    WAD_resultsAppendFloat( 1, double(value), 'Organ Dose', [], 'AEC' );
 end
 
 
@@ -120,7 +123,7 @@ end
 % ----------------------------
 [value, status] = getFieldFromDicomHdr( dicomheader, 'EntranceDoseInmGy' );
 if status
-    WAD_resultsAppendFloat( 1, double(value), 'EntranceDose', 'mGy', 'AEC', sLimits, 'EntranceDose' );
+    WAD_resultsAppendFloat( 1, double(value), 'EntranceDose', 'mGy', 'AEC' );
 end
 
 
@@ -129,7 +132,7 @@ end
 % ----------------------------
 [value, status] = getFieldFromDicomHdr( dicomheader, 'KVP' );
 if status
-    WAD_resultsAppendFloat( 1, double(value), 'kVp', [], [], sLimits, 'kVp' );
+    WAD_resultsAppendFloat( 1, double(value), 'kVp', 'kV', 'AEC' );
 end
 
 

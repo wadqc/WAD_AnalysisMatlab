@@ -19,7 +19,7 @@
 % along with this program.  If not, see <http://www.gnu.org/licenses/>.
 % ------------------------------------------------------------------------
 
-function [magnitude, phase] = WAD_MR_B0_readPhilipsDoubleEcho( i_iSeries, sSeries, sParams, sLimits )
+function [magnitude, phase] = WAD_MR_B0_readPhilipsDoubleEcho( i_iSeries, sSeries, sParams )
 % Import function for BO uniformity Philips double echo FFE images. 
 % Acquisition must be single slice, with magnitude and phase images.
 %
@@ -50,6 +50,15 @@ function [magnitude, phase] = WAD_MR_B0_readPhilipsDoubleEcho( i_iSeries, sSerie
 %   through the <type> parameter. The actual function name gets a prefix
 %   "WAD_MR_B0_read".
 % ------------------------------------------------------------------------
+% 20131127 / JK
+% V1.1
+% - new (v1.1) style action limits
+% ------------------------------------------------------------------------
+% 20140212 / JK
+% V1.1.1
+% Private fields are class uint8 and in one column for implicit DICOM, and class char and one row for explicit DICOM
+% char(info.Private_2001_1020(:))' converts both to class char and one row.
+% ------------------------------------------------------------------------
 
 
 % ----------------------
@@ -59,8 +68,8 @@ function [magnitude, phase] = WAD_MR_B0_readPhilipsDoubleEcho( i_iSeries, sSerie
 
 % version info
 my.name = 'WAD_MR_B0_readPhilipsDoubleEcho';
-my.version = '0.95';
-my.date = '20120813';
+my.version = '1.1.1';
+my.date = '20140212';
 WAD_vbprint( ['Module ' my.name ' Version ' my.version ' (' my.date ')'] );
 
 
@@ -76,8 +85,9 @@ fname = sSeries.instance( 1 ).filename;
 WAD_vbprint( [my.name ':   Check type of B0 map... reading DICOM header of file ' fname ] );
 info = dicominfo( fname );
 
-
-if isfield( info, 'Private_2001_1020' ) &&  strfind( info.Private_2001_1020, 'FFE' )
+% Private fields are class uint8 and in one column for implicit DICOM, and class char and one row for explicit DICOM
+% char(info.Private_2001_1020(:))' converts both to class char and one row.
+if isfield( info, 'Private_2001_1020' ) &&  strfind( char(info.Private_2001_1020(:))', 'FFE' )
     % Philips product FFE sequence (hopefully with double echo and phase images)
     WAD_vbprint( [my.name ':   Detected Philips double echo FFE.'] );
 else
@@ -119,20 +129,31 @@ phase2.image     = double( dicomread( phase2.info ) );
 % conversion phase map from pixel values to radians
 % Philips has the RescaleSlope field defined, and needs an
 % additional factor 1000
-if isfield( phase2.info, 'RescaleSlope' )
-    factor = phase2.info.RescaleSlope / 1000.0;
-    offset = 0; % matlab reads the offset already from RescaleIntercept
+if isfield( phase.info, 'RescaleSlope' ) && isfield( phase2.info, 'RescaleSlope' )
+    factor  =  phase.info.RescaleSlope / 1000.0;
+    offset  = 0; % matlab reads the offset already from RescaleIntercept
+    factor2 = phase2.info.RescaleSlope / 1000.0;
+    offset2 = 0; % matlab reads the offset already from RescaleIntercept
+elseif isfield( phase.info, 'RealWorldValueMappingSequence' ) && ...
+       isfield( phase.info.RealWorldValueMappingSequence, 'Item_1' ) && ...
+       isfield( phase.info.RealWorldValueMappingSequence.Item_1, 'RealWorldValueSlope') && ...
+       isfield( phase.info.RealWorldValueMappingSequence.Item_1, 'RealWorldValueIntercept')
+    factor  =  phase.info.RealWorldValueMappingSequence.Item_1.RealWorldValueSlope / 1000.0;
+    offset  =  phase.info.RealWorldValueMappingSequence.Item_1.RealWorldValueIntercept / 1000.0;
+    factor2 = phase2.info.RealWorldValueMappingSequence.Item_1.RealWorldValueSlope / 1000.0;
+    offset2 = phase2.info.RealWorldValueMappingSequence.Item_1.RealWorldValueIntercept / 1000.0;
 else
     % don't know what to do without the rescale slope...
-    WAD_vbprint( [my.name ':   ERROR: phase image does not have RescaleIntercept defined. Skipping analysis'] );
+    WAD_vbprint( [my.name ':   ERROR: phase image does not have RescaleSlope or '] );
+    WAD_vbprint( [my.name ':          RealWorldValueMappingSequence.Item_1.RealWorldValueSlope + Intercept defined. Skipping analysis'] );
     error( 'Error during import of phase images.' )
 end
 
 % subtract the first image
-phase.image = phase2.image - phase.image;
+phase.image = (phase2.image * factor2 - offset2) - (phase.image * factor - offset);
 
 % convert from phase image from pixel values to radians
-phase.dPhi_rad = phase.image * factor - offset;
+phase.dPhi_rad = phase.image;
 
 % get delta-TE from header of both phase images
 phase.dTE = phase2.info.EchoTime - phase.info.EchoTime;

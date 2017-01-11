@@ -19,7 +19,7 @@
 % along with this program.  If not, see <http://www.gnu.org/licenses/>.
 % ------------------------------------------------------------------------
 
-function WAD_MR_SNR( i_iSeries, sSeries, sParams, sLimits )
+function WAD_MR_SNR( i_iSeries, sSeries, sParams )
 % Evaluate SNR, ghosting and image uniformity of the central slice
 %
 % ------------------------------------------------------------------------
@@ -31,6 +31,9 @@ function WAD_MR_SNR( i_iSeries, sSeries, sParams, sLimits )
 % first version
 % ------------------------------------------------------------------------
 % 2012-08-09 adapted to WAD
+% ------------------------------------------------------------------------
+% VUmc, Amsterdam, NL / Joost Kuijer / jpa.kuijer@vumc.nl
+% 2013-12-19 bugfix: process hangs in WAD_MR_privateSNR_ghost()
 % ------------------------------------------------------------------------
 
 % produce a figure on the screen or be quiet...
@@ -44,8 +47,8 @@ global WAD
 
 % version info
 my.name = 'WAD_MR_SNR';
-my.version = '1.0';
-my.date = '20120809';
+my.version = '1.1.1';
+my.date = '20131219';
 WAD_vbprint( ['Module ' my.name ' Version ' my.version ' (' my.date ')'] );
 
 
@@ -97,42 +100,61 @@ end
 % display waitbar in interactive mode
 if isInteractive, h = waitbar( 0, 'Calculating SNR...' ); end
 
-interpolPower = 0; % no interpolation for calculation of centre of phantom
+WAD_vbprint( [my.name ':   Calculating centre coordinates ...'] );
+
+if ~isfield( sParams, 'interpolPower' ) || isempty( sParams.interpolPower )
+    sParams.interpolPower = 0; % default setting: no interpolation for calculation of centre of phantom
+end
+WAD_vbprint( [my.name ':   Interpolation set to 2 ^ ' num2str(sParams.interpolPower) '. This is configurable in <params> <interpolPower>' ] );
 
 % SNR needs the centre coordinates, which are calculated by WAD_MR_privateSizePos_pix
-WAD_vbprint( [my.name ':   Calculating centre coordinates ...'] );
 try
-    [diameter_pix, centre_pix] = WAD_MR_privateSizePos_pix( sSeries.instance(ci), interpolPower, quiet );
+    [diameter_pix, centre_pix] = WAD_MR_privateSizePos_pix( sSeries.instance(ci), sParams, quiet );
 catch err
     WAD_ErrorMsg( my.name, 'ERROR calculating centre coordinates.', err );
     return
 end
 WAD_vbprint( [my.name ':   Centre location at ' num2str(centre_pix)] );
 
+% configured parameters for ROI's
 % SNR needs distance of background ROI's from phantom centre
-ROIshft_mm = WAD.const.defaultRoiShift;
-if isfield( sParams, 'ROIshift' ) && ~isempty( sParams.ROIshift )
-    ROIshft_mm = sParams.ROIshift;
-else
+if ~isfield( sParams, 'backgroundROIshift' ) || isempty( sParams.backgroundROIshift )
     % no ROI shift configured, use default
-    WAD_vbprint( [my.name ':   No ROI shift configured, using default value = ' num2str(ROIshft_mm) ' mm'] );
+    sParams.backgroundROIshift = WAD.const.defaultBackgroundRoiShift;
+    WAD_vbprint( [my.name ':   No parameter <backgroundROIshift> configured, using default value = ' num2str(sParams.backgroundROIshift) ' mm'] );
 end
+WAD_vbprint( [my.name ':   Configured ROI shift = ' num2str(sParams.backgroundROIshift) ' mm'] );
+
+if ~isfield( sParams, 'ROIradius' ) || isempty( sParams.ROIradius )
+    % no ROI radius configured, use default
+    sParams.ROIradius = WAD.const.defaultRoiRadius;
+    WAD_vbprint( [my.name ':   No parameter <ROIradius> configured, using default value = ' num2str(sParams.ROIradius) ' mm'] );
+end
+WAD_vbprint( [my.name ':   Configured ROI radius = ' num2str(sParams.ROIradius) ' mm'] );
+
+if ~isfield( sParams, 'backgroundROIsize' ) || isempty( sParams.backgroundROIsize )
+    % no ROI radius configured, use default
+    sParams.backgroundROIsize = WAD.const.defaultBackgroundRoiSize;
+    WAD_vbprint( [my.name ':   No parameter <backgroundROIsize> configured, using default value = ' num2str(sParams.backgroundROIsize) ' mm'] );
+end
+WAD_vbprint( [my.name ':   Configured ROI radius = ' num2str(sParams.backgroundROIsize) ' mm'] );
+
 
 if isInteractive, waitbar( 0.5, h ); end
 
 % ---------------------------------------------
 % calculate the SNR and ghosting and percentage image uniformity (PIU)
 % ---------------------------------------------
-[SNR, ghostRow_percent, ghostCol_percent, imageUniformity_percent, hFigSNR] = WAD_MR_privateSNR_ghost( sSeries.instance(ci), centre_pix, ROIshft_mm, quiet );
+[SNR, ghostRow_percent, ghostCol_percent, imageUniformity_percent, hFigSNR] = WAD_MR_privateSNR_ghost( sSeries.instance(ci), centre_pix, sParams, quiet );
 
 % factor 0.655 corrects for reduced noise in background of magnitude image.
 % See Henkelman. Not exact for phased array coils, e.g. 8-channnel should
 % be ~0.70
 SNR_henk = SNR * 0.655;
 
-WAD_resultsAppendFloat( 1, SNR_henk, 'SNR', [], 'Combined coils', sLimits, 'SNR' );
-WAD_resultsAppendFloat( 1, ghostRow_percent, 'Ghosting', '%', 'Row', sLimits, 'ghostRow_percent' );
-WAD_resultsAppendFloat( 1, ghostCol_percent, 'Ghosting', '%', 'Col', sLimits, 'ghostCol_percent' );
+WAD_resultsAppendFloat( 1, SNR_henk, 'SNR', [], 'Combined coils' );
+WAD_resultsAppendFloat( 1, ghostRow_percent, 'Ghosting', '%', 'Row' );
+WAD_resultsAppendFloat( 1, ghostCol_percent, 'Ghosting', '%', 'Col' );
 % present results together with phase encoding direction
 try
     info = dicominfo( sSeries.instance(ci).filename );
@@ -144,7 +166,7 @@ catch err
 end
     
 % image uniformity
-WAD_resultsAppendFloat( 1, imageUniformity_percent, 'Uniformity', '%', 'Image', sLimits, 'imageUniformity_percent' );
+WAD_resultsAppendFloat( 1, imageUniformity_percent, 'Uniformity', '%', 'Image' );
 WAD_resultsAppendString( 2, ['SNR on series: ' num2str(sSeries.number) ' / image: ' num2str(inum)], 'SNR' );
 
 WAD_resultsAppendFigure( 2, hFigSNR, 'SNR_ROI', 'ROIs for SNR and ghosting' );

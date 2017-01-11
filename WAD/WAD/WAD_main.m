@@ -47,6 +47,12 @@ function WAD_main( wadInputFileXML )
 % 2012-08-06 / JK
 % first WAD version named 0.95 converted from SQVID 0.95
 % ------------------------------------------------------------------------
+% Version 1.0.1 20140116
+% Bugfix in WAD_findMatchingSeries:matchDicomTag
+% - stop if DICOM file cannot be read
+% - check numeric type for print in logfile (creates corrupted text file
+%   which is not displayed by through web interface)
+% ------------------------------------------------------------------------
 
 
 % ----------------------
@@ -65,8 +71,8 @@ global WAD
 % ----------------------
 % version info
 my.name = 'WAD_main';
-my.version = '0.95';
-my.date = '20120906';
+my.version = '1.0.1';
+my.date = '20140116';
 
 logfilename = 'WAD_analysis_log.txt'; % in output dir
 
@@ -178,8 +184,6 @@ if isfield( WAD.cfg, 'version' )
     if isnumeric( WAD.cfg.version ), WAD.cfg.version = num2str( WAD.cfg.version ); end
     WAD_resultsAppendString( 2, WAD.cfg.version, 'Configuratie versie' );
 end
-
-disp( '**********TODO: implement <autoCommentField>StudyComments</autoCommentField>*********' )
 
 
 % ----------------------

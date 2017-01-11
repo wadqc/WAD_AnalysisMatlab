@@ -1,0 +1,318 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+                "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html>
+<head>
+  <title>Description of WAD_MR_SNR_MultiChannel</title>
+  <meta name="keywords" content="WAD_MR_SNR_MultiChannel">
+  <meta name="description" content="------------------------------------------------------------------------">
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+  <meta name="generator" content="m2html &copy; 2005 Guillaume Flandin">
+  <meta name="robots" content="index, follow">
+  <link type="text/css" rel="stylesheet" href="../m2html.css">
+  <script type="text/javascript">
+    if (top.frames.length == 0) { top.location = "../index.html"; };
+  </script>
+</head>
+<body>
+<a name="_top"></a>
+<!-- menu.html WAD_MR -->
+<h1>WAD_MR_SNR_MultiChannel
+</h1>
+
+<h2><a name="_name"></a>PURPOSE <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="box"><strong>------------------------------------------------------------------------</strong></div>
+
+<h2><a name="_synopsis"></a>SYNOPSIS <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="box"><strong>function WAD_MR_SNR_MultiChannel( i_iSeries, sSeries, sParams ) </strong></div>
+
+<h2><a name="_description"></a>DESCRIPTION <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="fragment"><pre class="comment"> ------------------------------------------------------------------------
+ WAD_MR is an MRI analysis module written for IQC.
+ NVKF WAD IQC software is a framework for automatic analysis of DICOM objects.
+ 
+ Copyright 2012-2013  Joost Kuijer / jpa.kuijer@vumc.nl
+ 
+ 
+ This program is free software: you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation, either version 3 of the License, or
+ (at your option) any later version.
+ 
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+ 
+ You should have received a copy of the GNU General Public License
+ along with this program.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+ ------------------------------------------------------------------------</pre></div>
+
+<!-- crossreference -->
+<h2><a name="_cross"></a>CROSS-REFERENCE INFORMATION <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+This function calls:
+<ul style="list-style-image:url(../matlabicon.gif)">
+<li><a href="../WAD/WAD_resultsAppendFloat.html" class="code" title="function WAD_resultsAppendFloat( level, value, variable, unit, description, sLimits, limits_field_name )">WAD_resultsAppendFloat</a>	------------------------------------------------------------------------</li><li><a href="../WAD/WAD_resultsAppendString.html" class="code" title="function WAD_resultsAppendString( level, value, description )">WAD_resultsAppendString</a>	------------------------------------------------------------------------</li><li><a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>	------------------------------------------------------------------------</li><li><a href="../WAD/myErrordlg.html" class="code" title="function h = myErrordlg(isInteractive,varargin)">myErrordlg</a>	------------------------------------------------------------------------</li><li><a href="WAD_MR_privateSNR_ghost.html" class="code" title="function [SNR, ghostRow_percent, ghostCol_percent, PIU, figureHandle] = WAD_MR_privateSNR_ghost( image, centrePos_pix, sParams, quiet )">WAD_MR_privateSNR_ghost</a>	*******************************************************************************</li><li><a href="WAD_MR_privateSizePos_pix.html" class="code" title="function [diameter_pix, centre_pix, figureHandle ] = WAD_MR_privateSizePos_pix( sImage, sParams, quiet )">WAD_MR_privateSizePos_pix</a>	------------------------------------------------------------------------</li></ul>
+This function is called by:
+<ul style="list-style-image:url(../matlabicon.gif)">
+</ul>
+<!-- crossreference -->
+
+
+
+<h2><a name="_source"></a>SOURCE CODE <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="fragment"><pre>0001 <span class="comment">% ------------------------------------------------------------------------</span>
+0002 <span class="comment">% WAD_MR is an MRI analysis module written for IQC.</span>
+0003 <span class="comment">% NVKF WAD IQC software is a framework for automatic analysis of DICOM objects.</span>
+0004 <span class="comment">%</span>
+0005 <span class="comment">% Copyright 2012-2013  Joost Kuijer / jpa.kuijer@vumc.nl</span>
+0006 <span class="comment">%</span>
+0007 <span class="comment">%</span>
+0008 <span class="comment">% This program is free software: you can redistribute it and/or modify</span>
+0009 <span class="comment">% it under the terms of the GNU General Public License as published by</span>
+0010 <span class="comment">% the Free Software Foundation, either version 3 of the License, or</span>
+0011 <span class="comment">% (at your option) any later version.</span>
+0012 <span class="comment">%</span>
+0013 <span class="comment">% This program is distributed in the hope that it will be useful,</span>
+0014 <span class="comment">% but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
+0015 <span class="comment">% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
+0016 <span class="comment">% GNU General Public License for more details.</span>
+0017 <span class="comment">%</span>
+0018 <span class="comment">% You should have received a copy of the GNU General Public License</span>
+0019 <span class="comment">% along with this program.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
+0020 <span class="comment">% ------------------------------------------------------------------------</span>
+0021 
+0022 <a name="_sub0" href="#_subfunctions" class="code">function WAD_MR_SNR_MultiChannel( i_iSeries, sSeries, sParams )</a>
+0023 <span class="comment">% Evaluate SNR on uncombined images of the central slice</span>
+0024 <span class="comment">%</span>
+0025 <span class="comment">% Related config entries:</span>
+0026 <span class="comment">% - combinedImage</span>
+0027 <span class="comment">%</span>
+0028 <span class="comment">% ------------------------------------------------------------------------</span>
+0029 <span class="comment">% SQVID MR</span>
+0030 <span class="comment">% file: WAD_MR_SNR</span>
+0031 <span class="comment">%</span>
+0032 <span class="comment">% ------------------------------------------------------------------------</span>
+0033 <span class="comment">% VUmc, Amsterdam, NL / Joost Kuijer / jpa.kuijer@vumc.nl</span>
+0034 <span class="comment">% 2008-10-24 / JK</span>
+0035 <span class="comment">% first version</span>
+0036 <span class="comment">% ------------------------------------------------------------------------</span>
+0037 <span class="comment">% 2012-08-13 / JK</span>
+0038 <span class="comment">% adapted to WAD</span>
+0039 <span class="comment">% ------------------------------------------------------------------------</span>
+0040 
+0041 
+0042 <span class="comment">% produce a figure on the screen or be quiet...</span>
+0043 quiet = true;
+0044 isInteractive = false;
+0045 
+0046 
+0047 <span class="comment">% ----------------------</span>
+0048 <span class="comment">% GLOBALS</span>
+0049 <span class="comment">% ----------------------</span>
+0050 <span class="keyword">global</span> WAD
+0051 
+0052 <span class="comment">% version info</span>
+0053 my.name = <span class="string">'WAD_MR_SNR_MultiChannel'</span>;
+0054 my.version = <span class="string">'1.1'</span>;
+0055 my.date = <span class="string">'20131127'</span>;
+0056 <a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [<span class="string">'Module '</span> my.name <span class="string">' Version '</span> my.version <span class="string">' ('</span> my.date <span class="string">')'</span>] );
+0057 
+0058 
+0059 <span class="comment">% security check: is current series an uncombined coils series?</span>
+0060 <span class="keyword">if</span> length( sSeries.instance ) == 1
+0061     <a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">': Only 1 image in series. Skipping analysis.'</span>] );
+0062     <span class="keyword">return</span>;
+0063 <span class="keyword">end</span>
+0064 
+0065 
+0066 <span class="comment">% ---------------------------------------------</span>
+0067 <span class="comment">% check image order / combined coils image</span>
+0068 <span class="comment">% ---------------------------------------------</span>
+0069 <span class="comment">% combined coils image needs to be configured, there is no default...</span>
+0070 <span class="keyword">if</span> ~isfield( sParams, <span class="string">'combinedImage'</span> ) || isequal( sParams.combinedImage, [] )
+0071     <span class="comment">% can't do analysis</span>
+0072     <a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">': Parameter &quot;combinedImage&quot; is not defined. Skipping analysis.'</span>] );
+0073     <span class="keyword">return</span>
+0074 <span class="keyword">end</span>
+0075 
+0076 <span class="comment">% ---------------------------------------------</span>
+0077 <span class="comment">% parse the config...</span>
+0078 <span class="comment">% ---------------------------------------------</span>
+0079 inum = sParams.combinedImage;
+0080 <span class="comment">% handle specials...</span>
+0081 <span class="keyword">if</span> isequal( inum, WAD.const.inNextSeries ) 
+0082     <span class="comment">% -----------------------</span>
+0083     <span class="comment">% find the next series...</span>
+0084     <span class="comment">% -----------------------</span>
+0085     foundNextSeries = false;
+0086     curStudy = WAD.in.patient(1).study(1);
+0087     i_nSeries = length( curStudy.series );
+0088     <span class="keyword">for</span> ii = 1:i_nSeries
+0089         <span class="keyword">if</span> ( curStudy.series( ii ).number == sSeries.number + 1 )
+0090             sCCSeries = curStudy.series( ii );
+0091             foundNextSeries = true;
+0092             <span class="keyword">break</span>;
+0093         <span class="keyword">end</span>
+0094     <span class="keyword">end</span>
+0095     <span class="keyword">if</span> ~foundNextSeries
+0096         <a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">': Error: could not find next series for combined coils image.'</span>] );
+0097         <a href="../WAD/myErrordlg.html" class="code" title="function h = myErrordlg(isInteractive,varargin)">myErrordlg</a>( isInteractive, <span class="string">'Cannot find find next series for combined coils image.'</span>, <span class="string">'WAD_MR_SNR_MultiChannel'</span>, <span class="string">'on'</span> );
+0098         <span class="keyword">return</span>
+0099     <span class="keyword">end</span>
+0100     <span class="comment">% combined coils series should have only one image and same series</span>
+0101     <span class="comment">% description as current series</span>
+0102     <span class="comment">% if next series belongs to this one, it should have same name, and just one image.</span>
+0103     <span class="keyword">if</span> ~strcmp( sSeries.description, sCCSeries.description ) || length( sCCSeries.instance ) ~= 1
+0104         <a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">': ERROR: combined coils image is in next series, it doesn''t have same series description or doesn''t have 1 image. Skip analysis'</span>] );
+0105         <span class="keyword">return</span>
+0106     <span class="keyword">end</span>
+0107     <span class="comment">% combined coils number</span>
+0108     inum = 1;
+0109 <span class="keyword">else</span>
+0110     <span class="comment">% combined coil image in current series</span>
+0111     sCCSeries = sSeries;
+0112     <span class="keyword">if</span> isequal( inum, WAD.const.firstInSeries )
+0113         inum = 1;
+0114     <span class="keyword">elseif</span> isequal( inum, WAD.const.lastInSeries )
+0115         inum = length( sSeries.instance );
+0116     <span class="keyword">end</span>
+0117     
+0118     <span class="comment">% ---------------------------------------------</span>
+0119     <span class="comment">% find the image</span>
+0120     <span class="comment">% ---------------------------------------------</span>
+0121     foundImage = false;
+0122     <span class="keyword">for</span> ii = 1:length( sSeries.instance )
+0123         <span class="keyword">if</span> ( sSeries.instance(ii).number == inum )
+0124             ci = ii;
+0125             foundImage = true;
+0126             <span class="keyword">break</span>;
+0127         <span class="keyword">end</span>
+0128     <span class="keyword">end</span>
+0129     <span class="keyword">if</span> ~foundImage
+0130         <a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">': Error: could not find configured combined coils image.'</span>] );
+0131         <a href="../WAD/myErrordlg.html" class="code" title="function h = myErrordlg(isInteractive,varargin)">myErrordlg</a>( isInteractive, <span class="string">'Cannot find configured combined coils image.'</span>, <span class="string">'WAD_MR_SNR_MultiChannel'</span>, <span class="string">'on'</span> );
+0132         <span class="keyword">return</span>
+0133     <span class="keyword">end</span>
+0134 <span class="keyword">end</span>
+0135 
+0136 
+0137 
+0138 
+0139 <span class="comment">% do the evaluation...</span>
+0140 <a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">': Calculating centre coordinates on combined coils image #'</span> num2str( inum )] );
+0141 
+0142 <span class="keyword">if</span> ~isfield( sParams, <span class="string">'interpolPower'</span> ) || isempty( sParams.interpolPower )
+0143     sParams.interpolPower = 0; <span class="comment">% no interpolation for calculation of centre of phantom</span>
+0144 <span class="keyword">end</span>
+0145 <a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">':   Interpolation set to 2 ^ '</span> num2str(sParams.interpolPower) <span class="string">'. This is configurable in &lt;params&gt; &lt;interpolPower&gt;'</span> ] );
+0146 
+0147 <span class="comment">% SNR needs the centre coordinates, which are calculated by SQ_MR_geomXY</span>
+0148 [diameter_pix, centre_pix] = <a href="WAD_MR_privateSizePos_pix.html" class="code" title="function [diameter_pix, centre_pix, figureHandle ] = WAD_MR_privateSizePos_pix( sImage, sParams, quiet )">WAD_MR_privateSizePos_pix</a>( sCCSeries.instance(1), sParams, quiet );
+0149 <a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">': Centre location at '</span> num2str(centre_pix)] );
+0150 
+0151 <span class="comment">% configured parameters for ROI's</span>
+0152 <span class="comment">% SNR needs distance of background ROI's from phantom centre</span>
+0153 <span class="keyword">if</span> ~isfield( sParams, <span class="string">'backgroundROIshift'</span> ) || isempty( sParams.backgroundROIshift )
+0154     <span class="comment">% no ROI shift configured, use default</span>
+0155     sParams.backgroundROIshift = WAD.const.defaultBackgroundRoiShift;
+0156     <a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">':   No parameter &lt;backgroundROIshift&gt; configured, using default value = '</span> num2str(sParams.backgroundROIshift) <span class="string">' mm'</span>] );
+0157 <span class="keyword">end</span>
+0158 <a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">':   Configured ROI shift = '</span> num2str(sParams.backgroundROIshift) <span class="string">' mm'</span>] );
+0159 
+0160 <span class="keyword">if</span> ~isfield( sParams, <span class="string">'ROIradius'</span> ) || isempty( sParams.ROIradius )
+0161     <span class="comment">% no ROI radius configured, use default</span>
+0162     sParams.ROIradius = WAD.const.defaultRoiRadius;
+0163     <a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">':   No parameter &lt;ROIradius&gt; configured, using default value = '</span> num2str(sParams.ROIradius) <span class="string">' mm'</span>] );
+0164 <span class="keyword">end</span>
+0165 <a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">':   Configured ROI radius = '</span> num2str(sParams.ROIradius) <span class="string">' mm'</span>] );
+0166 
+0167 <span class="keyword">if</span> ~isfield( sParams, <span class="string">'backgroundROIsize'</span> ) || isempty( sParams.backgroundROIsize )
+0168     <span class="comment">% no ROI radius configured, use default</span>
+0169     sParams.backgroundROIsize = WAD.const.defaultBackgroundRoiSize;
+0170     <a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">':   No parameter &lt;backgroundROIsize&gt; configured, using default value = '</span> num2str(sParams.backgroundROIsize) <span class="string">' mm'</span>] );
+0171 <span class="keyword">end</span>
+0172 <a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">':   Configured ROI radius = '</span> num2str(sParams.backgroundROIsize) <span class="string">' mm'</span>] );
+0173 
+0174 
+0175 <span class="comment">% copy combined image number</span>
+0176 cinum = inum;
+0177 
+0178 <span class="comment">% display waitbar in interactive mode</span>
+0179 <span class="keyword">if</span> isInteractive, h = waitbar( 0, <span class="string">'Calculating SNR...'</span> ); <span class="keyword">end</span>
+0180 
+0181 <span class="comment">% number of images in series</span>
+0182 ninum = length( sSeries.instance );
+0183 
+0184 <span class="comment">% if all images have the same image number (Siemens VB25 and earlier), renumber them now</span>
+0185 <span class="comment">% check if first and last image have the same number</span>
+0186 <span class="keyword">if</span> sSeries.instance(1).number == sSeries.instance(ninum).number
+0187     <a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">':   Combined coil images have same instance number. Start renumbering.'</span>] );
+0188     <span class="comment">% renumber</span>
+0189     <span class="keyword">for</span> inum = 1:ninum
+0190         sSeries.instance(inum).number = inum;
+0191     <span class="keyword">end</span>
+0192 <span class="keyword">end</span>
+0193 
+0194 <span class="comment">% security check: images needs to have the same slice position. Check first</span>
+0195 <span class="comment">% and last image... note: not foolproof but checking all slices takes a</span>
+0196 <span class="comment">% long time.</span>
+0197 info1 = dicominfo( sSeries.instance(1).filename );
+0198 info2 = dicominfo( sSeries.instance(ninum).filename );
+0199 
+0200 <span class="keyword">if</span> ( info1.SliceLocation ~= info2.SliceLocation )
+0201     <span class="keyword">if</span> isInteractive, close(h), <span class="keyword">end</span>
+0202     <a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">':   Error: images for multi-channel SNR must be from single slice location.'</span>] );
+0203     <a href="../WAD/myErrordlg.html" class="code" title="function h = myErrordlg(isInteractive,varargin)">myErrordlg</a>( isInteractive, <span class="string">'Images for multi-channel SNR must be from single slice location.'</span>, <span class="string">'SNR MultiChannel'</span>, <span class="string">'on'</span> );
+0204     <span class="keyword">return</span>
+0205 <span class="keyword">end</span>
+0206 
+0207 
+0208 <span class="comment">% now calculate the SNR for all coil images</span>
+0209 <span class="keyword">for</span> inum = 1:ninum
+0210      <span class="keyword">if</span> isInteractive, waitbar( inum/ninum, h ); <span class="keyword">end</span>
+0211 
+0212     <span class="comment">% skip the combined image</span>
+0213     <span class="keyword">if</span> ( sSeries.number == sCCSeries.number ) &amp;&amp; ( inum == cinum )
+0214         <span class="keyword">continue</span>;
+0215     <span class="keyword">end</span>
+0216     <span class="comment">% find the image</span>
+0217     foundImage = false;
+0218     <span class="keyword">for</span> ii = 1:length( sSeries.instance )
+0219         <span class="keyword">if</span> ( sSeries.instance(ii).number == inum )
+0220             ci = ii;
+0221             foundImage = true;
+0222             <span class="keyword">break</span>;
+0223         <span class="keyword">end</span>
+0224     <span class="keyword">end</span>
+0225     <span class="keyword">if</span> ~foundImage
+0226         close(h)
+0227         <a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">':   Error: could not find coil image #'</span> num2str(inum)] );
+0228         <a href="../WAD/myErrordlg.html" class="code" title="function h = myErrordlg(isInteractive,varargin)">myErrordlg</a>( isInteractive, [<span class="string">'Cannot find coil image #'</span> num2str(inum)], <span class="string">'SNR MultiChannel'</span>, <span class="string">'on'</span> );
+0229         <span class="keyword">return</span>;
+0230     <span class="keyword">end</span>
+0231     
+0232     
+0233 
+0234     quiet = 1;
+0235     SNR = <a href="WAD_MR_privateSNR_ghost.html" class="code" title="function [SNR, ghostRow_percent, ghostCol_percent, PIU, figureHandle] = WAD_MR_privateSNR_ghost( image, centrePos_pix, sParams, quiet )">WAD_MR_privateSNR_ghost</a>( sSeries.instance(ci), centre_pix, sParams, quiet );
+0236     <a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">':   Image: '</span> num2str(inum) <span class="string">'  SNR = '</span> num2str(SNR) ] );
+0237     
+0238     <span class="comment">% factor 0.655 corrects for reduced noise in background of magnitude image.</span>
+0239     <span class="comment">% See Henkelman.</span>
+0240     SNR_henk = SNR * 0.655;
+0241 
+0242     <span class="comment">% write the results</span>
+0243     <span class="keyword">if</span> inum == 1
+0244         <a href="../WAD/WAD_resultsAppendString.html" class="code" title="function WAD_resultsAppendString( level, value, description )">WAD_resultsAppendString</a>( 2, [<span class="string">'Multichannel SNR on series: '</span> num2str(sSeries.number)], <span class="string">'SNR multi-channel'</span> );
+0245     <span class="keyword">end</span>
+0246     <span class="comment">% TO DO: how to handle action limits for MC coils...?</span>
+0247     <a href="../WAD/WAD_resultsAppendFloat.html" class="code" title="function WAD_resultsAppendFloat( level, value, variable, unit, description, sLimits, limits_field_name )">WAD_resultsAppendFloat</a>( 1, SNR_henk, <span class="string">'SNR'</span>, [], [<span class="string">'Coil '</span> num2str(inum)] );
+0248 <span class="keyword">end</span>
+0249 
+0250 <span class="comment">% close waitbar in interactive mode</span>
+0251 <span class="keyword">if</span> isInteractive, close(h), <span class="keyword">end</span>
+0252 
+0253 <span class="keyword">return</span></pre></div>
+<hr><address>Generated on Fri 07-Aug-2015 09:34:21 by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" target="_parent">m2html</a></strong> &copy; 2005</address>
+</body>
+</html>

@@ -1,0 +1,729 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+                "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html>
+<head>
+  <title>Description of WAD_MR_privateSizePos_pix</title>
+  <meta name="keywords" content="WAD_MR_privateSizePos_pix">
+  <meta name="description" content="------------------------------------------------------------------------">
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+  <meta name="generator" content="m2html &copy; 2005 Guillaume Flandin">
+  <meta name="robots" content="index, follow">
+  <link type="text/css" rel="stylesheet" href="../m2html.css">
+  <script type="text/javascript">
+    if (top.frames.length == 0) { top.location = "../index.html"; };
+  </script>
+</head>
+<body>
+<a name="_top"></a>
+<!-- menu.html WAD_MR -->
+<h1>WAD_MR_privateSizePos_pix
+</h1>
+
+<h2><a name="_name"></a>PURPOSE <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="box"><strong>------------------------------------------------------------------------</strong></div>
+
+<h2><a name="_synopsis"></a>SYNOPSIS <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="box"><strong>function [diameter_pix, centre_pix, figureHandle ] = WAD_MR_privateSizePos_pix( sImage, sParams, quiet ) </strong></div>
+
+<h2><a name="_description"></a>DESCRIPTION <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="fragment"><pre class="comment"> ------------------------------------------------------------------------
+ WAD_MR is an MRI analysis module written for IQC.
+ NVKF WAD IQC software is a framework for automatic analysis of DICOM objects.
+ 
+ Copyright 2012-2013  Joost Kuijer / jpa.kuijer@vumc.nl
+ 
+ 
+ This program is free software: you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation, either version 3 of the License, or
+ (at your option) any later version.
+ 
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+ 
+ You should have received a copy of the GNU General Public License
+ along with this program.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+ ------------------------------------------------------------------------</pre></div>
+
+<!-- crossreference -->
+<h2><a name="_cross"></a>CROSS-REFERENCE INFORMATION <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+This function calls:
+<ul style="list-style-image:url(../matlabicon.gif)">
+</ul>
+This function is called by:
+<ul style="list-style-image:url(../matlabicon.gif)">
+<li><a href="WAD_MR_B0_uniformity.html" class="code" title="function WAD_MR_B0_uniformity( i_iSeries, sSeries, sParams )">WAD_MR_B0_uniformity</a>	------------------------------------------------------------------------</li><li><a href="WAD_MR_SNR.html" class="code" title="function WAD_MR_SNR( i_iSeries, sSeries, sParams )">WAD_MR_SNR</a>	------------------------------------------------------------------------</li><li><a href="WAD_MR_SNR_MultiChannel.html" class="code" title="function WAD_MR_SNR_MultiChannel( i_iSeries, sSeries, sParams )">WAD_MR_SNR_MultiChannel</a>	------------------------------------------------------------------------</li><li><a href="WAD_MR_geomXY.html" class="code" title="function WAD_MR_geomXY( i_iSeries, sSeries, sParams )">WAD_MR_geomXY</a>	------------------------------------------------------------------------</li></ul>
+<!-- crossreference -->
+
+<h2><a name="_subfunctions"></a>SUBFUNCTIONS <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<ul style="list-style-image:url(../matlabicon.gif)">
+<li><a href="#_sub1" class="code">function h = d2dgauss(n1,sigma1,n2,sigma2,theta)</a></li><li><a href="#_sub2" class="code">function y = gauss(x,std)</a></li><li><a href="#_sub3" class="code">function y = dgauss(x,std)</a></li><li><a href="#_sub4" class="code">function ellipse_t = fit_ellipse( x,y,axis_handle, excludeAngle_deg )</a></li></ul>
+
+<h2><a name="_source"></a>SOURCE CODE <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="fragment"><pre>0001 <span class="comment">% ------------------------------------------------------------------------</span>
+0002 <span class="comment">% WAD_MR is an MRI analysis module written for IQC.</span>
+0003 <span class="comment">% NVKF WAD IQC software is a framework for automatic analysis of DICOM objects.</span>
+0004 <span class="comment">%</span>
+0005 <span class="comment">% Copyright 2012-2013  Joost Kuijer / jpa.kuijer@vumc.nl</span>
+0006 <span class="comment">%</span>
+0007 <span class="comment">%</span>
+0008 <span class="comment">% This program is free software: you can redistribute it and/or modify</span>
+0009 <span class="comment">% it under the terms of the GNU General Public License as published by</span>
+0010 <span class="comment">% the Free Software Foundation, either version 3 of the License, or</span>
+0011 <span class="comment">% (at your option) any later version.</span>
+0012 <span class="comment">%</span>
+0013 <span class="comment">% This program is distributed in the hope that it will be useful,</span>
+0014 <span class="comment">% but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
+0015 <span class="comment">% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
+0016 <span class="comment">% GNU General Public License for more details.</span>
+0017 <span class="comment">%</span>
+0018 <span class="comment">% You should have received a copy of the GNU General Public License</span>
+0019 <span class="comment">% along with this program.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
+0020 <span class="comment">% ------------------------------------------------------------------------</span>
+0021 
+0022 <a name="_sub0" href="#_subfunctions" class="code">function [diameter_pix, centre_pix, figureHandle ] = WAD_MR_privateSizePos_pix( sImage, sParams, quiet )</a>
+0023 <span class="comment">% Fit a circle to the edge of the ACR phantom.</span>
+0024 <span class="comment">% To be used with plain slice that has NO features, e.g. middle slice.</span>
+0025 <span class="comment">%</span>
+0026 <span class="comment">% Input:    sImage        - single (WAD struct) instance entry with .filename</span>
+0027 <span class="comment">%           interpolPower - pixel matrix is interpolated with factor 2^interpolPower</span>
+0028 <span class="comment">%           quiet        - determines display of figure on screen or just</span>
+0029 <span class="comment">%                          save to disk in a quiet operation.</span>
+0030 <span class="comment">%</span>
+0031 <span class="comment">% Output:   diameter_pix - X and Y diameter IN PIXELS</span>
+0032 <span class="comment">%           centre_pix   - X and Y centre position of phantom</span>
+0033 <span class="comment">%           figureHandle - optional - handle to figure with image and</span>
+0034 <span class="comment">%                          overlay of fitted ellipse</span>
+0035 <span class="comment">%</span>
+0036 <span class="comment">% Algorithm:</span>
+0037 <span class="comment">% 0) image interpolation (optional)</span>
+0038 <span class="comment">% 1) edge detection using Canny edge filter:</span>
+0039 <span class="comment">%    - calculate norm of gradient</span>
+0040 <span class="comment">%    - thresholding on norm of gradient</span>
+0041 <span class="comment">%    - thinning of edge by one of following two options:</span>
+0042 <span class="comment">%      a) selection of pixel with largest gradient</span>
+0043 <span class="comment">%      b) find zero-crossing of 2nd derivative by sub-pixel interpolation</span>
+0044 <span class="comment">% 2) fit ellipse to detected/selected edge points</span>
+0045 <span class="comment">% 3) selection of points based on angle (to exclude edge pixels at location</span>
+0046 <span class="comment">%    of the air bubble in the phantom) and distance from fitted edge ( to</span>
+0047 <span class="comment">%    exclude falsely detected edge points (2nd and 3rd iteration). These</span>
+0048 <span class="comment">%    parameters are currently hardcoded.</span>
+0049 <span class="comment">% 4) repeat steps 2 and 3 twice (three iterations in total)</span>
+0050 <span class="comment">%</span>
+0051 <span class="comment">% ------------------------------------------------------------------------</span>
+0052 <span class="comment">% SQVID MR</span>
+0053 <span class="comment">% file: SQ_MR_sizePos_pix.m</span>
+0054 <span class="comment">% ------------------------------------------------------------------------</span>
+0055 <span class="comment">% VUmc, Amsterdam, NL / Joost Kuijer / jpa.kuijer@vumc.nl</span>
+0056 <span class="comment">% 2009-11-16 / JK</span>
+0057 <span class="comment">% V0.84: added functionality for more robustness against artefacts:</span>
+0058 <span class="comment">% - remove edge points more than 20 pix away from estimated edge</span>
+0059 <span class="comment">% - added a second iteration of fit + selection of points</span>
+0060 <span class="comment">% - exclude distance in 2nd iteration set to 10 pixels</span>
+0061 <span class="comment">% ------------------------------------------------------------------------</span>
+0062 <span class="comment">% 2012-08-07 / JK / adapted to WAD</span>
+0063 <span class="comment">% ------------------------------------------------------------------------</span>
+0064 
+0065 
+0066 <span class="comment">% version info</span>
+0067 my.name = <span class="string">'WAD_MR_privateSizePos_pix'</span>;
+0068 my.version = <span class="string">'1.1'</span>;
+0069 my.date = <span class="string">'20130904'</span>;
+0070 
+0071 
+0072 
+0073 <span class="comment">% The canny edge detection algorithm parameters:</span>
+0074 <span class="comment">% 1. Parameters of edge detecting filters:</span>
+0075 <span class="comment">%    X-axis direction filter:</span>
+0076      Nx1=10;Sigmax1=1;Nx2=10;Sigmax2=1;Theta1=pi/2;
+0077 <span class="comment">%    Y-axis direction filter:</span>
+0078      Ny1=10;Sigmay1=1;Ny2=10;Sigmay2=1;Theta2=0;
+0079 <span class="comment">% 2. The thresholding parameter alfa:</span>
+0080      alfa=0.3; <span class="comment">% 0.3</span>
+0081 
+0082 <span class="comment">% Parameters for exclusion of edge pixels from ellipse fit</span>
+0083 <span class="comment">% exclude top angle because of the air bubble</span>
+0084 <span class="keyword">if</span> isfield( sParams, <span class="string">'excludeAngle_deg'</span> ) &amp;&amp; ~isempty(sParams.excludeAngle_deg)
+0085     excludeAngle_deg = sParams.excludeAngle_deg;
+0086 <span class="keyword">else</span>
+0087     <span class="comment">% default</span>
+0088     excludeAngle_deg = 17.0;
+0089 <span class="keyword">end</span>
+0090 
+0091 <span class="comment">% exclude pixels at a distance from fitted ellipse</span>
+0092 <span class="comment">% 2nd iteration</span>
+0093 <span class="keyword">if</span> isfield( sParams, <span class="string">'excludedst2_pix'</span> ) &amp;&amp; ~isempty(sParams.excludedst2_pix)
+0094     excludedst2_pix = sParams.excludedst2_pix;
+0095 <span class="keyword">else</span>
+0096     <span class="comment">% default</span>
+0097     excludedst2_pix = 20; 
+0098 <span class="keyword">end</span>
+0099 <span class="comment">% 3rd iteration</span>
+0100 <span class="keyword">if</span> isfield( sParams, <span class="string">'excludedst3_pix'</span> ) &amp;&amp; ~isempty(sParams.excludedst3_pix)
+0101     excludedst3_pix = sParams.excludedst3_pix;
+0102 <span class="keyword">else</span>
+0103     <span class="comment">% default</span>
+0104     excludedst3_pix = 10;
+0105 <span class="keyword">end</span>
+0106 <span class="comment">% interpolation power</span>
+0107 <span class="keyword">if</span> isfield( sParams, <span class="string">'interpolPower'</span> ) &amp;&amp; ~isempty(sParams.interpolPower)
+0108     interpolPower = sParams.interpolPower;
+0109 <span class="keyword">else</span>
+0110     <span class="comment">% default</span>
+0111     interpolPower = 0;
+0112 <span class="keyword">end</span>
+0113 
+0114 
+0115 <span class="comment">% Get the initial image</span>
+0116 fname = sImage.filename;
+0117 x = dicomread( fname );
+0118     
+0119 
+0120 <span class="comment">% interpolate pixels with factor 2^interpolPower</span>
+0121 <span class="comment">% do we need interpolation? difference was 0.02%</span>
+0122 w = interp2( double(x), interpolPower, <span class="string">'*cubic'</span> ); <span class="comment">% default</span>
+0123 <span class="comment">%w = double(x);</span>
+0124 
+0125 <span class="comment">% create figure</span>
+0126 <span class="keyword">if</span> quiet 
+0127     fig_visible = <span class="string">'off'</span>;
+0128 <span class="keyword">else</span>
+0129     fig_visible = <span class="string">'on'</span>;
+0130 <span class="keyword">end</span>
+0131 <span class="comment">% reasons for plotting a figure...</span>
+0132 makefig = (nargout &gt; 2) || ~quiet;
+0133 
+0134 <span class="keyword">if</span> makefig
+0135     hFig = figure( <span class="string">'Visible'</span>, fig_visible, <span class="string">'MenuBar'</span>, <span class="string">'none'</span>, <span class="string">'Name'</span>, <span class="string">'Geometry fit'</span> );
+0136     <span class="comment">%hFig = figure( 'Name', 'Geometry fit' );</span>
+0137     colormap(gray);
+0138     imagesc(w);
+0139     axis image
+0140     axis square
+0141     axis off
+0142     title(fname, <span class="string">'Interpreter'</span>, <span class="string">'none'</span>);
+0143 <span class="keyword">end</span>
+0144 
+0145 <span class="comment">% X-axis direction edge detection</span>
+0146 filterx=<a href="#_sub1" class="code" title="subfunction h = d2dgauss(n1,sigma1,n2,sigma2,theta)">d2dgauss</a>(Nx1,Sigmax1,Nx2,Sigmax2,Theta1);
+0147 Ix= conv2(w,filterx,<span class="string">'same'</span>);
+0148 <span class="comment">%imagesc(Ix);</span>
+0149 <span class="comment">%title('Ix');</span>
+0150 
+0151 <span class="comment">% Y-axis direction edge detection</span>
+0152 filtery=<a href="#_sub1" class="code" title="subfunction h = d2dgauss(n1,sigma1,n2,sigma2,theta)">d2dgauss</a>(Ny1,Sigmay1,Ny2,Sigmay2,Theta2);
+0153 Iy=conv2(w,filtery,<span class="string">'same'</span>); 
+0154 <span class="comment">%imagesc(Iy);</span>
+0155 <span class="comment">%title('Iy');</span>
+0156 
+0157 <span class="comment">% Norm of the gradient (Combining the X and Y directional derivatives)</span>
+0158 NVI=sqrt(Ix.*Ix+Iy.*Iy);
+0159 <span class="comment">%imagesc(NVI);</span>
+0160 <span class="comment">%title('Norm of Gradient');</span>
+0161 
+0162 <span class="comment">%figure()</span>
+0163 <span class="comment">%imshow(NVI,[]);</span>
+0164 <span class="comment">%figure(hFig)</span>
+0165 
+0166 <span class="comment">% Thresholding on the gradient</span>
+0167 I_max=max(max(NVI));
+0168 I_min=min(min(NVI));
+0169 level=alfa*(I_max-I_min)+I_min;
+0170 Ibw=max(NVI,level.*ones(size(NVI)));
+0171 <span class="comment">%Ibw=im2bw(NVI,graythresh(NVI));</span>
+0172 <span class="comment">%figure();</span>
+0173 <span class="comment">%imshow(Ibw,[level, I_max./2]);</span>
+0174 <span class="comment">%title('After Thresholding');</span>
+0175 <span class="comment">%figure()</span>
+0176 <span class="comment">% %hist(Ibw(:),50);</span>
+0177 <span class="comment">%figure(hFig);</span>
+0178 
+0179 <span class="comment">% Thinning (Using interpolation to find the pixels where the norms of</span>
+0180 <span class="comment">% gradient are local maximum.)</span>
+0181 [n,m]=size(Ibw);
+0182 <span class="comment">% Pre-allocate memory for faster performance</span>
+0183 ellX = zeros(1,n*m);
+0184 ellY = zeros(1,n*m);
+0185 
+0186 <span class="comment">% 3-by-3 'grid' coordinates for 2D interpolation</span>
+0187 X=[-1, 0,+1; -1, 0,+1; -1, 0,+1];
+0188 Y=[-1,-1,-1;  0, 0, 0; +1,+1,+1];
+0189 <span class="comment">% index counter</span>
+0190 ell_ic = 0;
+0191 <span class="comment">% loop over the image</span>
+0192 <span class="keyword">for</span> i=2:n-1
+0193     <span class="keyword">for</span> j=2:m-1
+0194         <span class="comment">% if pixel is above threshold...</span>
+0195         <span class="keyword">if</span> Ibw(i,j) &gt; level
+0196             <span class="comment">% fill the 3-by-3 grid with the pixels around the current pix</span>
+0197             <span class="comment">% ... data here is the norm of the gradient.</span>
+0198             Z=[ Ibw(i-1,j-1), Ibw(i-1,j), Ibw(i-1,j+1);
+0199                 Ibw(i,  j-1), Ibw(i,  j), Ibw(i,  j+1);
+0200                 Ibw(i+1,j-1), Ibw(i+1,j), Ibw(i+1,j+1) ];
+0201             <span class="comment">% next lines define 2 points on a unit circle around the</span>
+0202             <span class="comment">% current pixel, along the direction of the maximum gradient</span>
+0203             XI=[Ix(i,j)/NVI(i,j), -Ix(i,j)/NVI(i,j)];
+0204             YI=[Iy(i,j)/NVI(i,j), -Iy(i,j)/NVI(i,j)];
+0205             <span class="comment">% interpolate the norm of the gradient at the above-defined</span>
+0206             <span class="comment">% points on the unit circle</span>
+0207             ZI=interp2(X,Y,Z,XI,YI);
+0208             <span class="comment">% check if current point is the local maximum, by checking its</span>
+0209             <span class="comment">% value agains the value of the points on the unit circle.</span>
+0210             <span class="comment">% Because the interpolated points were in the direction of the</span>
+0211             <span class="comment">% max gradient, it must be a local maximum if they both are</span>
+0212             <span class="comment">% smaller than ther current point.</span>
+0213             <span class="keyword">if</span> Ibw(i,j) &gt;= ZI(1) &amp;&amp; Ibw(i,j) &gt;= ZI(2)
+0214                 <span class="comment">%I_temp(i,j)=I_max; %%%</span>
+0215                 <span class="comment">% store coordinates of thinned edge point</span>
+0216                 ell_ic = ell_ic+1;
+0217                 ellX(ell_ic) = j;
+0218                 ellY(ell_ic) = i;
+0219                 <span class="comment">% V0.91: interpolate along line of max gradient</span>
+0220                 <span class="comment">% to find zero-crossing of 2nd derivative (using linear</span>
+0221                 <span class="comment">% interpolation)</span>
+0222                 <span class="comment">%dl = -0.5 + (Ibw(i,j)-ZI(1)) ./ (2*Ibw(i,j)-ZI(1)-ZI(2));</span>
+0223                 <span class="comment">%ellX(ell_ic) = j + dl * (-Ix(i,j)/NVI(i,j));</span>
+0224                 <span class="comment">%ellY(ell_ic) = i + dl * (-Iy(i,j)/NVI(i,j));</span>
+0225             <span class="keyword">else</span>
+0226                 <span class="comment">%I_temp(i,j)=I_min; %%%</span>
+0227             <span class="keyword">end</span>
+0228         <span class="keyword">else</span>
+0229             <span class="comment">%I_temp(i,j)=I_min; %%%</span>
+0230         <span class="keyword">end</span>
+0231     <span class="keyword">end</span>
+0232 <span class="keyword">end</span>
+0233 <span class="comment">% figure();</span>
+0234 <span class="comment">% imshow(I_temp,[]);</span>
+0235 <span class="comment">% title('After Thinning');</span>
+0236 <span class="comment">% colormap(gray);</span>
+0237 <span class="comment">% figure(hFig);</span>
+0238 
+0239 <span class="comment">% copy from pre-allocated memory to resized memory</span>
+0240 ellX = ellX(1:ell_ic);
+0241 ellY = ellY(1:ell_ic);
+0242 
+0243 
+0244 <span class="comment">% plot data &amp; fit ellipse</span>
+0245 <span class="comment">%figure();</span>
+0246 <span class="comment">%plot( ellX, ellY, '.' );</span>
+0247 
+0248 <span class="comment">% ----------------------------------------------------------------------</span>
+0249 <span class="comment">% stage 1: fit ellipse on full edge</span>
+0250 <span class="comment">% ----------------------------------------------------------------------</span>
+0251 ellipse_t = <a href="#_sub4" class="code" title="subfunction ellipse_t = fit_ellipse( x,y,axis_handle, excludeAngle_deg )">fit_ellipse</a>( ellX, ellY );
+0252 
+0253 <span class="comment">% ----------------------------------------------------------------------</span>
+0254 <span class="comment">% stage 2: select edge points</span>
+0255 <span class="comment">% ----------------------------------------------------------------------</span>
+0256 ell1_ic = 0;
+0257 <span class="comment">% V0.84: exclude points that are more than 20 pix (should roughly be 20 mm)</span>
+0258 <span class="comment">% away from detected radius to avoid false detection due to artefacts</span>
+0259 avgdst = (ellipse_t.a + ellipse_t.b) / 2;
+0260 excludedst_pix = excludedst2_pix;
+0261 refdst = excludedst_pix * 2^interpolPower;
+0262 
+0263 <span class="comment">% Pre-allocate memory for faster performance</span>
+0264 ellX1 = zeros(size(ellX));
+0265 ellY1 = zeros(size(ellY));
+0266 
+0267 <span class="keyword">for</span> i=1:ell_ic
+0268     <span class="comment">% exclude top angle because of the air bubble</span>
+0269     angle_deg = atan2( ellY(i) - ellipse_t.Y0, ellX(i) - ellipse_t.X0 ) / pi * 180.0;
+0270     dst = abs( sqrt( (ellY(i) - ellipse_t.Y0).^2 + (ellX(i) - ellipse_t.X0 ).^2 ) - avgdst );
+0271     <span class="keyword">if</span> ( (angle_deg &gt; -90+excludeAngle_deg) || (angle_deg &lt; -90-excludeAngle_deg) ) <span class="keyword">...</span>
+0272             &amp;&amp; dst &lt; refdst  <span class="comment">% V0.84 added</span>
+0273         ell1_ic = ell1_ic + 1;
+0274         ellX1(ell1_ic) = ellX(i);
+0275         ellY1(ell1_ic) = ellY(i);
+0276     <span class="keyword">end</span>
+0277 <span class="keyword">end</span>
+0278 
+0279 <span class="comment">% copy from pre-allocated memory to resized memory</span>
+0280 ellX1 = ellX1(1:ell1_ic);
+0281 ellY1 = ellY1(1:ell1_ic);
+0282 
+0283 <span class="comment">% ----------------------------------------------------------------------</span>
+0284 <span class="comment">% stage 2: fit ellipse on selected edge</span>
+0285 <span class="comment">% ----------------------------------------------------------------------</span>
+0286 ellipse_t = <a href="#_sub4" class="code" title="subfunction ellipse_t = fit_ellipse( x,y,axis_handle, excludeAngle_deg )">fit_ellipse</a>( ellX1, ellY1 );
+0287 
+0288 <span class="comment">% ----------------------------------------------------------------------</span>
+0289 <span class="comment">% stage 3: re-select edge points based on stage 2 results</span>
+0290 <span class="comment">% ----------------------------------------------------------------------</span>
+0291 ell1_ic = 0;
+0292 <span class="comment">% V0.84: exclude points that are more than 10 pix (should roughly be 10 mm)</span>
+0293 <span class="comment">% away from detected radius to avoid false detection due to artefacts</span>
+0294 avgdst = (ellipse_t.a + ellipse_t.b) / 2;
+0295 excludedst_pix = excludedst3_pix;
+0296 refdst = excludedst_pix * 2^interpolPower;
+0297 
+0298 <span class="comment">% Pre-allocate memory for faster performance</span>
+0299 ellX1 = zeros(size(ellX));
+0300 ellY1 = zeros(size(ellY));
+0301 
+0302 <span class="keyword">for</span> i=1:ell_ic
+0303     angle_deg = atan2( ellY(i) - ellipse_t.Y0, ellX(i) - ellipse_t.X0 ) / pi * 180.0;
+0304     dst = abs( sqrt( (ellY(i) - ellipse_t.Y0).^2 + (ellX(i) - ellipse_t.X0 ).^2 ) - avgdst );
+0305     <span class="keyword">if</span> ( (angle_deg &gt; -90+excludeAngle_deg) || (angle_deg &lt; -90-excludeAngle_deg) ) <span class="keyword">...</span>
+0306             &amp;&amp; dst &lt; refdst  <span class="comment">% V0.84 added</span>
+0307         ell1_ic = ell1_ic + 1;
+0308         ellX1(ell1_ic) = ellX(i);
+0309         ellY1(ell1_ic) = ellY(i);
+0310     <span class="keyword">end</span>
+0311 <span class="keyword">end</span>
+0312 
+0313 <span class="comment">% copy from pre-allocated memory to resized memory</span>
+0314 ellX1 = ellX1(1:ell1_ic);
+0315 ellY1 = ellY1(1:ell1_ic);
+0316 
+0317 <span class="comment">% plot selected datapoints</span>
+0318 <span class="comment">%figure( 9 );</span>
+0319 <span class="comment">%imshow(w,[]);</span>
+0320 <span class="comment">%imshow(NVI,[]);</span>
+0321 <span class="comment">%hold on</span>
+0322 <span class="comment">%plot( ellX1, ellY1, '.r' );</span>
+0323 <span class="comment">%hold on</span>
+0324 <span class="comment">%plot( ellXi, ellYi, '.b' );</span>
+0325 <span class="comment">%figure(hFig);</span>
+0326 
+0327 <span class="comment">% ----------------------------------------------------------------------</span>
+0328 <span class="comment">% stage 3: fit ellipse on selected edge</span>
+0329 <span class="comment">% ----------------------------------------------------------------------</span>
+0330 <span class="keyword">if</span> makefig
+0331     ellipse_t = <a href="#_sub4" class="code" title="subfunction ellipse_t = fit_ellipse( x,y,axis_handle, excludeAngle_deg )">fit_ellipse</a>( ellX1, ellY1, gca, excludeAngle_deg );
+0332 <span class="keyword">else</span>
+0333     ellipse_t = <a href="#_sub4" class="code" title="subfunction ellipse_t = fit_ellipse( x,y,axis_handle, excludeAngle_deg )">fit_ellipse</a>( ellX1, ellY1 );
+0334 <span class="keyword">end</span>
+0335 
+0336 <span class="comment">% output</span>
+0337 diameter_pix(1) = (ellipse_t.a * 2) / 2^interpolPower;
+0338 diameter_pix(2) = (ellipse_t.b * 2) / 2^interpolPower;
+0339 
+0340 centre_pix(1) = ellipse_t.X0 / 2^interpolPower;
+0341 centre_pix(2) = ellipse_t.Y0 / 2^interpolPower;
+0342 
+0343 <span class="comment">%[pathstr, name, ext] = fileparts(fname);</span>
+0344 <span class="comment">%saveas( gcf, fullfile(pathstr,'acrSize.jpg'));</span>
+0345 
+0346 <span class="comment">% return figure handle if it was requested</span>
+0347 <span class="keyword">if</span> nargout &gt; 2
+0348     figureHandle = hFig;
+0349 <span class="keyword">end</span>
+0350 
+0351 
+0352 
+0353 
+0354 <span class="comment">% -------------------------------------------------------------------------</span>
+0355 <span class="comment">% Function d2dgauss:</span>
+0356 <span class="comment">% This function returns a 2D edge detector (first order derivative</span>
+0357 <span class="comment">% of 2D Gaussian function) with size n1*n2; theta is the angle that</span>
+0358 <span class="comment">% the detector rotated counter clockwise; and sigma1 and sigma2 are the</span>
+0359 <span class="comment">% standard deviation of the gaussian functions.</span>
+0360 <a name="_sub1" href="#_subfunctions" class="code">function h = d2dgauss(n1,sigma1,n2,sigma2,theta)</a>
+0361 r=[cos(theta) -sin(theta);
+0362    sin(theta)  cos(theta)];
+0363 <span class="keyword">for</span> i = 1 : n2 
+0364     <span class="keyword">for</span> j = 1 : n1
+0365         u = r * [j-(n1+1)/2 i-(n2+1)/2]';
+0366         h(i,j) = <a href="#_sub2" class="code" title="subfunction y = gauss(x,std)">gauss</a>(u(1),sigma1)*<a href="#_sub3" class="code" title="subfunction y = dgauss(x,std)">dgauss</a>(u(2),sigma2);
+0367     <span class="keyword">end</span>
+0368 <span class="keyword">end</span>
+0369 h = h / sqrt(sum(sum(abs(h).*abs(h))));
+0370 
+0371 <span class="comment">% Function &quot;gauss.m&quot;:</span>
+0372 <a name="_sub2" href="#_subfunctions" class="code">function y = gauss(x,std)</a>
+0373 y = exp(-x^2/(2*std^2)) / (std*sqrt(2*pi));
+0374 
+0375 <span class="comment">% Function &quot;dgauss.m&quot;(first order derivative of gauss function):</span>
+0376 <a name="_sub3" href="#_subfunctions" class="code">function y = dgauss(x,std)</a>
+0377 y = -x * <a href="#_sub2" class="code" title="subfunction y = gauss(x,std)">gauss</a>(x,std) / std^2;
+0378 <span class="comment">% -------------------------------------------------------------------------</span>
+0379 
+0380 
+0381 
+0382 
+0383 
+0384 
+0385 <span class="comment">%--------------------------------------------------------------------------</span>
+0386 <a name="_sub4" href="#_subfunctions" class="code">function ellipse_t = fit_ellipse( x,y,axis_handle, excludeAngle_deg )</a>
+0387 <span class="comment">%</span>
+0388 <span class="comment">% fit_ellipse - finds the best fit to an ellipse for the given set of points.</span>
+0389 <span class="comment">%</span>
+0390 <span class="comment">% Format:   ellipse_t = fit_ellipse( x,y,axis_handle )</span>
+0391 <span class="comment">%</span>
+0392 <span class="comment">% Input:    x,y         - a set of points in 2 column vectors. AT LEAST 5 points are needed !</span>
+0393 <span class="comment">%           axis_handle - optional. a handle to an axis, at which the estimated ellipse</span>
+0394 <span class="comment">%                         will be drawn along with it's axes</span>
+0395 <span class="comment">%</span>
+0396 <span class="comment">% Output:   ellipse_t - structure that defines the best fit to an ellipse</span>
+0397 <span class="comment">%                       a           - sub axis (radius) of the X axis of the non-tilt ellipse</span>
+0398 <span class="comment">%                       b           - sub axis (radius) of the Y axis of the non-tilt ellipse</span>
+0399 <span class="comment">%                       phi         - orientation in radians of the ellipse (tilt)</span>
+0400 <span class="comment">%                       X0          - center at the X axis of the non-tilt ellipse</span>
+0401 <span class="comment">%                       Y0          - center at the Y axis of the non-tilt ellipse</span>
+0402 <span class="comment">%                       X0_in       - center at the X axis of the tilted ellipse</span>
+0403 <span class="comment">%                       Y0_in       - center at the Y axis of the tilted ellipse</span>
+0404 <span class="comment">%                       long_axis   - size of the long axis of the ellipse</span>
+0405 <span class="comment">%                       short_axis  - size of the short axis of the ellipse</span>
+0406 <span class="comment">%                       status      - status of detection of an ellipse</span>
+0407 <span class="comment">%</span>
+0408 <span class="comment">% Note:     if an ellipse was not detected (but a parabola or hyperbola), then</span>
+0409 <span class="comment">%           an empty structure is returned</span>
+0410 
+0411 <span class="comment">% =====================================================================================</span>
+0412 <span class="comment">%                  Ellipse Fit using Least Squares criterion</span>
+0413 <span class="comment">% =====================================================================================</span>
+0414 <span class="comment">% We will try to fit the best ellipse to the given measurements. the mathematical</span>
+0415 <span class="comment">% representation of use will be the CONIC Equation of the Ellipse which is:</span>
+0416 <span class="comment">%</span>
+0417 <span class="comment">%    Ellipse = a*x^2 + b*x*y + c*y^2 + d*x + e*y + f = 0</span>
+0418 <span class="comment">%</span>
+0419 <span class="comment">% The fit-estimation method of use is the Least Squares method (without any weights)</span>
+0420 <span class="comment">% The estimator is extracted from the following equations:</span>
+0421 <span class="comment">%</span>
+0422 <span class="comment">%    g(x,y;A) := a*x^2 + b*x*y + c*y^2 + d*x + e*y = f</span>
+0423 <span class="comment">%</span>
+0424 <span class="comment">%    where:</span>
+0425 <span class="comment">%       A   - is the vector of parameters to be estimated (a,b,c,d,e)</span>
+0426 <span class="comment">%       x,y - is a single measurement</span>
+0427 <span class="comment">%</span>
+0428 <span class="comment">% We will define the cost function to be:</span>
+0429 <span class="comment">%</span>
+0430 <span class="comment">%   Cost(A) := (g_c(x_c,y_c;A)-f_c)'*(g_c(x_c,y_c;A)-f_c)</span>
+0431 <span class="comment">%            = (X*A+f_c)'*(X*A+f_c)</span>
+0432 <span class="comment">%            = A'*X'*X*A + 2*f_c'*X*A + N*f^2</span>
+0433 <span class="comment">%</span>
+0434 <span class="comment">%   where:</span>
+0435 <span class="comment">%       g_c(x_c,y_c;A) - vector function of ALL the measurements</span>
+0436 <span class="comment">%                        each element of g_c() is g(x,y;A)</span>
+0437 <span class="comment">%       X              - a matrix of the form: [x_c.^2, x_c.*y_c, y_c.^2, x_c, y_c ]</span>
+0438 <span class="comment">%       f_c            - is actually defined as ones(length(f),1)*f</span>
+0439 <span class="comment">%</span>
+0440 <span class="comment">% Derivation of the Cost function with respect to the vector of parameters &quot;A&quot; yields:</span>
+0441 <span class="comment">%</span>
+0442 <span class="comment">%   A'*X'*X = -f_c'*X = -f*ones(1,length(f_c))*X = -f*sum(X)</span>
+0443 <span class="comment">%</span>
+0444 <span class="comment">% Which yields the estimator:</span>
+0445 <span class="comment">%</span>
+0446 <span class="comment">%       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~</span>
+0447 <span class="comment">%       |  A_least_squares = -f*sum(X)/(X'*X) -&gt;(normalize by -f) = sum(X)/(X'*X)  |</span>
+0448 <span class="comment">%       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~</span>
+0449 <span class="comment">%</span>
+0450 <span class="comment">% (We will normalize the variables by (-f) since &quot;f&quot; is unknown and can be accounted for later on)</span>
+0451 <span class="comment">%</span>
+0452 <span class="comment">% NOW, all that is left to do is to extract the parameters from the Conic Equation.</span>
+0453 <span class="comment">% We will deal the vector A into the variables: (A,B,C,D,E) and assume F = -1;</span>
+0454 <span class="comment">%</span>
+0455 <span class="comment">%    Recall the conic representation of an ellipse:</span>
+0456 <span class="comment">%</span>
+0457 <span class="comment">%       A*x^2 + B*x*y + C*y^2 + D*x + E*y + F = 0</span>
+0458 <span class="comment">%</span>
+0459 <span class="comment">% We will check if the ellipse has a tilt (=orientation). The orientation is present</span>
+0460 <span class="comment">% if the coefficient of the term &quot;x*y&quot; is not zero. If so, we first need to remove the</span>
+0461 <span class="comment">% tilt of the ellipse.</span>
+0462 <span class="comment">%</span>
+0463 <span class="comment">% If the parameter &quot;B&quot; is not equal to zero, then we have an orientation (tilt) to the ellipse.</span>
+0464 <span class="comment">% we will remove the tilt of the ellipse so as to remain with a conic representation of an</span>
+0465 <span class="comment">% ellipse without a tilt, for which the math is more simple:</span>
+0466 <span class="comment">%</span>
+0467 <span class="comment">% Non tilt conic rep.:  A`*x^2 + C`*y^2 + D`*x + E`*y + F` = 0</span>
+0468 <span class="comment">%</span>
+0469 <span class="comment">% We will remove the orientation using the following substitution:</span>
+0470 <span class="comment">%</span>
+0471 <span class="comment">%   Replace x with cx+sy and y with -sx+cy such that the conic representation is:</span>
+0472 <span class="comment">%</span>
+0473 <span class="comment">%   A(cx+sy)^2 + B(cx+sy)(-sx+cy) + C(-sx+cy)^2 + D(cx+sy) + E(-sx+cy) + F = 0</span>
+0474 <span class="comment">%</span>
+0475 <span class="comment">%   where:      c = cos(phi)    ,   s = sin(phi)</span>
+0476 <span class="comment">%</span>
+0477 <span class="comment">%   and simplify...</span>
+0478 <span class="comment">%</span>
+0479 <span class="comment">%       x^2(A*c^2 - Bcs + Cs^2) + xy(2A*cs +(c^2-s^2)B -2Ccs) + ...</span>
+0480 <span class="comment">%           y^2(As^2 + Bcs + Cc^2) + x(Dc-Es) + y(Ds+Ec) + F = 0</span>
+0481 <span class="comment">%</span>
+0482 <span class="comment">%   The orientation is easily found by the condition of (B_new=0) which results in:</span>
+0483 <span class="comment">%</span>
+0484 <span class="comment">%   2A*cs +(c^2-s^2)B -2Ccs = 0  ==&gt; phi = 1/2 * atan( b/(c-a) )</span>
+0485 <span class="comment">%</span>
+0486 <span class="comment">%   Now the constants   c=cos(phi)  and  s=sin(phi)  can be found, and from them</span>
+0487 <span class="comment">%   all the other constants A`,C`,D`,E` can be found.</span>
+0488 <span class="comment">%</span>
+0489 <span class="comment">%   A` = A*c^2 - B*c*s + C*s^2                  D` = D*c-E*s</span>
+0490 <span class="comment">%   B` = 2*A*c*s +(c^2-s^2)*B -2*C*c*s = 0      E` = D*s+E*c</span>
+0491 <span class="comment">%   C` = A*s^2 + B*c*s + C*c^2</span>
+0492 <span class="comment">%</span>
+0493 <span class="comment">% Next, we want the representation of the non-tilted ellipse to be as:</span>
+0494 <span class="comment">%</span>
+0495 <span class="comment">%       Ellipse = ( (X-X0)/a )^2 + ( (Y-Y0)/b )^2 = 1</span>
+0496 <span class="comment">%</span>
+0497 <span class="comment">%       where:  (X0,Y0) is the center of the ellipse</span>
+0498 <span class="comment">%               a,b     are the ellipse &quot;radiuses&quot; (or sub-axis)</span>
+0499 <span class="comment">%</span>
+0500 <span class="comment">% Using a square completion method we will define:</span>
+0501 <span class="comment">%</span>
+0502 <span class="comment">%       F`` = -F` + (D`^2)/(4*A`) + (E`^2)/(4*C`)</span>
+0503 <span class="comment">%</span>
+0504 <span class="comment">%       Such that:    a`*(X-X0)^2 = A`(X^2 + X*D`/A` + (D`/(2*A`))^2 )</span>
+0505 <span class="comment">%                     c`*(Y-Y0)^2 = C`(Y^2 + Y*E`/C` + (E`/(2*C`))^2 )</span>
+0506 <span class="comment">%</span>
+0507 <span class="comment">%       which yields the transformations:</span>
+0508 <span class="comment">%</span>
+0509 <span class="comment">%           X0  =   -D`/(2*A`)</span>
+0510 <span class="comment">%           Y0  =   -E`/(2*C`)</span>
+0511 <span class="comment">%           a   =   sqrt( abs( F``/A` ) )</span>
+0512 <span class="comment">%           b   =   sqrt( abs( F``/C` ) )</span>
+0513 <span class="comment">%</span>
+0514 <span class="comment">% And finally we can define the remaining parameters:</span>
+0515 <span class="comment">%</span>
+0516 <span class="comment">%   long_axis   = 2 * max( a,b )</span>
+0517 <span class="comment">%   short_axis  = 2 * min( a,b )</span>
+0518 <span class="comment">%   Orientation = phi</span>
+0519 <span class="comment">%</span>
+0520 <span class="comment">%</span>
+0521 
+0522 <span class="comment">% initialize</span>
+0523 orientation_tolerance = 1e-3;
+0524 
+0525 <span class="comment">% empty warning stack</span>
+0526 lastwarn( <span class="string">''</span> );
+0527 
+0528 <span class="comment">% prepare vectors, must be column vectors</span>
+0529 x = x(:);
+0530 y = y(:);
+0531 
+0532 <span class="comment">% remove bias of the ellipse - to make matrix inversion more accurate. (will be added later on).</span>
+0533 mean_x = mean(x);
+0534 mean_y = mean(y);
+0535 x = x-mean_x;
+0536 y = y-mean_y;
+0537 
+0538 <span class="comment">% the estimation for the conic equation of the ellipse</span>
+0539 <span class="comment">% VUMC - JK: modified not to rotate the ellipse; removed the x*y term</span>
+0540 <span class="comment">% VUMC - JK: X = [x.^2, x.*y, y.^2, x, y ];</span>
+0541 X = [x.^2, y.^2, x, y ];
+0542 a = sum(X)/(X'*X);
+0543 
+0544 <span class="comment">% check for warnings</span>
+0545 <span class="keyword">if</span> ~isempty( lastwarn )
+0546     disp( <span class="string">'stopped because of a warning regarding matrix inversion'</span> );
+0547     ellipse_t = [];
+0548     <span class="keyword">return</span>
+0549 <span class="keyword">end</span>
+0550 
+0551 <span class="comment">% extract parameters from the conic equation</span>
+0552 <span class="comment">% VUMC - JK: [a,b,c,d,e] = deal( a(1),a(2),a(3),a(4),a(5) );</span>
+0553 [a,c,d,e] = deal( a(1),a(2),a(3),a(4) );
+0554 b = 0.0; <span class="comment">% no rotation</span>
+0555 
+0556 <span class="comment">% remove the orientation from the ellipse</span>
+0557 <span class="keyword">if</span> ( min(abs(b/a),abs(b/c)) &gt; orientation_tolerance )
+0558     orientation_rad = 1/2 * atan( b/(c-a) );
+0559     cos_phi = cos( orientation_rad );
+0560     sin_phi = sin( orientation_rad );
+0561     [a,b,c,d,e] = deal(<span class="keyword">...</span>
+0562         a*cos_phi^2 - b*cos_phi*sin_phi + c*sin_phi^2,<span class="keyword">...</span>
+0563         0,<span class="keyword">...</span>
+0564         a*sin_phi^2 + b*cos_phi*sin_phi + c*cos_phi^2,<span class="keyword">...</span>
+0565         d*cos_phi - e*sin_phi,<span class="keyword">...</span>
+0566         d*sin_phi + e*cos_phi );
+0567     [mean_x,mean_y] = deal( <span class="keyword">...</span>
+0568         cos_phi*mean_x - sin_phi*mean_y,<span class="keyword">...</span>
+0569         sin_phi*mean_x + cos_phi*mean_y );
+0570 <span class="keyword">else</span>
+0571     orientation_rad = 0;
+0572     cos_phi = cos( orientation_rad );
+0573     sin_phi = sin( orientation_rad );
+0574 <span class="keyword">end</span>
+0575 
+0576 <span class="comment">% check if conic equation represents an ellipse</span>
+0577 test = a*c;
+0578 <span class="keyword">switch</span> (1)
+0579 <span class="keyword">case</span> (test&gt;0),  status = <span class="string">''</span>;
+0580 <span class="keyword">case</span> (test==0), status = <span class="string">'Parabola found'</span>;  warning( <span class="string">'fit_ellipse: Did not locate an ellipse'</span> );
+0581 <span class="keyword">case</span> (test&lt;0),  status = <span class="string">'Hyperbola found'</span>; warning( <span class="string">'fit_ellipse: Did not locate an ellipse'</span> );
+0582 <span class="keyword">end</span>
+0583 
+0584 <span class="comment">% if we found an ellipse return it's data</span>
+0585 <span class="keyword">if</span> (test&gt;0)
+0586     
+0587     <span class="comment">% make sure coefficients are positive as required</span>
+0588     <span class="keyword">if</span> (a&lt;0), [a,c,d,e] = deal( -a,-c,-d,-e ); <span class="keyword">end</span>
+0589     
+0590     <span class="comment">% final ellipse parameters</span>
+0591     X0          = mean_x - d/2/a;
+0592     Y0          = mean_y - e/2/c;
+0593     F           = 1 + (d^2)/(4*a) + (e^2)/(4*c);
+0594     [a,b]       = deal( sqrt( F/a ),sqrt( F/c ) );    
+0595     long_axis   = 2*max(a,b);
+0596     short_axis  = 2*min(a,b);
+0597 
+0598     <span class="comment">% rotate the axes backwards to find the center point of the original TILTED ellipse</span>
+0599     R           = [ cos_phi sin_phi; -sin_phi cos_phi ];
+0600     P_in        = R * [X0;Y0];
+0601     X0_in       = P_in(1);
+0602     Y0_in       = P_in(2);
+0603     
+0604     <span class="comment">% pack ellipse into a structure</span>
+0605     ellipse_t = struct( <span class="keyword">...</span>
+0606         <span class="string">'a'</span>,a,<span class="keyword">...</span>
+0607         <span class="string">'b'</span>,b,<span class="keyword">...</span>
+0608         <span class="string">'phi'</span>,orientation_rad,<span class="keyword">...</span>
+0609         <span class="string">'X0'</span>,X0,<span class="keyword">...</span>
+0610         <span class="string">'Y0'</span>,Y0,<span class="keyword">...</span>
+0611         <span class="string">'X0_in'</span>,X0_in,<span class="keyword">...</span>
+0612         <span class="string">'Y0_in'</span>,Y0_in,<span class="keyword">...</span>
+0613         <span class="string">'long_axis'</span>,long_axis,<span class="keyword">...</span>
+0614         <span class="string">'short_axis'</span>,short_axis,<span class="keyword">...</span>
+0615         <span class="string">'status'</span>,<span class="string">''</span> );
+0616 <span class="keyword">else</span>
+0617     <span class="comment">% report an empty structure</span>
+0618     ellipse_t = struct( <span class="keyword">...</span>
+0619         <span class="string">'a'</span>,[],<span class="keyword">...</span>
+0620         <span class="string">'b'</span>,[],<span class="keyword">...</span>
+0621         <span class="string">'phi'</span>,[],<span class="keyword">...</span>
+0622         <span class="string">'X0'</span>,[],<span class="keyword">...</span>
+0623         <span class="string">'Y0'</span>,[],<span class="keyword">...</span>
+0624         <span class="string">'X0_in'</span>,[],<span class="keyword">...</span>
+0625         <span class="string">'Y0_in'</span>,[],<span class="keyword">...</span>
+0626         <span class="string">'long_axis'</span>,[],<span class="keyword">...</span>
+0627         <span class="string">'short_axis'</span>,[],<span class="keyword">...</span>
+0628         <span class="string">'status'</span>,status );
+0629 <span class="keyword">end</span>
+0630 
+0631 <span class="comment">% check if we need to plot an ellipse with it's axes.</span>
+0632 <span class="keyword">if</span> (nargin&gt;2) &amp;&amp; ~isempty( axis_handle ) &amp;&amp; (test&gt;0)
+0633     
+0634     <span class="comment">% rotation matrix to rotate the axes with respect to an angle phi</span>
+0635     R = [ cos_phi sin_phi; -sin_phi cos_phi ];
+0636     
+0637     <span class="comment">% the axes</span>
+0638     ver_line        = [ [X0 X0]; Y0+b*[-1 1] ];
+0639     horz_line       = [ X0+a*[-1 1]; [Y0 Y0] ];
+0640     new_ver_line    = R*ver_line;
+0641     new_horz_line   = R*horz_line;
+0642     
+0643     <span class="comment">% the ellipse</span>
+0644     excludeAngle_rad = excludeAngle_deg / 180 * pi;
+0645     theta_r         = linspace( -0.5*pi + excludeAngle_rad, 1.5*pi - excludeAngle_rad );
+0646     ellipse_x_r     = X0 + a*cos( theta_r );
+0647     ellipse_y_r     = Y0 + b*sin( theta_r );
+0648     rotated_ellipse = R * [ellipse_x_r;ellipse_y_r];
+0649     
+0650     <span class="comment">% draw</span>
+0651     hold_state = get( axis_handle,<span class="string">'NextPlot'</span> );
+0652     set( axis_handle,<span class="string">'NextPlot'</span>,<span class="string">'add'</span> );
+0653     <span class="comment">% Fixed v0.83 add 0.5 offset for correct overlay with image</span>
+0654     <span class="comment">% Note: not needed for overlay on norm-of-gradient image!</span>
+0655     plot( new_ver_line(1,:)+0.5,new_ver_line(2,:)+0.5,<span class="string">'r'</span> );
+0656     plot( new_horz_line(1,:)+0.5,new_horz_line(2,:)+0.5,<span class="string">'r'</span> );
+0657     plot( rotated_ellipse(1,:)+0.5,rotated_ellipse(2,:)+0.5,<span class="string">'r'</span> );
+0658     <span class="comment">%plot( new_ver_line(1,:),new_ver_line(2,:),'r' );</span>
+0659     <span class="comment">%plot( new_horz_line(1,:),new_horz_line(2,:),'r' );</span>
+0660     <span class="comment">%plot( rotated_ellipse(1,:),rotated_ellipse(2,:),'r' );</span>
+0661     set( axis_handle,<span class="string">'NextPlot'</span>,hold_state );
+0662 <span class="keyword">end</span></pre></div>
+<hr><address>Generated on Fri 07-Aug-2015 09:34:21 by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" target="_parent">m2html</a></strong> &copy; 2005</address>
+</body>
+</html>

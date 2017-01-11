@@ -1,0 +1,641 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+                "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html>
+<head>
+  <title>Description of WAD_MR_geomZ</title>
+  <meta name="keywords" content="WAD_MR_geomZ">
+  <meta name="description" content="------------------------------------------------------------------------">
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+  <meta name="generator" content="m2html &copy; 2005 Guillaume Flandin">
+  <meta name="robots" content="index, follow">
+  <link type="text/css" rel="stylesheet" href="../m2html.css">
+  <script type="text/javascript">
+    if (top.frames.length == 0) { top.location = "../index.html"; };
+  </script>
+</head>
+<body>
+<a name="_top"></a>
+<!-- menu.html WAD_MR -->
+<h1>WAD_MR_geomZ
+</h1>
+
+<h2><a name="_name"></a>PURPOSE <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="box"><strong>------------------------------------------------------------------------</strong></div>
+
+<h2><a name="_synopsis"></a>SYNOPSIS <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="box"><strong>function WAD_MR_geomZ( i_iSeries, sSeries, sParams ) </strong></div>
+
+<h2><a name="_description"></a>DESCRIPTION <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="fragment"><pre class="comment"> ------------------------------------------------------------------------
+ WAD_MR is an MRI analysis module written for IQC.
+ NVKF WAD IQC software is a framework for automatic analysis of DICOM objects.
+ 
+ Copyright 2012-2013  Joost Kuijer / jpa.kuijer@vumc.nl
+ 
+ 
+ This program is free software: you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation, either version 3 of the License, or
+ (at your option) any later version.
+ 
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+ 
+ You should have received a copy of the GNU General Public License
+ along with this program.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+ ------------------------------------------------------------------------</pre></div>
+
+<!-- crossreference -->
+<h2><a name="_cross"></a>CROSS-REFERENCE INFORMATION <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+This function calls:
+<ul style="list-style-image:url(../matlabicon.gif)">
+<li><a href="../WAD/WAD_ErrorMsg.html" class="code" title="function WAD_ErrorMsg( name, mymessage, err )">WAD_ErrorMsg</a>	------------------------------------------------------------------------</li><li><a href="../WAD/WAD_resultsAppendFigure.html" class="code" title="function WAD_resultsAppendFigure( level, handle, tag, description )">WAD_resultsAppendFigure</a>	------------------------------------------------------------------------</li><li><a href="../WAD/WAD_resultsAppendFloat.html" class="code" title="function WAD_resultsAppendFloat( level, value, variable, unit, description, sLimits, limits_field_name )">WAD_resultsAppendFloat</a>	------------------------------------------------------------------------</li><li><a href="../WAD/WAD_resultsAppendString.html" class="code" title="function WAD_resultsAppendString( level, value, description )">WAD_resultsAppendString</a>	------------------------------------------------------------------------</li><li><a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>	------------------------------------------------------------------------</li><li><a href="../WAD/myErrordlg.html" class="code" title="function h = myErrordlg(isInteractive,varargin)">myErrordlg</a>	------------------------------------------------------------------------</li></ul>
+This function is called by:
+<ul style="list-style-image:url(../matlabicon.gif)">
+</ul>
+<!-- crossreference -->
+
+<h2><a name="_subfunctions"></a>SUBFUNCTIONS <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<ul style="list-style-image:url(../matlabicon.gif)">
+<li><a href="#_sub1" class="code">function [distance_pix, Theta_deg] = find_the_peak(R,xp,theta,start_pix,stop_pix)</a></li><li><a href="#_sub2" class="code">function centerpixel = find_center_row(linesum,pixelspacing)</a></li><li><a href="#_sub3" class="code">function centerpixel = find_center_column(linesum,pixelspacing)</a></li><li><a href="#_sub4" class="code">function zerocross_pix = find_zerocrossing_pix( x )</a></li><li><a href="#_sub5" class="code">function [x,y] = draw_the_edge(CenterPixel,largest_dimension,Distance_pix,Theta_deg)</a></li><li><a href="#_sub6" class="code">function [x,y] = draw_the_distance(CenterPixel,Distance_pix,Theta_deg)</a></li></ul>
+
+<h2><a name="_source"></a>SOURCE CODE <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="fragment"><pre>0001 <span class="comment">% ------------------------------------------------------------------------</span>
+0002 <span class="comment">% WAD_MR is an MRI analysis module written for IQC.</span>
+0003 <span class="comment">% NVKF WAD IQC software is a framework for automatic analysis of DICOM objects.</span>
+0004 <span class="comment">%</span>
+0005 <span class="comment">% Copyright 2012-2013  Joost Kuijer / jpa.kuijer@vumc.nl</span>
+0006 <span class="comment">%</span>
+0007 <span class="comment">%</span>
+0008 <span class="comment">% This program is free software: you can redistribute it and/or modify</span>
+0009 <span class="comment">% it under the terms of the GNU General Public License as published by</span>
+0010 <span class="comment">% the Free Software Foundation, either version 3 of the License, or</span>
+0011 <span class="comment">% (at your option) any later version.</span>
+0012 <span class="comment">%</span>
+0013 <span class="comment">% This program is distributed in the hope that it will be useful,</span>
+0014 <span class="comment">% but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
+0015 <span class="comment">% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
+0016 <span class="comment">% GNU General Public License for more details.</span>
+0017 <span class="comment">%</span>
+0018 <span class="comment">% You should have received a copy of the GNU General Public License</span>
+0019 <span class="comment">% along with this program.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
+0020 <span class="comment">% ------------------------------------------------------------------------</span>
+0021 
+0022 <a name="_sub0" href="#_subfunctions" class="code">function WAD_MR_geomZ( i_iSeries, sSeries, sParams )</a>
+0023 <span class="comment">% Evaluate length of phantom in head-feet direction on mid-saggital slice (the actual length is 148 mm)</span>
+0024 <span class="comment">%</span>
+0025 <span class="comment">% Input: SAG series on ACR phantom, for best results tilt 2 - 5 degrees (edge pixel subsampling)</span>
+0026 <span class="comment">%        Analysis is performed on first image in series</span>
+0027 <span class="comment">%        Parameters: none</span>
+0028 <span class="comment">%</span>
+0029 <span class="comment">% Output: written via WAD_resultsAppend*() interface</span>
+0030 <span class="comment">%</span>
+0031 <span class="comment">% This module consists of the following seven steps:</span>
+0032 <span class="comment">% 1. Calculation of the row APPROXIMATELY centered in the middle of the phantom (&quot;center row&quot;)</span>
+0033 <span class="comment">%    1. the image intensities along each row are summed</span>
+0034 <span class="comment">%    2. the gradient of summed intensities is calculated</span>
+0035 <span class="comment">%    3. the &quot;upper row&quot; is the max after multiplying the gradient with a function to find a positive step</span>
+0036 <span class="comment">%    4. the &quot;lower row&quot; is the min after multiplying the gradient with a function to fing a negative step</span>
+0037 <span class="comment">%    The &quot;center row&quot; will be used for</span>
+0038 <span class="comment">%    - help finding the &quot;center column&quot;</span>
+0039 <span class="comment">%    - for finding the precise edges a given distance interval above and below the &quot;center row&quot;</span>
+0040 <span class="comment">%      (to minimize the chance of detecting wrong edges)</span>
+0041 <span class="comment">%</span>
+0042 <span class="comment">% 2. Calculation of the column APPROXIMATELY centered in the middle of the phantom (&quot;center column&quot;)</span>
+0043 <span class="comment">%    It is used that a vertical &quot;hole&quot; aligned in the middle is present in the lower half of the phantom.</span>
+0044 <span class="comment">%    1. the image intensities below the &quot;center row&quot; along each column are summed</span>
+0045 <span class="comment">%    2. the &quot;center column&quot; is the maximum after multiplying the summed</span>
+0046 <span class="comment">%       intensities with a function to find a symmetric minimum.</span>
+0047 <span class="comment">%    The &quot;center column&quot; will be used for horizontal cropping of the binary edge image.</span>
+0048 <span class="comment">%</span>
+0049 <span class="comment">% 3. Edge detection in horizontal direction.</span>
+0050 <span class="comment">%      All edges with a direction significantly different from vertical will be detected.</span>
+0051 <span class="comment">%      The result is a binary image.</span>
+0052 <span class="comment">%</span>
+0053 <span class="comment">% 4. Cropping of the binary image in horizontal direction to the &quot;center column&quot; plus and minus 45 mm</span>
+0054 <span class="comment">%      Cropping is done for two reasons:</span>
+0055 <span class="comment">%      1. A more unambiguous assignment of distance between edges in case these edges are curved.</span>
+0056 <span class="comment">%      2. In the upper left corner a second edge (few millimeter lower than &quot;real&quot; edge) might also be detected.</span>
+0057 <span class="comment">%         This unwanted edge can be aligned (towards the right) with the real edge in case this real edge is curved,</span>
+0058 <span class="comment">%         giving rise to an unwanted peak in the Radon matrix.</span>
+0059 <span class="comment">%      The cropped region is visualized in the output by vertical blue lines.</span>
+0060 <span class="comment">%</span>
+0061 <span class="comment">% 5. Radon transform</span>
+0062 <span class="comment">%      Lines (or aligned line segments) in the cropped binary image are found by means of a Radon transform.</span>
+0063 <span class="comment">%</span>
+0064 <span class="comment">% 6. Detection of two lines (or aligned line segments)</span>
+0065 <span class="comment">%      Hereafter, &quot;shift&quot; (either positive or negative) corresponds to the difference between</span>
+0066 <span class="comment">%      the &quot;center row&quot; of the phantom and the center row of the image.</span>
+0067 <span class="comment">%      1. Most pronounced straight line (or aligned line segments), for which</span>
+0068 <span class="comment">%       - shortest distance between line and center pixel is between 65+shift and 85+shift mm</span>
+0069 <span class="comment">%       - the point along the line closest to the center pixel is ABOVE the center row of the phantom.</span>
+0070 <span class="comment">%      2. Most pronounced straight line (or aligned line segments), for which (&quot;shift&quot; has now opposite sign)</span>
+0071 <span class="comment">%       - shortest distance between line and center pixel is between 65+shift and 85+shift mm</span>
+0072 <span class="comment">%       - the point along the line closest to the center pixel is BELOW the center row of the phantom</span>
+0073 <span class="comment">%      The lines (corresponding to edges in the original image) are visualized in the output by red lines.</span>
+0074 <span class="comment">%</span>
+0075 <span class="comment">% 7. Calculation of length of phantom.</span>
+0076 <span class="comment">%      This length equals the sum of the two &quot;shortest distances&quot;.</span>
+0077 <span class="comment">%      For parallel lines, this corresponds to the distance between the lines.</span>
+0078 <span class="comment">%      It is always a distance corresponding to a multiple of one pixel, also for rotated and curved edges.</span>
+0079 <span class="comment">%      (this is a property of the Radon transform)</span>
+0080 <span class="comment">%      Each shortest distance (center pixel - edge) is visualized in the output by a red line.</span>
+0081 <span class="comment">%</span>
+0082 <span class="comment">% ------------------------------------------------------------------------</span>
+0083 <span class="comment">% WAD MR</span>
+0084 <span class="comment">% file: WAD_MR_geomZ</span>
+0085 <span class="comment">% ------------------------------------------------------------------------</span>
+0086 <span class="comment">% VUmc, Amsterdam, NL / Frank de Weerd &amp; Joost Kuijer / jpa.kuijer@vumc.nl</span>
+0087 <span class="comment">% 2009-05-13 / JK</span>
+0088 <span class="comment">% second version</span>
+0089 <span class="comment">% ------------------------------------------------------------------------</span>
+0090 <span class="comment">% JK - 090925 v2.1: modified the algorithm</span>
+0091 <span class="comment">% - use gradient image instead of binary edge</span>
+0092 <span class="comment">% - use zero-crossing of derivative to find position of maximum in Radon</span>
+0093 <span class="comment">% transform. This allows (linear) interpolation.</span>
+0094 <span class="comment">% ------------------------------------------------------------------------</span>
+0095 <span class="comment">% JK - 20120807 v2.1: adapted to WAD framework</span>
+0096 <span class="comment">% ------------------------------------------------------------------------</span>
+0097 <span class="comment">% JK - 20120807 v2.2: new (v1.1) style action limits</span>
+0098 <span class="comment">% ------------------------------------------------------------------------</span>
+0099 
+0100 <span class="comment">% produce a figure on the screen or be quiet...</span>
+0101 quiet = true;
+0102 isInteractive = false;
+0103 
+0104 <span class="comment">% version info</span>
+0105 my.name = <span class="string">'WAD_MR_geomZ'</span>;
+0106 my.version = <span class="string">'2.2'</span>;
+0107 my.date = <span class="string">'20131127'</span>;
+0108 <a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [<span class="string">'Module '</span> my.name <span class="string">' Version '</span> my.version <span class="string">' ('</span> my.date <span class="string">')'</span>] );
+0109 
+0110 <span class="comment">%gen_object_display( sSeries );</span>
+0111 <span class="comment">%gen_object_display( sParams );</span>
+0112 
+0113 
+0114 <span class="comment">% select the image within the series</span>
+0115 inum = 1; <span class="comment">% there should be only 1 image...</span>
+0116 
+0117 
+0118 <span class="comment">% find the image</span>
+0119 foundImage = false;
+0120 <span class="keyword">for</span> ii = 1:length( sSeries.instance )
+0121     <span class="keyword">if</span> ( sSeries.instance(ii).number == inum )
+0122         ci = ii;
+0123         foundImage = true;
+0124         <span class="keyword">break</span>;
+0125     <span class="keyword">end</span>
+0126 <span class="keyword">end</span>
+0127 <span class="keyword">if</span> ~foundImage
+0128     <a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">': Error: could not find image number '</span> num2str( inum ) <span class="string">' for geometry Z'</span>], 1 );
+0129     <a href="../WAD/myErrordlg.html" class="code" title="function h = myErrordlg(isInteractive,varargin)">myErrordlg</a>( isInteractive, [<span class="string">'Cannot find configured image number '</span> num2str( inum ) <span class="string">' for geometry Z evaluation.'</span>], <span class="string">'Geometry Z'</span>, <span class="string">'on'</span> );
+0130     <span class="keyword">return</span>;
+0131 <span class="keyword">end</span>
+0132 
+0133 <span class="comment">% display waitbar in interactive mode</span>
+0134 <span class="keyword">if</span> isInteractive, h = waitbar( 0, <span class="string">'Calculating geometry Z'</span> ); <span class="keyword">end</span>
+0135 <a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">': Calculating geometry Z ...'</span>] );
+0136 
+0137 <span class="comment">% read the DICOM image</span>
+0138 <a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">':   loading DICOM image file: '</span> sSeries.instance(ci).filename ] );
+0139 <span class="keyword">try</span>
+0140     dcmInfo = dicominfo( sSeries.instance(ci).filename );
+0141 <span class="keyword">catch</span> err
+0142     <a href="../WAD/WAD_ErrorMsg.html" class="code" title="function WAD_ErrorMsg( name, mymessage, err )">WAD_ErrorMsg</a>( my.name, [<span class="string">'ERROR reading DICOM info from file &quot;'</span> sSeries.instance(ci).filename <span class="string">'&quot;)'</span>], err );
+0143     <span class="keyword">return</span>
+0144 <span class="keyword">end</span>
+0145 <span class="keyword">try</span>
+0146     a = dicomread( dcmInfo );
+0147 <span class="keyword">catch</span> err
+0148     <a href="../WAD/WAD_ErrorMsg.html" class="code" title="function WAD_ErrorMsg( name, mymessage, err )">WAD_ErrorMsg</a>( my.name, [<span class="string">'ERROR reading pixel data from DICOM file &quot;'</span> sSeries.instance(ci).filename <span class="string">'&quot;)'</span>], err );
+0149     <span class="keyword">return</span>
+0150 <span class="keyword">end</span>
+0151 
+0152 
+0153 <span class="comment">%warndlg('Testcase CT fantoom: removing bottom part of image');</span>
+0154 <span class="comment">%a(400:end,:)=0;</span>
+0155 
+0156 <span class="comment">% check that pixel size is square</span>
+0157 dcmPxSp = dcmInfo.PixelSpacing;
+0158 <span class="keyword">if</span> dcmPxSp(1) ~= dcmPxSp(2)
+0159     <a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">': Error: pixel size not equal in row and column direction. Currently not supported.'</span>] );
+0160     <a href="../WAD/myErrordlg.html" class="code" title="function h = myErrordlg(isInteractive,varargin)">myErrordlg</a>( isInteractive, <span class="string">'Pixel size not equal in row and column direction. Currently not supported.'</span>, <span class="string">'Geometry Z'</span>, <span class="string">'on'</span> );
+0161     <span class="keyword">return</span>;
+0162 <span class="keyword">end</span>
+0163 pixelspacing = dcmPxSp(1);
+0164 
+0165 <span class="comment">% JK - interpolate pixels to reduce discretisation of length measurement</span>
+0166 <span class="comment">%WAD_vbprint( [my.name ':  starting interpolation'] );</span>
+0167 <span class="comment">%a = interp2(a,1,'cubic');</span>
+0168 <span class="comment">%pixelspacing = pixelspacing / 2;</span>
+0169 
+0170 image_dimension = size(a);
+0171 largest_dimension = max(image_dimension);
+0172 
+0173 <span class="comment">% 1. find the APPROXIMATE center row</span>
+0174 sum_over_columns = zeros( 1, image_dimension(1) );
+0175 <span class="keyword">for</span> i=1:image_dimension(1),
+0176     sum_over_columns(i) = sum(a(i,:));
+0177 <span class="keyword">end</span>
+0178 approx_center_row_pix = <a href="#_sub2" class="code" title="subfunction centerpixel = find_center_row(linesum,pixelspacing)">find_center_row</a>(sum_over_columns,pixelspacing);   
+0179 
+0180 <span class="comment">% 2. find the APPROXIMATE center column</span>
+0181 sum_over_rows = zeros( 1, image_dimension(2) );
+0182 <span class="keyword">for</span> i=1:image_dimension(2),
+0183       sum_over_rows(i) = sum(a(approx_center_row_pix:image_dimension(1),i));
+0184 <span class="keyword">end</span>
+0185 approx_center_column_pix = <a href="#_sub3" class="code" title="subfunction centerpixel = find_center_column(linesum,pixelspacing)">find_center_column</a>(sum_over_rows,pixelspacing);
+0186 
+0187 <span class="comment">%warndlg('Testcase: fix center row/col');</span>
+0188 <span class="comment">%sim testcase: approx_center_row_pix = 256; approx_center_column_pix = 256;</span>
+0189 <span class="comment">%CT GE testcase:</span>
+0190 <span class="comment">%approx_center_row_pix = 221; approx_center_column_pix = 246;</span>
+0191 
+0192 <a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">':   estimated approximate centre at row '</span> num2str(approx_center_row_pix) <span class="string">' and col '</span> num2str(approx_center_column_pix)] );
+0193 
+0194 
+0195 <span class="comment">% 3. Edge detection</span>
+0196 <span class="comment">% JK - 090925: use gradient image instead of binary edge image</span>
+0197 <span class="comment">% bw = edge(a,'Sobel','horizontal');  % 'Prewitt' gives similar results</span>
+0198 <a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">':   calculating gradient image'</span>] );
+0199 [gx,gy] = gradient( double(a) );
+0200 bw = sqrt( gx.^2 + gy.^2 ); <span class="comment">% magnitude of gradient</span>
+0201 <span class="comment">%figure; colormap(gray(256)); image(bw)</span>
+0202 
+0203 
+0204 <span class="comment">% update waitbar in interactive mode</span>
+0205 <span class="keyword">if</span> isInteractive, waitbar( 0.3, h ); <span class="keyword">end</span>
+0206 
+0207 
+0208 <span class="comment">% 4. Make a cropped image</span>
+0209 <span class="comment">%    Consider only the middle part (45 mm left to 45 mm right)</span>
+0210 <a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">':   cropping image'</span>] );
+0211 start = round(approx_center_column_pix - 25/pixelspacing);
+0212 stop  = round(approx_center_column_pix + 45/pixelspacing);
+0213 
+0214 <span class="comment">% Make vertical blue lines to show which part is selected</span>
+0215 x_blueline1 = [start,start];
+0216 y_blueline1 = [1,image_dimension(1)];
+0217 x_blueline2 = [stop,stop];
+0218 y_blueline2 = [1,image_dimension(1)];
+0219 
+0220 bw2=bw;
+0221 <span class="keyword">for</span> i=1:start,
+0222     <span class="keyword">for</span> j=1:image_dimension(1),
+0223         bw2(j,i)=0;
+0224     <span class="keyword">end</span>
+0225 <span class="keyword">end</span>
+0226 
+0227 <span class="keyword">for</span> i=stop:image_dimension(2),
+0228     <span class="keyword">for</span> j=1:image_dimension(1),
+0229         bw2(j,i)=0;
+0230     <span class="keyword">end</span>
+0231 <span class="keyword">end</span>
+0232 
+0233 <span class="comment">% update waitbar in interactive mode</span>
+0234 <span class="keyword">if</span> isInteractive, waitbar( 0.5, h ); <span class="keyword">end</span>
+0235 
+0236 <span class="comment">%figure; colormap(gray(256)); image(bw2)</span>
+0237 
+0238 <span class="comment">% 5. Radon transform</span>
+0239 <a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">':   calculating Radon transform'</span>] );
+0240 theta = 70:0.5:110;                  <span class="comment">% steps of 0.5 degrees are chosen (this is somewhat arbitrarily)</span>
+0241 [R,xp] = radon(bw2,theta);
+0242 
+0243 <span class="comment">%figure; imshow(R,[]);</span>
+0244 
+0245 <span class="comment">% update waitbar in interactive mode</span>
+0246 <span class="keyword">if</span> isInteractive, waitbar( 0.8, h ); <span class="keyword">end</span>
+0247 
+0248 <span class="comment">%figure; imagesc(theta, xp, R); colormap(hot);</span>
+0249 <span class="comment">%xlabel('\theta (degrees)'); ylabel('x\prime');</span>
+0250 <span class="comment">%title('R_{\theta} (x\prime)');</span>
+0251 <span class="comment">%colorbar</span>
+0252 
+0253 <span class="comment">% 6. Find the peaks in the Radon matrix</span>
+0254 <span class="comment">%    An edge in the upper half of the image corresponds to a peak in the lower</span>
+0255 <span class="comment">%    half of the Radon matrix.</span>
+0256 <a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">':   finding peaks in Radon space'</span>] );
+0257 middle_xp_pix = find(xp==0);
+0258 ApproxZshift_pix = image_dimension(1)/2 - approx_center_row_pix;    <span class="comment">% negative means a downshift</span>
+0259 
+0260 <span class="comment">% Find the peak corresponding to the upper edge</span>
+0261 StartUpper_pix = middle_xp_pix + round(ApproxZshift_pix) + round(65/pixelspacing);
+0262 StopUpper_pix  = middle_xp_pix + round(ApproxZshift_pix) + round(85/pixelspacing);
+0263 [UpperDistance_pix, Theta_Upper_deg] = <a href="#_sub1" class="code" title="subfunction [distance_pix, Theta_deg] = find_the_peak(R,xp,theta,start_pix,stop_pix)">find_the_peak</a>(R,xp,theta,StartUpper_pix,StopUpper_pix);
+0264 
+0265 <span class="comment">% Find the peak corresponding to the lower edge</span>
+0266 StartLower_pix = middle_xp_pix + round(ApproxZshift_pix) - round(85/pixelspacing);
+0267 StopLower_pix  = middle_xp_pix + round(ApproxZshift_pix) - round(65/pixelspacing);
+0268 [LowerDistance_pix, Theta_Lower_deg] = <a href="#_sub1" class="code" title="subfunction [distance_pix, Theta_deg] = find_the_peak(R,xp,theta,start_pix,stop_pix)">find_the_peak</a>(R,xp,theta,StartLower_pix,StopLower_pix);
+0269 
+0270 <span class="comment">% 7. Calculate the size of the phantom along its longitudinal axis</span>
+0271 Zsize_pix = UpperDistance_pix - LowerDistance_pix;
+0272 
+0273 lengthZ_mm = Zsize_pix * pixelspacing;
+0274 rotationSAG_deg = 0.5 .* (Theta_Upper_deg + Theta_Lower_deg) - 90;
+0275 
+0276 <a href="../WAD/WAD_resultsAppendFloat.html" class="code" title="function WAD_resultsAppendFloat( level, value, variable, unit, description, sLimits, limits_field_name )">WAD_resultsAppendFloat</a>( 1, lengthZ_mm, <span class="string">'Lengte'</span>, <span class="string">'mm'</span>, <span class="string">'Geometrie Z'</span> );
+0277 <a href="../WAD/WAD_resultsAppendFloat.html" class="code" title="function WAD_resultsAppendFloat( level, value, variable, unit, description, sLimits, limits_field_name )">WAD_resultsAppendFloat</a>( 1, rotationSAG_deg, <span class="string">'Rotatie'</span>, <span class="string">'graden'</span>, <span class="string">'Geometrie Z'</span> );
+0278 
+0279 <span class="comment">%handles.results.lengthZ_mm</span>
+0280 
+0281 <span class="comment">% close waitbar in interactive mode</span>
+0282 <span class="keyword">if</span> isInteractive, close( h ), <span class="keyword">end</span>
+0283 
+0284 
+0285 <span class="comment">% In the matlab help, it can be found that the center pixel of image I in the Radon transformation is defined to be floor((size(I)+1)/2)</span>
+0286 CenterPixel = floor((size(a)+1)/2);
+0287 
+0288 [x_edge_upper, y_edge_upper] = <a href="#_sub5" class="code" title="subfunction [x,y] = draw_the_edge(CenterPixel,largest_dimension,Distance_pix,Theta_deg)">draw_the_edge</a>(CenterPixel,largest_dimension,UpperDistance_pix,Theta_Upper_deg);
+0289 [x_edge_lower, y_edge_lower] = <a href="#_sub5" class="code" title="subfunction [x,y] = draw_the_edge(CenterPixel,largest_dimension,Distance_pix,Theta_deg)">draw_the_edge</a>(CenterPixel,largest_dimension,LowerDistance_pix,Theta_Lower_deg);
+0290 [x_distance_upper, y_distance_upper] = <a href="#_sub6" class="code" title="subfunction [x,y] = draw_the_distance(CenterPixel,Distance_pix,Theta_deg)">draw_the_distance</a>(CenterPixel,UpperDistance_pix,Theta_Upper_deg);
+0291 [x_distance_lower, y_distance_lower] = <a href="#_sub6" class="code" title="subfunction [x,y] = draw_the_distance(CenterPixel,Distance_pix,Theta_deg)">draw_the_distance</a>(CenterPixel,LowerDistance_pix,Theta_Lower_deg);
+0292 
+0293 <span class="comment">% Draw all lines in the images</span>
+0294 <span class="comment">% create figure</span>
+0295 <span class="keyword">if</span> quiet 
+0296     fig_visible = <span class="string">'off'</span>;
+0297 <span class="keyword">else</span>
+0298     fig_visible = <span class="string">'on'</span>;
+0299 <span class="keyword">end</span>
+0300 
+0301 <span class="comment">% create figure</span>
+0302 hFig1 = figure( <span class="string">'Visible'</span>, fig_visible, <span class="string">'MenuBar'</span>, <span class="string">'none'</span>, <span class="string">'Name'</span>, <span class="string">'Geometry Z'</span> );
+0303 colormap( gray(256) );
+0304 imagesc( a );
+0305 axis image
+0306 axis square
+0307 axis off
+0308 title( [ <span class="string">'series '</span> num2str(sSeries.number) <span class="string">' - image '</span> num2str(sSeries.instance(ci).number)], <span class="string">'Interpreter'</span>, <span class="string">'none'</span> );
+0309 
+0310 <span class="comment">%figure; colormap(gray(256)); imagesc(a);</span>
+0311 
+0312 hold on
+0313 
+0314 plot(x_edge_upper,y_edge_upper,<span class="string">'r-'</span>);
+0315 plot(x_distance_upper,y_distance_upper,<span class="string">'r-'</span>);
+0316 plot(x_edge_lower,y_edge_lower,<span class="string">'r-'</span>);
+0317 plot(x_distance_lower,y_distance_lower,<span class="string">'r-'</span>);
+0318 plot(x_blueline1,y_blueline1,<span class="string">'b-'</span>);
+0319 plot(x_blueline2,y_blueline2,<span class="string">'b-'</span>);
+0320 
+0321 hold off
+0322 
+0323 
+0324 <span class="comment">% Write figure to level 2</span>
+0325 <a href="../WAD/WAD_resultsAppendString.html" class="code" title="function WAD_resultsAppendString( level, value, description )">WAD_resultsAppendString</a>( 2, [<span class="string">'Analysis on series: '</span> num2str(sSeries.number) <span class="string">' / image: '</span> num2str(inum) ], <span class="string">'Geometrie Z'</span> )
+0326 <a href="../WAD/WAD_resultsAppendFigure.html" class="code" title="function WAD_resultsAppendFigure( level, handle, tag, description )">WAD_resultsAppendFigure</a>( 2, hFig1, <span class="string">'geomZ_fitted'</span>, <span class="string">'Geometrie Z: randdetectie'</span> );
+0327 <span class="keyword">if</span> quiet
+0328     <span class="comment">% delete non-visible image</span>
+0329     delete( hFig1 );
+0330 <span class="keyword">end</span>
+0331 
+0332 
+0333 <span class="comment">% create figure</span>
+0334 hFig2 = figure( <span class="string">'Visible'</span>, fig_visible, <span class="string">'MenuBar'</span>, <span class="string">'none'</span>, <span class="string">'Name'</span>, <span class="string">'SNR / Ghosting'</span> );
+0335 colormap( gray(256) );
+0336 image( bw )
+0337 axis image
+0338 axis square
+0339 axis off
+0340 title( [ <span class="string">'series '</span> num2str(sSeries.number) <span class="string">' - image '</span> num2str(sSeries.instance(ci).number)], <span class="string">'Interpreter'</span>, <span class="string">'none'</span> );
+0341 <span class="comment">%figure; colormap(gray(2)); image(bw)</span>
+0342 
+0343 hold on
+0344 
+0345 plot(x_edge_upper,y_edge_upper,<span class="string">'r-'</span>);
+0346 plot(x_distance_upper,y_distance_upper,<span class="string">'r-'</span>);
+0347 plot(x_edge_lower,y_edge_lower,<span class="string">'r-'</span>);
+0348 plot(x_distance_lower,y_distance_lower,<span class="string">'r-'</span>);
+0349 plot(x_blueline1,y_blueline1,<span class="string">'b-'</span>);
+0350 plot(x_blueline2,y_blueline2,<span class="string">'b-'</span>);
+0351 
+0352 hold off;
+0353 
+0354 <span class="comment">% Write figure to level 2</span>
+0355 <a href="../WAD/WAD_resultsAppendFigure.html" class="code" title="function WAD_resultsAppendFigure( level, handle, tag, description )">WAD_resultsAppendFigure</a>( 2, hFig2, <span class="string">'geomZ_thresholded'</span>, <span class="string">'Geometrie Z: randdetectie (edge image)'</span> );
+0356 <span class="keyword">if</span> quiet
+0357     <span class="comment">% delete non-visible image</span>
+0358     delete( hFig2 );
+0359 <span class="keyword">end</span>
+0360 
+0361 
+0362 
+0363 <span class="comment">%%%%%%%%%%%%%%%%%%%%%%% SUB-FUNCTION %%%%%%%%%%%%%%%%%%%%%%%</span>
+0364 <a name="_sub1" href="#_subfunctions" class="code">function [distance_pix, Theta_deg] = find_the_peak(R,xp,theta,start_pix,stop_pix)</a>
+0365 <span class="comment">% JK - 090925: use zero-crossing of derivative instead of maximum.</span>
+0366 <span class="comment">%figure; imshow(R(start_pix:stop_pix,:),[]);</span>
+0367 
+0368 <span class="comment">%[MaxPerTheta_vector LocationMaxPerTheta_vector] = max(R(start_pix:stop_pix,:));</span>
+0369 [GlobalMax Theta_pix] = max(max(R(start_pix:stop_pix,:)));
+0370 
+0371 Theta_deg = theta(Theta_pix);
+0372 <span class="comment">%dummy = LocationMaxPerTheta_vector(Theta_pix);</span>
+0373 <span class="comment">%LocationMax_pix = dummy + start_pix - 1;</span>
+0374 
+0375 <span class="comment">% JK - 090925: take the pixels at the angle where the maximum is located</span>
+0376 lineAtTheta = R(start_pix:stop_pix,Theta_pix);
+0377 <span class="comment">%figure; plot(lineAtTheta);</span>
+0378 <span class="comment">%figure; plot(gradient(lineAtTheta));</span>
+0379 
+0380 <span class="comment">% find the position of the maximum</span>
+0381 zerocross_pix = <a href="#_sub4" class="code" title="subfunction zerocross_pix = find_zerocrossing_pix( x )">find_zerocrossing_pix</a>( gradient(lineAtTheta) );
+0382 LocationMax_pix = zerocross_pix + start_pix - 1;
+0383 
+0384 <span class="comment">%distance_pix = xp(LocationMax_pix);</span>
+0385 distance_pix = interp1( xp, LocationMax_pix);
+0386 
+0387 
+0388 <span class="comment">%%%%%%%%%%%%%%%%%%%%%%% SUB-FUNCTION %%%%%%%%%%%%%%%%%%%%%%%</span>
+0389 <a name="_sub2" href="#_subfunctions" class="code">function centerpixel = find_center_row(linesum,pixelspacing)</a>
+0390 
+0391 number_of_rows = length(linesum);
+0392 
+0393 fx = gradient(linesum);
+0394 
+0395 <span class="comment">%figure; plot(linesum);</span>
+0396 <span class="comment">%figure; plot(fx);</span>
+0397 
+0398 <span class="comment">% find smallest element larger than zero</span>
+0399 n=0;
+0400 <span class="keyword">for</span> i=1:number_of_rows,
+0401    <span class="keyword">if</span>(linesum(i) &gt; 0)
+0402       n = n + 1;
+0403       <span class="keyword">if</span>( n == 1) 
+0404           smallest = linesum(i);
+0405       <span class="keyword">elseif</span> (linesum(i) &lt; smallest)
+0406              smallest = linesum(i);    
+0407       <span class="keyword">end</span>    
+0408    <span class="keyword">end</span>    
+0409 <span class="keyword">end</span>
+0410 
+0411 <span class="comment">% make zero elements equal to smallest</span>
+0412 <span class="keyword">for</span> i=1:number_of_rows,
+0413    <span class="keyword">if</span> (linesum(i)==0)
+0414        linesum(i)= smallest;
+0415    <span class="keyword">end</span>    
+0416 <span class="keyword">end</span>
+0417 
+0418 <span class="comment">% laat een mask van plus min 10 mm lopen</span>
+0419 bandwidth = round(10/pixelspacing);
+0420 
+0421 test_value_left  = zeros( 1, number_of_rows );
+0422 test_value_right = zeros( 1, number_of_rows );
+0423 <span class="keyword">for</span> i = 1 : number_of_rows
+0424    test_value_left(i) = 0;
+0425    test_value_right(i) = 0;
+0426    <span class="keyword">for</span> j= 1:bandwidth,   
+0427      <span class="keyword">if</span> (i+j &gt; number_of_rows)
+0428          value_right = smallest;
+0429      <span class="keyword">else</span>
+0430          value_right = linesum(i+j);
+0431      <span class="keyword">end</span>  
+0432      <span class="keyword">if</span> (i-j &lt; 1)
+0433          value_left = smallest;
+0434      <span class="keyword">else</span>    
+0435          value_left = linesum(i-j);
+0436      <span class="keyword">end</span>    
+0437      ratio_left = value_right / value_left;
+0438      ratio_right = value_left / value_right;     
+0439      test_value_left(i) = test_value_left(i) + ratio_left;
+0440      test_value_right(i) = test_value_right(i) + ratio_right;
+0441    <span class="keyword">end</span>   
+0442 <span class="keyword">end</span>
+0443 
+0444 linesum_left  = zeros( 1, number_of_rows );
+0445 linesum_right = zeros( 1, number_of_rows );
+0446 <span class="keyword">for</span> i=1:number_of_rows;
+0447    linesum_left(i) = fx(i)*test_value_left(i);
+0448    linesum_right(i) = fx(i)*test_value_right(i);
+0449 <span class="keyword">end</span>
+0450 
+0451 <span class="comment">% skip some pixels near edge of image...</span>
+0452 skip_pix = 10;
+0453 linesum_left(1:skip_pix) = 0;
+0454 linesum_left(number_of_rows-skip_pix:number_of_rows) = 0;
+0455 linesum_right(1:skip_pix) = 0;
+0456 linesum_right(number_of_rows-skip_pix:number_of_rows) = 0;
+0457 
+0458 <span class="comment">%figure; plot(test_value_left);</span>
+0459 <span class="comment">%figure; plot(test_value_right);</span>
+0460 <span class="comment">%figure; plot(linesum_left);</span>
+0461 <span class="comment">%figure; plot(linesum_right);</span>
+0462 
+0463 <span class="comment">% find the upper edge</span>
+0464 [maximum loc_max] = max(linesum_left);
+0465 
+0466 <span class="comment">% find the lower edge</span>
+0467 [minimum loc_min] = min(linesum_right);
+0468 
+0469 centerpixel = round((loc_min + loc_max)/2);
+0470 
+0471 <span class="comment">%%%%%%%%%%%%%%%%%%%%%%% SUB-FUNCTION %%%%%%%%%%%%%%%%%%%%%%%</span>
+0472 <a name="_sub3" href="#_subfunctions" class="code">function centerpixel = find_center_column(linesum,pixelspacing)</a>
+0473 
+0474 number_of_columns = length(linesum);
+0475 
+0476 <span class="comment">%figure; plot(linesum);</span>
+0477 
+0478 <span class="comment">% find smallest element larger than zero</span>
+0479 n=0;
+0480 <span class="keyword">for</span> i=1:number_of_columns,
+0481    <span class="keyword">if</span>(linesum(i) &gt; 0)
+0482       n = n + 1;
+0483       <span class="keyword">if</span>( n == 1) 
+0484           smallest = linesum(i);
+0485       <span class="keyword">elseif</span> (linesum(i) &lt; smallest)
+0486              smallest = linesum(i);    
+0487       <span class="keyword">end</span>    
+0488    <span class="keyword">end</span>    
+0489 <span class="keyword">end</span>
+0490 
+0491 <span class="comment">% make zero elements equal to smallest</span>
+0492 <span class="keyword">for</span> i=1:number_of_columns,
+0493    <span class="keyword">if</span> (linesum(i)==0)
+0494        linesum(i)= smallest;
+0495    <span class="keyword">end</span>    
+0496 <span class="keyword">end</span>
+0497 
+0498 <span class="comment">% laat een mask van plus min 30 mm lopen</span>
+0499 bandbreedte = round(30/pixelspacing);
+0500 
+0501 test_waarde = zeros( 1, bandbreedte );
+0502 <span class="keyword">for</span> i = bandbreedte + 1 : number_of_columns - bandbreedte - 1,
+0503    test_waarde(i) = 0;
+0504    <span class="keyword">for</span> j= 1:bandbreedte,   
+0505      som = ((linesum(i-j) + linesum(i+j))/2) - linesum(i);
+0506      ratio = linesum(i-j) / linesum(i+j);
+0507      <span class="keyword">if</span> (ratio &gt; 1)
+0508          ratio = 1/ratio;
+0509      <span class="keyword">end</span>    
+0510      som = som * ratio;
+0511      test_waarde(i) = test_waarde(i) + som;
+0512    <span class="keyword">end</span>
+0513 <span class="keyword">end</span>
+0514 
+0515 <span class="keyword">for</span> i = number_of_columns - bandbreedte : number_of_columns,
+0516    test_waarde(i) = 0;
+0517 <span class="keyword">end</span>
+0518        
+0519 <span class="comment">%figure; plot(test_waarde);</span>
+0520 
+0521 <span class="comment">% find the center</span>
+0522 [maximum loc_max] = max(test_waarde);
+0523 
+0524 centerpixel = loc_max;
+0525 
+0526 
+0527 
+0528 <span class="comment">%%%%%%%%%%%%%%%%%%%%%%%% SUB-FUNCTION %%%%%%%%%%%%%%%%%%%%%</span>
+0529 <span class="comment">% find zero-crossing in a 1D array, supposed to be the 2nd derivative of</span>
+0530 <span class="comment">% the image intensity (in the Radon transform)</span>
+0531 <span class="comment">% Return value is 0 when crossing is not found.</span>
+0532 <a name="_sub4" href="#_subfunctions" class="code">function zerocross_pix = find_zerocrossing_pix( x )</a>
+0533 <span class="comment">% search the zero crossing only between the maximum and the minimum</span>
+0534 [~, max_i] = max( x );
+0535 [~, min_i] = min( x ); <span class="comment">% min should have higher index than max</span>
+0536 
+0537 <span class="comment">% check if we should be able to find a proper zero crossing</span>
+0538 <span class="keyword">if</span> ( x(max_i) &lt; 0 ) || ( x(min_i) &gt; 0 )
+0539     fprintf( 2, <span class="string">'ERROR in SQ_MR_geomZ: cannot find edge. No zero-crossing of 2nd derivative.'</span> );
+0540     zerocross_pix = 0;
+0541     <span class="keyword">return</span>
+0542 <span class="keyword">end</span>
+0543 <span class="comment">% find the index where the sign has changed</span>
+0544 <span class="keyword">for</span> ii = max_i:min_i
+0545     <span class="keyword">if</span> x(ii) &lt; 0, <span class="keyword">break</span>, <span class="keyword">end</span>
+0546 <span class="keyword">end</span>
+0547 <span class="comment">% interpolate between pixels</span>
+0548 zerocross_pix = (ii-1) + x(ii-1) ./ ( x(ii-1) - x(ii) );
+0549 
+0550 
+0551 
+0552 
+0553 
+0554 <span class="comment">%%%%%%%%%%%%%%%%%%%%%%%% SUB-FUNCTION %%%%%%%%%%%%%%%%%%%%%</span>
+0555 <span class="comment">% Turn the found edge into a red line</span>
+0556 <a name="_sub5" href="#_subfunctions" class="code">function [x,y] = draw_the_edge(CenterPixel,largest_dimension,Distance_pix,Theta_deg)</a>
+0557 
+0558 x(1) = CenterPixel(2) - largest_dimension .* sin(2*pi*Theta_deg/360);
+0559 x(2) = CenterPixel(2) + largest_dimension .* sin(2*pi*Theta_deg/360);
+0560 y(1) = CenterPixel(1) - largest_dimension .* cos(2*pi*Theta_deg/360);
+0561 y(2) = CenterPixel(1) + largest_dimension .* cos(2*pi*Theta_deg/360);
+0562 
+0563 x = x + Distance_pix .* cos(2*pi*Theta_deg/360);
+0564 y = y - Distance_pix .* sin(2*pi*Theta_deg/360);
+0565 
+0566 
+0567 <span class="comment">%%%%%%%%%%%%%%%%%%%%%%%% SUB-FUNCTION %%%%%%%%%%%%%%%%%%%%%</span>
+0568 <span class="comment">% Make a distance line</span>
+0569 <a name="_sub6" href="#_subfunctions" class="code">function [x,y] = draw_the_distance(CenterPixel,Distance_pix,Theta_deg)</a>
+0570 
+0571 x(1)= CenterPixel(2);
+0572 x(2)= CenterPixel(2) + Distance_pix .* cos(2*pi*Theta_deg/360);
+0573 y(1)= CenterPixel(1);
+0574 y(2)= CenterPixel(1) - Distance_pix .* sin(2*pi*Theta_deg/360);</pre></div>
+<hr><address>Generated on Fri 07-Aug-2015 09:34:21 by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" target="_parent">m2html</a></strong> &copy; 2005</address>
+</body>
+</html>

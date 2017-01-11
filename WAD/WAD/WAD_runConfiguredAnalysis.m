@@ -35,6 +35,18 @@ function WAD_runConfiguredAnalysis
 % 2012-11-06 / JK
 % first WAD version named 0.95 converted from SQVID 0.95
 % ------------------------------------------------------------------------
+% VUmc, Amsterdam, NL / Joost Kuijer / jpa.kuijer@vumc.nl
+% 2013-09-06 / JK
+% V1.0: <match> is now optional. If not defined, action is always run.
+% ------------------------------------------------------------------------
+% VUmc, Amsterdam, NL / Joost Kuijer / jpa.kuijer@vumc.nl
+% 2013-09-06 / JK
+% V1.1: - Produce message for v1.0 style action limits
+%       - Support for configurable action field <resultsNamePrefix> to
+%         allow configuration of a single analysis function in multiple
+%         actions, and still get unique identifiers in the results
+%         database.
+% ------------------------------------------------------------------------
 
 
 % ----------------------
@@ -44,8 +56,8 @@ global WAD
 
 % version info
 my.name = 'WAD_runConfiguredAnalysis';
-my.version = '0.95';
-my.date = '20121106';
+my.version = '1.1';
+my.date = '20131127';
 WAD_vbprint( ['Module ' my.name ' Version ' my.version ' (' my.date ')'], 2 );
 
 
@@ -93,8 +105,11 @@ for i_icAction = 1:i_nAction
     % check "match" field
     % --------------------
     if ~isfield( curAct, 'match' ) || isempty( curAct.match )
-        WAD_vbprint( [my.name ' ERROR: "match" is not defined for action ' num2str(i_icAction) ' ' curAct.name], 1 );
-        continue % next action
+        % Change V1.0: not considered an error, repair with empty match.
+        % Empty match results in match with any series.
+        %WAD_vbprint( [my.name ' ERROR: "match" is not defined for action ' num2str(i_icAction) ' ' curAct.name], 1 );
+        %continue % next action
+        curAct.match = [];
     end
     % check match definition
     [curAct.match, validMatch] = WAD_checkMatchDefinition( curAct.match );
@@ -110,10 +125,30 @@ for i_icAction = 1:i_nAction
     end
 
     % --------------------
+    % check "resultsNamePrefix" field
+    % --------------------
+    if ~isfield( curAct, 'resultsNamePrefix' )
+        % option to configure a prefix for the result field 'omschrijving'
+        curAct.resultsNamePrefix = [];
+    end
+
+    % Need to communicate this to WAD_resultsAppendFloat( )...
+    % Not the best solution on earth but works for single thread. If the
+    % for-loop around this part of code would ever be changed to parfor
+    % then this would not work!
+    if ~isempty( curAct.resultsNamePrefix )
+        WAD_vbprint( [my.name ' in action ' num2str(i_icAction) ': resultsTag was set to "' curAct.resultsNamePrefix '" for action "' curAct.name '"' ], 1 );
+    end
+    WAD.currentActionResultsNamePrefix = curAct.resultsNamePrefix;
+    
+    % --------------------
     % check "limits" field
+    % Note: not present for v1.1 style action limits
+    % Use of curAct.limits is depreciated from v1.1 onwards, remove
+    % next lines of code in future version.
     % --------------------
     if ~isfield( curAct, 'limits' )
-        % not considered an error, repair with empty limits
+        % v1.1: new style action limits are not defined within the action.
         curAct.limits = [];
     end
 
@@ -122,5 +157,10 @@ for i_icAction = 1:i_nAction
     % and run action if a match is found
     % ----------------------
     WAD_findMatchingSeries( curStudy, curAct )
+    
+    % ----------------------
+    % Reset any results tagging actions
+    % ----------------------
+    WAD.currentActionResultsNamePrefix = [];
     
 end % loop over actions

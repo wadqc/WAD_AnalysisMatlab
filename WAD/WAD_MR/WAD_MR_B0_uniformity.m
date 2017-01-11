@@ -19,7 +19,7 @@
 % along with this program.  If not, see <http://www.gnu.org/licenses/>.
 % ------------------------------------------------------------------------
 
-function WAD_MR_B0_uniformity( i_iSeries, sSeries, sParams, sLimits )
+function WAD_MR_B0_uniformity( i_iSeries, sSeries, sParams )
 % Calculate BO uniformity from a double echo phase difference.
 % Acquisition must be single slice.
 %
@@ -54,6 +54,14 @@ function WAD_MR_B0_uniformity( i_iSeries, sSeries, sParams, sLimits )
 %   through the <type> parameter. The actual function name gets a prefix
 %   "WAD_MR_B0_read".
 % ------------------------------------------------------------------------
+% 20131127 / JK
+% V1.1
+% - new (v1.1) style action limits
+% ------------------------------------------------------------------------
+% 20140207 / JK
+% V1.1.1
+% - support for B0 maps in ppm or Hz
+% ------------------------------------------------------------------------
 
 % ----------------------
 % GLOBALS
@@ -62,8 +70,8 @@ function WAD_MR_B0_uniformity( i_iSeries, sSeries, sParams, sLimits )
 
 % version info
 my.name = 'WAD_MR_B0_uniformity';
-my.version = '0.95';
-my.date = '20120813';
+my.version = '1.1.1';
+my.date = '20140207';
 WAD_vbprint( ['Module ' my.name ' Version ' my.version ' (' my.date ')'] );
 
 
@@ -109,7 +117,7 @@ importfh = str2func( importFuncName );
 
 % import images
 try
-    [magnitude, phase] = importfh( i_iSeries, sSeries, sParams, sLimits );
+    [magnitude, phase] = importfh( i_iSeries, sSeries, sParams );
 catch err
     WAD_ErrorMsg( my.name, 'ERROR during reading/conversion of phase map.', err );
     return
@@ -120,6 +128,23 @@ if isempty( magnitude ) || isempty( phase )
     WAD_vbprint( [my.name ': no magnitude or phase data read for quantification.' ], 1 );
     return
 end
+
+% check type of data, options are:
+% - dPhi_rad: (wrapped) phase in radians [default]
+% - dB0_ppm : B0 in ppm
+% - dB0_Hz  : B0 in Hz
+if ~isfield( phase, 'type' ) || isempty( phase.type )
+    % apply default
+    phase.type = 'dPhi_rad';
+end
+
+% consistency check
+if ~isfield( phase, phase.type )
+    % image data not consistent with give data type
+    WAD_vbprint( [my.name ': consistency check failed! Phase type ' phase.type ' but field phase.' phase.type ' doesn''t exist.' ], 1 );
+    return
+end
+
 
 % update waitbar
 if isInteractive, waitbar( 0.2, h ); end
@@ -143,9 +168,9 @@ if isInteractive, waitbar( 0.5, h ); end
 axis_x = floor( szROI * diameter_pix(1) / 2 );
 axis_y = floor( szROI * diameter_pix(2) / 2 );
 
-[phase.masked, mask] = ROImask( axis_x, axis_y, centre_pix, phase.dPhi_rad, 0 );
+[phase.masked, mask] = ROImask( axis_x, axis_y, centre_pix, phase.(phase.type), 0 );
 
-magnitude.masked = immultiply( magnitude.image, mask);
+magnitude.masked = magnitude.image .* mask;
 
 % ----------------------------------------------------
 % haalt bovenste stuk fantoom af omdat daar afwijkende geometrie,
@@ -156,7 +181,7 @@ phasemask(:,:) = mask(:,:);
 ignoreTopRows = floor( centre_pix(2) - ignoreTop*axis_x );
 phasemask( 1:ignoreTopRows, : ) = 0;
 
-phase.masked = immultiply( phase.masked, phasemask );
+phase.masked = phase.masked .* phasemask;
 
 % update waitbar
 if isInteractive, waitbar( 0.6, h ); end
@@ -169,25 +194,36 @@ if isInteractive, waitbar( 0.6, h ); end
 x_pix=floor(centre_pix(1));
 y_pix=floor(centre_pix(2));
 
-phase.unwrapped = unwrap2D( phase.masked, [x_pix,y_pix]);
-phase.maskedandunwrapped = immultiply(phase.unwrapped, phasemask);
-
-% update waitbar
-if isInteractive, waitbar( 0.8, h ); end
 
 % ----------------------------------------------------
-% bereken B0
+% bereken B0 in ppm
 % ----------------------------------------------------
-gamma = 267513; %42576;  % gyromatric frequency in rad/s*1/T
 magnet_T = phase.info.MagneticFieldStrength;  % in Tesla
 
-dB0_T = phase.maskedandunwrapped / (gamma .* phase.dTE); % in Tesla
+% unwrapping fasehoek, en conversie naar B0 in ppm
+if strcmp( phase.type, 'dPhi_rad' )
+    phase.unwrapped = unwrap2D( phase.masked, [x_pix,y_pix]);
+    phase.maskedandunwrapped = phase.unwrapped .* phasemask;
+    % update waitbar
+    if isInteractive, waitbar( 0.8, h ); end
+
+    gamma_rad_ms_T = 267513; % 42576 * 2 * pi;  % gyromatric frequency in rad/ms*1/T
+    dB0_T = phase.maskedandunwrapped / (gamma_rad_ms_T .* phase.dTE); % in Tesla
+    dB0_ppm = dB0_T / magnet_T * 1000000; % in ppm
+elseif strcmp( phase.type, 'dB0_Hz' )
+    % Convert B0 in Hz to ppm
+    gamma_Hz_T = 42.576E06;
+    dB0_ppm = ( phase.dB0_Hz ./ gamma_Hz_T ) ./ magnet_T * 1000000; % in ppm
+    dB0_ppm = dB0_ppm .* phasemask;
+else
+    % For B0 mapin ppm: just apply the mask
+    dB0_ppm = phase.dB0_ppm .* phasemask;
+end
 
 % write B0 map to calculations log file
 hFig = figure( 'Visible', fig_visible, 'MenuBar', 'none', 'Name', 'B0 map [ppm]' );
-%hFig = figure( 'Name', 'B0 map [ppm]' );
-imshow( dB0_T / magnet_T * 1000000, [] ); % in ppm
-colormap(jet);
+imagesc( dB0_ppm );
+colormap( jet(256) );
 axis image
 axis square
 axis off
@@ -208,19 +244,19 @@ if isInteractive, waitbar( 0.9, h ); end
 % ----------------------------------------------------
 % bereken uniformiteit
 % ----------------------------------------------------
-matrixsize_phase = size( phase.maskedandunwrapped );
+matrixsize_phase = size( dB0_ppm );
 
 smallest = +1.0E99; % huge
 largest  = -1.0E99; % negative huge
 
 for i=1:matrixsize_phase(1)
     for j=1:matrixsize_phase(2)
-        if phasemask(i,j)==1
-            if dB0_T(i,j)<smallest
-                smallest=dB0_T(i,j);
+        if phasemask(i,j) == 1
+            if dB0_ppm(i,j) < smallest
+                smallest = dB0_ppm(i,j);
             end
-            if dB0_T(i,j)>largest
-                largest=dB0_T(i,j);
+            if dB0_ppm(i,j) > largest
+                largest = dB0_ppm(i,j);
             end
         end
     end
@@ -233,8 +269,8 @@ if isInteractive, waitbar( 1.0, h ); end
 % ----------------------------------------------------
 % final result: difference in ppm
 % ----------------------------------------------------
-B0_uniformity_ppm = ( largest-smallest ) / magnet_T * 1000000; % in ppm
-WAD_resultsAppendFloat( 1, B0_uniformity_ppm, 'Uniformity', 'ppm', 'B0', sLimits, 'B0_uniformity_ppm' );
+B0_uniformity_ppm = largest - smallest; % in ppm
+WAD_resultsAppendFloat( 1, B0_uniformity_ppm, 'Uniformity', 'ppm', 'B0' );
 
 % log file
 WAD_vbprint( [my.name ':   B0 uniformity = ' num2str(B0_uniformity_ppm) ' ppm'] );
@@ -244,27 +280,22 @@ WAD_vbprint( [my.name ':   B0 uniformity = ' num2str(B0_uniformity_ppm) ' ppm'] 
 if isInteractive, close( h ), end
 
 return
+end
 
 
 
-
-
-% -------------------------------------------------------------------------
 function [B,M] = ROImask(a,b,cent,I,valfill)
+% -------------------------------------------------------------------------
 % Creates an elliptical mask defined by paramaters a, b and cent. Multiples
 % this mask to I and fills all pixels outside ellipse with valfill
 % -------------------------------------------------------------------------
 centx = cent(1);
 centy = cent(2);
-[numr,numc]=size(I);
-
-[x,y] = meshgrid(1:numc,1:numr);
-M = double(((x-centx).^2)/a^2 + ((y-centy).^2)/b^2 <= 1);
-% figure
-% imagesc(M)
-B = immultiply(I,M) + imcomplement(M)*valfill;
-
-
+[numr,numc] = size(I);
+[x,y] = meshgrid( 1:numc, 1:numr );
+M = double( ((x-centx).^2) ./ a.^2 + ((y-centy).^2) ./ b.^2 <= 1 );
+B = M .* I + ( 1.0 - M ) .* valfill;
+end
 
 
 
@@ -301,6 +332,8 @@ for count=1:size_image(1)
     image_out=unwrap_line(image_out(:,:),count,y,size_image,2);
 end
 
+end
+
 
 
 
@@ -317,3 +350,4 @@ result_start = unwrap( row_start, [], orientation);
 % ge-unwrapte delen weer invoegen in uiteindelijke image:
 image_out(x, y:size_image(2))  = result_end( :,: );
 image_out(x, 1:y-1          )  = fliplr( result_start( 1, 2:y ) );
+end

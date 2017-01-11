@@ -19,7 +19,7 @@
 % along with this program.  If not, see <http://www.gnu.org/licenses/>.
 % ------------------------------------------------------------------------
 
-function WAD_MR_TxAmplFreq( i_iSeries, sSeries, sParams, sLimits )
+function WAD_MR_TxAmplFreq( i_iSeries, sSeries, sParams )
 % Get the amplitude and frequency from the DICOM header
 %
 % Input: series with one or more images, only the first image is read.
@@ -34,6 +34,7 @@ function WAD_MR_TxAmplFreq( i_iSeries, sSeries, sParams, sLimits )
 %                 <TxFreq>
 %                     <field>ImagingFrequency</field>
 %                 </TxFreq>
+% Optional:       <TxRefFreq>127.000000</TxRefFreq>
 %             </params>
 % 
 %        - if the transmitter amplitude is in a character private field
@@ -47,6 +48,7 @@ function WAD_MR_TxAmplFreq( i_iSeries, sSeries, sParams, sLimits )
 %                 <TxFreq>
 %                     <field>ImagingFrequency</field>
 %                 </TxFreq>
+% Optional:       <TxRefFreq>127.000000</TxRefFreq>
 %             </params>
 %
 %        - The <type> may be omitted for standard DICOM fields.
@@ -65,16 +67,30 @@ function WAD_MR_TxAmplFreq( i_iSeries, sSeries, sParams, sLimits )
 % ------------------------------------------------------------------------
 % JK - 20120807 v1.0: adapted to WAD framework
 % ------------------------------------------------------------------------
+% JK - 20131127 v1.1
+% - adopted v1.1 style action limits
+% - changed result Transmitter Frequency to Transmitter Frequency Offset
+%   as workaround for limited number of significant digits during import by
+%   WAD processor
+% - added config parameter TxFreq.refencence to set reference frequency. If
+%   not present, ref freq is calculated from field strength (DICOM header
+%   field MagneticFieldStrength).
+% ------------------------------------------------------------------------
+% 20140212 / JK
+% V1.1.1
+% Private fields are class uint8 and in one column for implicit DICOM, and class char and one row for explicit DICOM
+% char(info.Private_2001_1020(:))' converts both to class char and one row.
+% ------------------------------------------------------------------------
 
 % version info
 my.name = 'WAD_MR_TxAmplFreq';
-my.version = '1.0';
-my.date = '20120807';
+my.version = '1.1.1';
+my.date = '20140212';
 WAD_vbprint( ['Module ' my.name ' Version ' my.version ' (' my.date ')'] );
 
 
 % read dicom header of first image of series
-WAD_vbprint( [my.name ':   Reading DICOM header: ' sSeries.instance(1).filename ] );
+WAD_vbprint( [my.name ': Reading DICOM header: ' sSeries.instance(1).filename ] );
 try
     dicomheader = dicominfo( sSeries.instance(1).filename );
 catch err
@@ -88,6 +104,8 @@ end
 if isfield( sParams, 'TxAmpl' ) && isfield( sParams.TxAmpl, 'field' )
     WAD_vbprint( [my.name ': Getting TX amplitude from header'] );
     TxAmpl = getField( dicomheader, sParams.TxAmpl );
+    % Write result
+    WAD_resultsAppendFloat( 1, TxAmpl, 'Amplitude', [], 'Transmitter' );
 else
     WAD_vbprint( [my.name ': TX amplitude not defined for this system'] );
 end
@@ -96,13 +114,29 @@ end
 if isfield( sParams, 'TxFreq' ) && isfield( sParams.TxFreq, 'field' )
     WAD_vbprint( [my.name ': Getting TX frequency from header'] );
     TxFreq = getField( dicomheader, sParams.TxFreq );
+    % Display frequency as offset
+    gamma_MHz = 42.5759;
+    if isfield( sParams.TxFreq, 'f0_MHz' ) && ~isempty( sParams.TxFreq.f0_MHz )
+        WAD_vbprint( [my.name ': Reference frequency TxFreq.f0_MHz defined in config.'] );
+        f0_ref = sParams.TxFreq.f0_MHz;
+    elseif isfield( dicomheader, 'MagneticFieldStrength' )
+        B0_ref = dicomheader.MagneticFieldStrength;
+        WAD_vbprint( [my.name ': Magnetic Field Strength defined in DICOM header, use for Tx Reference Frequency.'] );
+        f0_ref = B0_ref * gamma_MHz;
+    else
+        % no reference, just display f0
+        f0_ref = 0;
+        WAD_vbprint( [my.name ': No Tx Reference Frequency.'] );
+    end
+    WAD_resultsAppendFloat( 2, f0_ref * 1E6, 'Referentie Freq', 'Hz', 'Transmitter' );
+    
+
+    % Write result
+    WAD_resultsAppendFloat( 1, (TxFreq - f0_ref) * 1E6, 'Freq Offset', 'Hz', 'Transmitter' );
 else
     WAD_vbprint( [my.name ': TX frequency not defined for this system'] );
 end
 
-% write results
-WAD_resultsAppendFloat( 1, TxAmpl, 'Amplitude', [], 'Transmitter', sLimits, 'TxAmpl' );
-WAD_resultsAppendFloat( 1, TxFreq, 'Frequentie', 'Hz', 'Transmitter', sLimits, 'TxFreq' );
 
 return
 
@@ -117,7 +151,7 @@ my.name = 'WAD_MR_TxAmplFreq:getField';
 if isfield( fieldinfo, 'type' )
     if strcmp( fieldinfo.type, 'char' )
         % convert this dicom field to the requested type 'char'
-        x = cast( dicomheader.(fieldinfo.field), fieldinfo.type )';
+        x = cast( dicomheader.(fieldinfo.field)(:), fieldinfo.type )';
 
         if isfield( fieldinfo, 'pattern' )
             % find the starting pattern
