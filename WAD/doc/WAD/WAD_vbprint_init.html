@@ -51,10 +51,10 @@
 <h2><a name="_cross"></a>CROSS-REFERENCE INFORMATION <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
 This function calls:
 <ul style="list-style-image:url(../matlabicon.gif)">
-<li><a href="WAD_resultsAppendString.html" class="code" title="function WAD_resultsAppendString( level, value, description )">WAD_resultsAppendString</a>	------------------------------------------------------------------------</li></ul>
+</ul>
 This function is called by:
 <ul style="list-style-image:url(../matlabicon.gif)">
-<li><a href="WAD_main.html" class="code" title="function WAD_main( wadInputFileXML )">WAD_main</a>	------------------------------------------------------------------------</li></ul>
+<li><a href="WAD1_main.html" class="code" title="function WAD1_main( wadInputFileXML )">WAD1_main</a>	------------------------------------------------------------------------</li><li><a href="WAD2_main.html" class="code" title="function WAD2_main( cmdarg )">WAD2_main</a>	------------------------------------------------------------------------</li></ul>
 <!-- crossreference -->
 
 
@@ -91,36 +91,47 @@ This function is called by:
 0029 default.mode = 1;
 0030 default.level = 1;
 0031 
-0032 <span class="comment">% check logverbose configuration fields</span>
-0033 <span class="keyword">if</span> ~isfield( WAD.cfg, <span class="string">'logverbose'</span> )
-0034     <a href="WAD_resultsAppendString.html" class="code" title="function WAD_resultsAppendString( level, value, description )">WAD_resultsAppendString</a>( 2, <span class="string">'Field logverbose missing in configuration file. Using default settings.'</span>, <span class="string">'WARNING'</span> );
-0035     <span class="comment">% apply default settings</span>
-0036     WAD.cfg.logverbose = default;
-0037 <span class="keyword">end</span>
-0038 
-0039 <span class="keyword">if</span> ~isfield( WAD.cfg.logverbose, <span class="string">'mode'</span> )
-0040     <a href="WAD_resultsAppendString.html" class="code" title="function WAD_resultsAppendString( level, value, description )">WAD_resultsAppendString</a>( 2, <span class="string">'Field logverbose.mode missing in configuration file. Using default settings.'</span>, <span class="string">'WARNING'</span> );
-0041     <span class="comment">% apply default settings</span>
-0042     WAD.cfg.logverbose.mode = default.mode;
-0043 <span class="keyword">end</span>
-0044 <span class="keyword">if</span> ~isfield( WAD.cfg.logverbose, <span class="string">'level'</span> )
-0045     <a href="WAD_resultsAppendString.html" class="code" title="function WAD_resultsAppendString( level, value, description )">WAD_resultsAppendString</a>( 2, <span class="string">'Field logverbose.level missing in configuration file. Using default settings.'</span>, <span class="string">'WARNING'</span> );
+0032 <span class="comment">% WAD2 compatibility</span>
+0033 <span class="keyword">if</span> WAD.versionmodus &gt; 1
+0034     <span class="keyword">try</span>
+0035         WAD.cfg.logverbose.mode = str2double( WAD.cfg.actions.logverbose.params.logMode );
+0036         WAD.cfg.logverbose.level = str2double( WAD.cfg.actions.logverbose.params.logLevel );
+0037     <span class="keyword">catch</span> err
+0038         disp( <span class="string">'WARNING: Error interpreting configured logverbose settings. Using default settings.'</span> );
+0039         disp( err.message );
+0040     <span class="keyword">end</span>
+0041 <span class="keyword">end</span>
+0042 
+0043 <span class="comment">% check logverbose configuration fields</span>
+0044 <span class="keyword">if</span> ~isfield( WAD.cfg, <span class="string">'logverbose'</span> )
+0045     disp( <span class="string">'WARNING: Field logverbose missing in configuration file. Using default settings.'</span> );
 0046     <span class="comment">% apply default settings</span>
-0047     WAD.cfg.logverbose.level = default.level;
+0047     WAD.cfg.logverbose = default;
 0048 <span class="keyword">end</span>
 0049 
-0050 
-0051 <span class="comment">% open log file</span>
-0052 WAD.cfg.logverbose.fid = -1;
-0053 WAD.cfg.logverbose.fullfile = fullfile( WAD.in.analysemodule_outputdir, logfilename );
-0054 WAD.cfg.logverbose.fid = fopen( WAD.cfg.logverbose.fullfile, <span class="string">'w'</span> );
-0055 <span class="keyword">if</span> WAD.cfg.logverbose.fid &lt; 0
-0056     <span class="comment">% error opening the file</span>
-0057     <a href="WAD_resultsAppendString.html" class="code" title="function WAD_resultsAppendString( level, value, description )">WAD_resultsAppendString</a>( 2, [<span class="string">'Could not open log file &quot;'</span> WAD.cfg.logverbose.fullfile <span class="string">'&quot;'</span>], <span class="string">'ERROR'</span> );
-0058     <span class="keyword">return</span>
+0050 <span class="keyword">if</span> ~isfield( WAD.cfg.logverbose, <span class="string">'mode'</span> )
+0051     disp( <span class="string">'WARNING: Field logverbose.mode missing in configuration file. Using default settings.'</span> );
+0052     <span class="comment">% apply default settings</span>
+0053     WAD.cfg.logverbose.mode = default.mode;
+0054 <span class="keyword">end</span>
+0055 <span class="keyword">if</span> ~isfield( WAD.cfg.logverbose, <span class="string">'level'</span> )
+0056     disp( <span class="string">'WARNING: Field logverbose.level missing in configuration file. Using default settings.'</span> );
+0057     <span class="comment">% apply default settings</span>
+0058     WAD.cfg.logverbose.level = default.level;
 0059 <span class="keyword">end</span>
 0060 
-0061 <span class="keyword">return</span></pre></div>
-<hr><address>Generated on Fri 07-Aug-2015 09:34:21 by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" target="_parent">m2html</a></strong> &copy; 2005</address>
+0061 
+0062 <span class="comment">% open log file</span>
+0063 WAD.cfg.logverbose.fid = -1;
+0064 WAD.cfg.logverbose.fullfile = fullfile( WAD.in.analysemodule_outputdir, logfilename );
+0065 WAD.cfg.logverbose.fid = fopen( WAD.cfg.logverbose.fullfile, <span class="string">'w'</span> );
+0066 <span class="keyword">if</span> WAD.cfg.logverbose.fid &lt; 0
+0067     <span class="comment">% error opening the file</span>
+0068     disp( [<span class="string">'ERROR: Could not open log file &quot;'</span> WAD.cfg.logverbose.fullfile <span class="string">'&quot;'</span>] );
+0069     <span class="keyword">return</span>
+0070 <span class="keyword">end</span>
+0071 
+0072 <span class="keyword">return</span></pre></div>
+<hr><address>Generated on Wed 22-Nov-2017 16:40:02 by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" target="_parent">m2html</a></strong> &copy; 2005</address>
 </body>
 </html>

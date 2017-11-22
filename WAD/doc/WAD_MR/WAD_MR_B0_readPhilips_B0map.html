@@ -126,99 +126,134 @@ This function is called by:
 0064 <span class="comment">% Converted to Philips B0 map with clinical science key (B0 map option)</span>
 0065 <span class="comment">% Unit of phase map is [Hz]</span>
 0066 <span class="comment">% ------------------------------------------------------------------------</span>
-0067 
-0068 
-0069 <span class="comment">% ----------------------</span>
-0070 <span class="comment">% GLOBALS</span>
-0071 <span class="comment">% ----------------------</span>
-0072 <span class="comment">%global WAD</span>
-0073 
-0074 <span class="comment">% version info</span>
-0075 my.name = <span class="string">'WAD_MR_B0_readPhilips_B0map'</span>;
-0076 my.version = <span class="string">'2.1.1'</span>;
-0077 my.date = <span class="string">'20140729'</span>;
-0078 <a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [<span class="string">'Module '</span> my.name <span class="string">' Version '</span> my.version <span class="string">' ('</span> my.date <span class="string">')'</span>] );
-0079 
-0080 
-0081 <span class="comment">% output arguments</span>
-0082 magnitude = [];
-0083 phase = [];
-0084 
-0085 
-0086 <span class="comment">% ----------------------------------------------------</span>
-0087 <span class="comment">% check image type, get dicom header of first file</span>
-0088 <span class="comment">% ----------------------------------------------------</span>
-0089 fname = sSeries.instance( 1 ).filename;
-0090 <a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">':   Check type of B0 map... reading DICOM header of file '</span> fname ] );
-0091 info = dicominfo( fname );
+0067 <span class="comment">% 20150901 / JK</span>
+0068 <span class="comment">% V2.1.2</span>
+0069 <span class="comment">% Fix: wrong image number if received in random order.</span>
+0070 <span class="comment">% ------------------------------------------------------------------------</span>
+0071 <span class="comment">% 20170721 / JK</span>
+0072 <span class="comment">% V2.2</span>
+0073 <span class="comment">% Adapted to WAD2</span>
+0074 <span class="comment">% ------------------------------------------------------------------------</span>
+0075 
+0076 
+0077 <span class="comment">% ----------------------</span>
+0078 <span class="comment">% GLOBALS</span>
+0079 <span class="comment">% ----------------------</span>
+0080 <span class="comment">%global WAD</span>
+0081 
+0082 <span class="comment">% version info</span>
+0083 my.name = <span class="string">'WAD_MR_B0_readPhilips_B0map'</span>;
+0084 my.version = <span class="string">'2.2'</span>;
+0085 my.date = <span class="string">'20170721'</span>;
+0086 <a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [<span class="string">'Module '</span> my.name <span class="string">' Version '</span> my.version <span class="string">' ('</span> my.date <span class="string">')'</span>] );
+0087 
+0088 
+0089 <span class="comment">% output arguments</span>
+0090 magnitude = [];
+0091 phase = [];
 0092 
-0093 <span class="comment">% Private fields are class uint8 and in one column for implicit DICOM, and class char and one row for explicit DICOM</span>
-0094 <span class="comment">% char(info.Private_2001_1020(:))' converts both to class char and one row.</span>
-0095 <span class="keyword">if</span> isfield( info, <span class="string">'Private_2001_1020'</span> ) &amp;&amp;  strfind( char(info.Private_2001_1020(:))', <span class="string">'FFE'</span> )
-0096     <span class="comment">% Philips product FFE sequence (hopefully with double echo and phase images)</span>
-0097     <a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">':   Detected Philips FFE.'</span>] );
-0098 <span class="keyword">else</span>
-0099     <a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">':   Could not detect Philips double echo FFE. Private_2001_1020 not equal to &quot;FFE&quot;'</span>] );
-0100     error( <span class="string">'Error during import of phase images.'</span> )
-0101 <span class="keyword">end</span>
-0102 
-0103 <a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">':   Setting type of B0 map to Philips B0 map with phase images.'</span>] );
-0104 <span class="comment">% Philips puts all images in one series:</span>
-0105 <span class="comment">% - first the magnitude image</span>
-0106 <span class="comment">% - then the phase difference image</span>
-0107 <span class="keyword">if</span> length( sSeries.instance ) ~= 2
-0108     <a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">':   ERROR: B0 map series does not have 2 images. Skipping analysis'</span>] );
-0109     error( <span class="string">'Error during import of phase images.'</span> )
-0110 <span class="keyword">end</span>
-0111 
-0112 <span class="comment">% magnitude series / image</span>
-0113 mci = 1;
-0114 <span class="comment">% phase series / image</span>
-0115 pci = 2;
-0116 
-0117 
-0118 <span class="comment">% ----------------------------------------------------</span>
-0119 <span class="comment">% read DICOM images</span>
-0120 <span class="comment">% ----------------------------------------------------</span>
-0121 magnitude.filename = sSeries.instance( mci ).filename;
-0122 magnitude.info  = dicominfo( magnitude.filename );
-0123 magnitude.image = double( dicomread( magnitude.info ) );
-0124 
-0125 phase.filename  = sSeries.instance( pci ).filename;
-0126 phase.info      = dicominfo( phase.filename );
-0127 phase.image     = double( dicomread( phase.info ) );
-0128 
-0129 <span class="comment">% conversion phase map from pixel values to Hz</span>
-0130 <span class="comment">% Philips has the RescaleSlope field defined.</span>
-0131 <span class="keyword">if</span> isfield( phase.info, <span class="string">'RescaleSlope'</span> ) &amp;&amp; isfield( phase2.info, <span class="string">'RescaleSlope'</span> )
-0132     factor  =  phase.info.RescaleSlope;
-0133     offset  = 0; <span class="comment">% matlab reads the offset already from RescaleIntercept</span>
-0134 <span class="keyword">elseif</span> isfield( phase.info, <span class="string">'RealWorldValueMappingSequence'</span> ) &amp;&amp; <span class="keyword">...</span>
-0135        isfield( phase.info.RealWorldValueMappingSequence, <span class="string">'Item_1'</span> ) &amp;&amp; <span class="keyword">...</span>
-0136        isfield( phase.info.RealWorldValueMappingSequence.Item_1, <span class="string">'RealWorldValueSlope'</span>) &amp;&amp; <span class="keyword">...</span>
-0137        isfield( phase.info.RealWorldValueMappingSequence.Item_1, <span class="string">'RealWorldValueIntercept'</span>)
-0138     factor  =  phase.info.RealWorldValueMappingSequence.Item_1.RealWorldValueSlope;
-0139     offset  =  phase.info.RealWorldValueMappingSequence.Item_1.RealWorldValueIntercept;
-0140 <span class="keyword">else</span>
-0141     <span class="comment">% don't know what to do without the rescale slope...</span>
-0142     <a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">':   ERROR: phase image does not have RescaleSlope or '</span>] );
-0143     <a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">':          RealWorldValueMappingSequence.Item_1.RealWorldValueSlope + Intercept defined. Skipping analysis'</span>] );
-0144     error( <span class="string">'Error during import of phase images.'</span> )
-0145 <span class="keyword">end</span>
-0146 
-0147 <span class="comment">% B0 map in Hz</span>
-0148 phase.dB0_Hz = phase.image * factor - offset;
+0093 
+0094 <span class="comment">% ----------------------------------------------------</span>
+0095 <span class="comment">% check image type, get dicom header of first file</span>
+0096 <span class="comment">% ----------------------------------------------------</span>
+0097 fname = sSeries.instance( 1 ).filename;
+0098 <a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">':   Check type of B0 map... reading DICOM header of file '</span> fname ] );
+0099 info = dicominfo( fname );
+0100 
+0101 <span class="comment">% Private fields are class uint8 and in one column for implicit DICOM, and class char and one row for explicit DICOM</span>
+0102 <span class="comment">% char(info.Private_2001_1020(:))' converts both to class char and one row.</span>
+0103 <span class="keyword">if</span> isfield( info, <span class="string">'Private_2001_1020'</span> ) &amp;&amp;  strfind( char(info.Private_2001_1020(:))', <span class="string">'FFE'</span> )
+0104     <span class="comment">% Philips product FFE sequence (hopefully with double echo and phase images)</span>
+0105     <a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">':   Detected Philips FFE.'</span>] );
+0106 <span class="keyword">else</span>
+0107     <a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">':   Could not detect Philips double echo FFE. Private_2001_1020 not equal to &quot;FFE&quot;'</span>] );
+0108     error( <span class="string">'Error during import of phase images.'</span> )
+0109 <span class="keyword">end</span>
+0110 
+0111 <a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">':   Setting type of B0 map to Philips B0 map with phase images.'</span>] );
+0112 <span class="comment">% Philips puts all images in one series:</span>
+0113 <span class="comment">% - first the magnitude image</span>
+0114 <span class="comment">% - then the phase difference image</span>
+0115 <span class="keyword">if</span> length( sSeries.instance ) ~= 2
+0116     <a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">':   ERROR: B0 map series does not have 2 images. Skipping analysis'</span>] );
+0117     error( <span class="string">'Error during import of phase images.'</span> )
+0118 <span class="keyword">end</span>
+0119 
+0120 <span class="comment">% ---------------------------------------------</span>
+0121 <span class="comment">% find the image</span>
+0122 <span class="comment">% ---------------------------------------------</span>
+0123 foundImage = false;
+0124 <span class="keyword">for</span> ii = 1:length( sSeries.instance )
+0125     <span class="keyword">if</span> sSeries.instance(ii).number == 1
+0126         mci = ii;
+0127         foundImage = true;
+0128         <span class="keyword">break</span>;
+0129     <span class="keyword">end</span>
+0130 <span class="keyword">end</span>
+0131 <span class="keyword">if</span> ~foundImage
+0132     <a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">': Error: could not find magnitude image (#1) '</span> num2str( inum ) <span class="string">' for Philips B0 map'</span>] );
+0133     <span class="keyword">return</span>;
+0134 <span class="keyword">end</span>
+0135 
+0136 <span class="comment">% find phase image</span>
+0137 foundImage = false;
+0138 <span class="keyword">for</span> ii = 1:length( sSeries.instance )
+0139     <span class="keyword">if</span> sSeries.instance(ii).number == 2
+0140         pci = ii;
+0141         foundImage = true;
+0142         <span class="keyword">break</span>;
+0143     <span class="keyword">end</span>
+0144 <span class="keyword">end</span>
+0145 <span class="keyword">if</span> ~foundImage
+0146     <a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">': Error: could not find phase image (#2) '</span> num2str( inum ) <span class="string">' for Philips B0 map'</span>] );
+0147     <span class="keyword">return</span>;
+0148 <span class="keyword">end</span>
 0149 
-0150 <span class="comment">% convert back to phase in radians, in order to unwrap the B0 map</span>
-0151 <span class="comment">% only possible if delta-TE is known!</span>
-0152 <span class="keyword">if</span> isfield( sParams, <span class="string">'deltaTE_ms'</span> )
-0153     phase.dTE = sParams.deltaTE_ms;
-0154     phase.dPhi_rad = phase.dB0_Hz * (2*pi) * phase.dTE * 1E-3;
-0155     phase.type = <span class="string">'dPhi_rad'</span>;
-0156 <span class="keyword">else</span>
-0157     <span class="comment">% use B0 map in Hz, may contain wraps though!</span>
-0158     phase.type = <span class="string">'dB0_Hz'</span>;
-0159 <span class="keyword">end</span></pre></div>
-<hr><address>Generated on Fri 07-Aug-2015 09:34:21 by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" target="_parent">m2html</a></strong> &copy; 2005</address>
+0150 
+0151 <span class="comment">% ----------------------------------------------------</span>
+0152 <span class="comment">% read DICOM images</span>
+0153 <span class="comment">% ----------------------------------------------------</span>
+0154 magnitude.filename = sSeries.instance( mci ).filename;
+0155 magnitude.info  = dicominfo( magnitude.filename );
+0156 magnitude.image = double( dicomread( magnitude.info ) );
+0157 
+0158 phase.filename  = sSeries.instance( pci ).filename;
+0159 phase.info      = dicominfo( phase.filename );
+0160 phase.image     = double( dicomread( phase.info ) );
+0161 
+0162 <span class="comment">% conversion phase map from pixel values to Hz</span>
+0163 <span class="comment">% Philips has the RescaleSlope field defined.</span>
+0164 <span class="keyword">if</span> isfield( phase.info, <span class="string">'RescaleSlope'</span> ) &amp;&amp; isfield( phase2.info, <span class="string">'RescaleSlope'</span> )
+0165     factor  =  phase.info.RescaleSlope;
+0166     offset  = 0; <span class="comment">% matlab reads the offset already from RescaleIntercept</span>
+0167 <span class="keyword">elseif</span> isfield( phase.info, <span class="string">'RealWorldValueMappingSequence'</span> ) &amp;&amp; <span class="keyword">...</span>
+0168        isfield( phase.info.RealWorldValueMappingSequence, <span class="string">'Item_1'</span> ) &amp;&amp; <span class="keyword">...</span>
+0169        isfield( phase.info.RealWorldValueMappingSequence.Item_1, <span class="string">'RealWorldValueSlope'</span>) &amp;&amp; <span class="keyword">...</span>
+0170        isfield( phase.info.RealWorldValueMappingSequence.Item_1, <span class="string">'RealWorldValueIntercept'</span>)
+0171     factor  =  phase.info.RealWorldValueMappingSequence.Item_1.RealWorldValueSlope;
+0172     offset  =  phase.info.RealWorldValueMappingSequence.Item_1.RealWorldValueIntercept;
+0173 <span class="keyword">else</span>
+0174     <span class="comment">% don't know what to do without the rescale slope...</span>
+0175     <a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">':   ERROR: phase image does not have RescaleSlope or '</span>] );
+0176     <a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">':          RealWorldValueMappingSequence.Item_1.RealWorldValueSlope + Intercept defined. Skipping analysis'</span>] );
+0177     error( <span class="string">'Error during import of phase images.'</span> )
+0178 <span class="keyword">end</span>
+0179 
+0180 <span class="comment">% B0 map in Hz</span>
+0181 phase.dB0_Hz = phase.image * factor - offset;
+0182 
+0183 <span class="comment">% convert back to phase in radians, in order to unwrap the B0 map</span>
+0184 <span class="comment">% only possible if delta-TE is known!</span>
+0185 <span class="keyword">if</span> isfield( sParams, <span class="string">'deltaTE_ms'</span> )
+0186     phase.dTE = sParams.deltaTE_ms;
+0187     <span class="comment">% WAD2 passes params as strings</span>
+0188     <span class="keyword">if</span> ischar(phase.dTE), phase.dTE=str2double(phase.dTE); <span class="keyword">end</span>
+0189     phase.dPhi_rad = phase.dB0_Hz * (2*pi) * phase.dTE * 1E-3;
+0190     phase.type = <span class="string">'dPhi_rad'</span>;
+0191 <span class="keyword">else</span>
+0192     <span class="comment">% use B0 map in Hz, may contain wraps though!</span>
+0193     phase.type = <span class="string">'dB0_Hz'</span>;
+0194 <span class="keyword">end</span></pre></div>
+<hr><address>Generated on Wed 22-Nov-2017 16:40:02 by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" target="_parent">m2html</a></strong> &copy; 2005</address>
 </body>
 </html>

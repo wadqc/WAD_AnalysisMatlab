@@ -196,7 +196,7 @@ This function is called by:
 0132 <span class="comment">% ----------------------------</span>
 0133 [value, status] = <a href="#_sub1" class="code" title="subfunction [value, status] = getFieldFromDicomHdr( hdr, fieldname )">getFieldFromDicomHdr</a>( dicomheader, <span class="string">'KVP'</span> );
 0134 <span class="keyword">if</span> status
-0135     <a href="../WAD/WAD_resultsAppendFloat.html" class="code" title="function WAD_resultsAppendFloat( level, value, variable, unit, description, sLimits, limits_field_name )">WAD_resultsAppendFloat</a>( 1, double(value), <span class="string">'kVp'</span>, [], [] );
+0135     <a href="../WAD/WAD_resultsAppendFloat.html" class="code" title="function WAD_resultsAppendFloat( level, value, variable, unit, description, sLimits, limits_field_name )">WAD_resultsAppendFloat</a>( 1, double(value), <span class="string">'kVp'</span>, <span class="string">'kV'</span>, <span class="string">'AEC'</span> );
 0136 <span class="keyword">end</span>
 0137 
 0138 
@@ -243,6 +243,6 @@ This function is called by:
 0179 <span class="keyword">else</span>
 0180     <a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">':   Field &quot;'</span> fieldname <span class="string">'&quot; not defined in DICOM header.'</span>] );
 0181 <span class="keyword">end</span></pre></div>
-<hr><address>Generated on Fri 07-Aug-2015 09:34:21 by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" target="_parent">m2html</a></strong> &copy; 2005</address>
+<hr><address>Generated on Wed 22-Nov-2017 16:40:02 by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" target="_parent">m2html</a></strong> &copy; 2005</address>
 </body>
 </html>
