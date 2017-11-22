@@ -69,6 +69,9 @@ function [SNR, ghostRow_percent, ghostCol_percent, PIU, figureHandle] = WAD_MR_p
 % Replaced immultiply() and imcomplement() by regular mathematic
 % expressions.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% JK - 2017/07/17 - JK - adapted to WAD2
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 
 % only calculate what's requested
 calcGhosting   = false;
@@ -82,6 +85,17 @@ info = dicominfo( fname );
 slice = double( dicomread( fname ) );
 
 % definitions of ROI sizes/locations
+% in WAD2 the number is passed as string
+if ischar( sParams.ROIradius )
+    sParams.ROIradius = str2double( sParams.ROIradius );
+end
+if ischar( sParams.backgroundROIsize )
+    sParams.backgroundROIsize = str2double( sParams.backgroundROIsize );
+end
+if ischar( sParams.backgroundROIshift )
+    sParams.backgroundROIshift = str2double( sParams.backgroundROIshift );
+end
+
 % ... and convert mm to pixels
 radius  = sParams.ROIradius          / info.PixelSpacing(1);    % radius of large ROI
 Blength = sParams.backgroundROIsize  / info.PixelSpacing(1);    % length of background ROIs

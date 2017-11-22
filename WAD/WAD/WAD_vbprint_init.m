@@ -29,20 +29,31 @@ global WAD
 default.mode = 1;
 default.level = 1;
 
+% WAD2 compatibility
+if WAD.versionmodus > 1
+    try
+        WAD.cfg.logverbose.mode = str2double( WAD.cfg.actions.logverbose.params.logMode );
+        WAD.cfg.logverbose.level = str2double( WAD.cfg.actions.logverbose.params.logLevel );
+    catch err
+        disp( 'WARNING: Error interpreting configured logverbose settings. Using default settings.' );
+        disp( err.message );
+    end
+end
+
 % check logverbose configuration fields
 if ~isfield( WAD.cfg, 'logverbose' )
-    WAD_resultsAppendString( 2, 'Field logverbose missing in configuration file. Using default settings.', 'WARNING' );
+    disp( 'WARNING: Field logverbose missing in configuration file. Using default settings.' );
     % apply default settings
     WAD.cfg.logverbose = default;
 end
 
 if ~isfield( WAD.cfg.logverbose, 'mode' )
-    WAD_resultsAppendString( 2, 'Field logverbose.mode missing in configuration file. Using default settings.', 'WARNING' );
+    disp( 'WARNING: Field logverbose.mode missing in configuration file. Using default settings.' );
     % apply default settings
     WAD.cfg.logverbose.mode = default.mode;
 end
 if ~isfield( WAD.cfg.logverbose, 'level' )
-    WAD_resultsAppendString( 2, 'Field logverbose.level missing in configuration file. Using default settings.', 'WARNING' );
+    disp( 'WARNING: Field logverbose.level missing in configuration file. Using default settings.' );
     % apply default settings
     WAD.cfg.logverbose.level = default.level;
 end
@@ -54,7 +65,7 @@ WAD.cfg.logverbose.fullfile = fullfile( WAD.in.analysemodule_outputdir, logfilen
 WAD.cfg.logverbose.fid = fopen( WAD.cfg.logverbose.fullfile, 'w' );
 if WAD.cfg.logverbose.fid < 0
     % error opening the file
-    WAD_resultsAppendString( 2, ['Could not open log file "' WAD.cfg.logverbose.fullfile '"'], 'ERROR' );
+    disp( ['ERROR: Could not open log file "' WAD.cfg.logverbose.fullfile '"'] );
     return
 end
 

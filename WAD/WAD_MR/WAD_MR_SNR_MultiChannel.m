@@ -56,6 +56,10 @@ function WAD_MR_SNR_MultiChannel( i_iSeries, sSeries, sParams )
 % 2017-01-05 / JK
 % bugfix for combined image in separate series.
 % ------------------------------------------------------------------------
+% 2017-07-21 / JK
+% Version 2.0
+% Adapted to WAD 2
+% ------------------------------------------------------------------------
 
 
 % produce a figure on the screen or be quiet...
@@ -70,8 +74,8 @@ global WAD
 
 % version info
 my.name = 'WAD_MR_SNR_MultiChannel';
-my.version = '1.2.2';
-my.date = '20170105';
+my.version = '2.0';
+my.date = '20170721';
 WAD_vbprint( ['Module ' my.name ' Version ' my.version ' (' my.date ')'] );
 
 
@@ -133,6 +137,10 @@ else
     elseif isequal( inum, WAD.const.lastInSeries )
         inum = length( sSeries.instance );
     end
+    % in WAD2 the number is passed as string
+    if ischar( inum )
+        inum = str2double( inum );
+    end
 end
 
 % ---------------------------------------------
@@ -156,8 +164,8 @@ end
 % check if uncombinedImage is configured
 isConfiguredUncombinedImages = false;
 hasConfiguredUncombinedCoils = false;
+% WAD 1 style config: find elements: image and coil
 if isfield( sParams, 'uncombinedImage' ) && ~isempty( sParams.uncombinedImage )
-    % find elements: image and coil
     if isfield( sParams.uncombinedImage, 'image' ) && ~isempty( [sParams.uncombinedImage.image] )
         uncombinedImage = [sParams.uncombinedImage.image];
         WAD_vbprint( [my.name ': Found configured uncombinedImage = ' num2str( uncombinedImage )] );
@@ -170,12 +178,39 @@ if isfield( sParams, 'uncombinedImage' ) && ~isempty( sParams.uncombinedImage )
     end
 end
 
+% WAD 2 style config: find elements: image and coil
+if isfield( sParams, 'uncombinedImages' ) && ~isempty( sParams.uncombinedImages )
+    % WAD 2 has coils defined in a string e.g. "55; 56; 57; 58; 59; 60; 61; 62"
+    uncombinedImage = textscan(sParams.uncombinedImages, '%u', 'Delimiter', ';');
+    % the array we want is in the first cell
+    uncombinedImage = uncombinedImage{1}';
+    WAD_vbprint( [my.name ': Found configured uncombinedImages = ' num2str( uncombinedImage )] );
+    isConfiguredUncombinedImages = true;
+end
+if isfield( sParams, 'uncombinedCoils' ) && ~isempty( [sParams.uncombinedCoils] )
+    uncombinedCoil = textscan(sParams.uncombinedCoils, '%s', 'Delimiter', ';');
+    % the array we want is in the first cell
+    uncombinedCoil = uncombinedCoil{1}';
+    coilStr = []; for cc = uncombinedCoil, coilStr = [ coilStr ' ' cc{1} ]; end
+    WAD_vbprint( [my.name ': Found configured uncombinedCoils = ' coilStr] );
+    hasConfiguredUncombinedCoils = true;
+end
+
+
 
 % do the evaluation...
 WAD_vbprint( [my.name ': Calculating centre coordinates on combined coils image #' num2str( inum )] );
 
 if ~isfield( sParams, 'interpolPower' ) || isempty( sParams.interpolPower )
     sParams.interpolPower = 0; % no interpolation for calculation of centre of phantom
+end
+% in WAD2 the number is passed as string
+if ischar( sParams.interpolPower )
+    sParams.interpolPower = str2double( sParams.interpolPower );
+end
+% in WAD2 the number is passed as string
+if ischar( sParams.interpolPower )
+    sParams.interpolPower = str2double( sParams.interpolPower );
 end
 WAD_vbprint( [my.name ':   Interpolation set to 2 ^ ' num2str(sParams.interpolPower) '. This is configurable in <params> <interpolPower>' ] );
 
@@ -280,11 +315,18 @@ for inum = uncombinedImage
     else
         coil = inum;
     end
+    if ischar( coil )
+        coilstring = coil;
+    elseif iscell( coil )
+        coilstring = coil{1};
+    else
+        coilstring = num2str(inum);
+    end
     
 
     quiet = 1;
     SNR = WAD_MR_privateSNR_ghost( sSeries.instance(ci), centre_pix, sParams, quiet );
-    WAD_vbprint( [my.name ':   Coil: ' num2str(coil) '  Image: ' num2str(inum) '  SNR = ' num2str(SNR) ] );
+    WAD_vbprint( [my.name ':   Coil: ' coilstring '  Image: ' num2str(inum) '  SNR = ' num2str(SNR) ] );
     
     % factor 0.655 corrects for reduced noise in background of magnitude image.
     % See Henkelman.
@@ -295,7 +337,7 @@ for inum = uncombinedImage
         WAD_resultsAppendString( 2, ['Multichannel SNR on series: ' num2str(sSeries.number)], 'SNR multi-channel' );
     end
     % TO DO: how to handle action limits for MC coils...?
-    WAD_resultsAppendFloat( 1, SNR_henk, 'SNR', [], ['Coil ' num2str(coil)] );
+    WAD_resultsAppendFloat( 1, SNR_henk, 'SNR', [], ['Coil ' coilstring] );
 end
 
 % close waitbar in interactive mode

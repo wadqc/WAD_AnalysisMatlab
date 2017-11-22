@@ -98,11 +98,28 @@ catch err
     return
 end
 
+% WAD1/2 compatibility: WAD2 has TxAmplField and TxAmplType params.
+if ~isfield( sParams, 'TxAmpl' ) && isfield( sParams, 'TxAmplField' )
+    sParams.TxAmpl = [];
+    sParams.TxAmpl.field = sParams.TxAmplField;
+    if isfield( sParams, 'TxAmplType' )
+        sParams.TxAmpl.type = sParams.TxAmplType;
+    end
+end
+
+if ~isfield( sParams, 'TxFreq' ) && isfield( sParams, 'TxFreqField' )
+    sParams.TxFreq = [];
+    sParams.TxFreq.field = sParams.TxFreqField;
+    if isfield( sParams, 'TxFreq_f0_MHz' )
+        sParams.TxFreq.f0_MHz = str2double(sParams.TxFreq_f0_MHz);
+    end
+end
 
 % TxAmpl may not be defined for all system types, because it usually
 % resides in a private field.
 if isfield( sParams, 'TxAmpl' ) && isfield( sParams.TxAmpl, 'field' )
-    WAD_vbprint( [my.name ': Getting TX amplitude from header'] );
+    % WAD1
+    WAD_vbprint( [my.name ': WAD1 type param: getting TX amplitude from header'] );
     TxAmpl = getField( dicomheader, sParams.TxAmpl );
     % Write result
     WAD_resultsAppendFloat( 1, TxAmpl, 'Amplitude', [], 'Transmitter' );

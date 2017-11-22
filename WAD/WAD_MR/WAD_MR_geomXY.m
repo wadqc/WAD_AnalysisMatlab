@@ -31,6 +31,8 @@ function WAD_MR_geomXY( i_iSeries, sSeries, sParams )
 % ------------------------------------------------------------------------
 % 2008-10-24 / JK adapted to WAD
 % ------------------------------------------------------------------------
+% 2017-07-26 / JK adapted to WAD2: removed duplicate description entries
+% ------------------------------------------------------------------------
 
 
 % produce a figure on the screen or be quiet...
@@ -64,6 +66,10 @@ if isfield( sParams, 'image' ) && ~isempty( sParams.image )
     elseif isequal( inum, WAD.const.lastInSeries )
         inum = length( sSeries.instance );
     end
+end
+% in WAD2 the number is passed as string
+if ischar( inum )
+    inum = str2double( inum );
 end
 % is it just one slice? then we use it...
 if length( sSeries.instance ) == 1
@@ -122,8 +128,8 @@ pixelSpacing = dcmInfo.PixelSpacing;
 diameterX_mm = diameter_pix(1) .* pixelSpacing(2); % ???
 diameterY_mm = diameter_pix(2) .* pixelSpacing(1); % ???
 
-WAD_resultsAppendString( 2, ['Analysis on series: ' num2str( sSeries.number ) ' / image: ' num2str( inum ) ], 'Geometrie XY' );
-WAD_resultsAppendString( 2, ['Centre location at ' num2str(centre_pix)], 'Geometrie XY' );
+WAD_resultsAppendString( 2, ['Analysis on series: ' num2str( sSeries.number ) ' / image: ' num2str( inum ) ], 'Geometrie XY series' );
+WAD_resultsAppendString( 2, ['Centre location at ' num2str(centre_pix)], 'Geometrie XY centre pix' );
 
 WAD_resultsAppendFigure( 2, hFigGeomXY, 'geomXY', 'Geometrie X en Y: randdetectie' );
 

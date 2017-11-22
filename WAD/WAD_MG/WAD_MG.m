@@ -19,7 +19,7 @@
 % along with this program.  If not, see <http://www.gnu.org/licenses/>.
 % ------------------------------------------------------------------------
 
-function WAD_MG( wadInputFileXML )
+function WAD_MG( varargin )
 % Main routine to be called from the WAD framework (WAD_Processor)
 %
 % In fact this is just a modality-specific wrapper around the standard WAD
@@ -30,6 +30,9 @@ function WAD_MG( wadInputFileXML )
 % 20131127 / JK / v1.1
 % Support new (v1.1) style action limits
 % ------------------------------------------------------------------------
+% 20170712 / JK / v2.0
+% Support WAD1 and WAD2 module calls and input
+% ------------------------------------------------------------------------
 
 
 % ----------------------
@@ -37,8 +40,8 @@ function WAD_MG( wadInputFileXML )
 % ----------------------
 % version info
 my.name = 'WAD_MG';
-my.version = '1.2';
-my.date = '20160330';
+my.version = '2.0';
+my.date = '201710123';
 
 disp( ['Starting analysis module ' my.name '  Version ' my.version ' ' my.date] );
 
@@ -48,7 +51,8 @@ disp( ['Starting analysis module ' my.name '  Version ' my.version ' ' my.date] 
 % ----------------------
 if nargin < 1
     disp( ['ERROR in ' my.name ' main program: missing WAD XML input file.'] );
-    disp( ['Usage: ' my.name ' <XMLInputFile>'] );
+    disp( ['Usage [WAD1 syntax]: ' my.name ' <XMLInputFile>'] );
+    disp( ['Usage [WAD2 syntax]: ' my.name ' -c <config.json> -d <study_data_folder> -r <results.json>'] );
     disp( ['Aborting ' my.name ' main program.'] );
     return
 end
@@ -61,7 +65,6 @@ clear global WAD
 global WAD
 
 
-% ----------------------
 % initialize modality-specific constants
 % ----------------------
 % define global const here...
@@ -71,4 +74,4 @@ global WAD
 % ----------------------
 % call main function
 % ----------------------
-WAD_main( wadInputFileXML );
+WAD_main( varargin{:} );

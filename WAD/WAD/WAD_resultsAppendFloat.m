@@ -104,6 +104,8 @@ function WAD_resultsAppendFloat( level, value, variable, unit, description, sLim
 %         actions, and still get unique identifiers in the results
 %         database.
 % ------------------------------------------------------------------------
+% 2017-07-17 / WAD2 / JK
+% ------------------------------------------------------------------------
 
 % optional argument limits_field_name for backward compatibility V1.0
 if nargin < 6
@@ -122,14 +124,56 @@ limitsFieldName = 'grens';
 
 % version info
 my.name = 'WAD_resultsAppendFloat';
-my.version = '1.0';
-my.date = '20121107';
+my.version = '2.0';
+my.date = '20170717';
 % This module is called quite often, set verbose level 2
 WAD_vbprint( ['Module ' my.name ' Version ' my.version ' (' my.date ')'], 2 );
 
 
-% WAD XML object
-% WAD XML object
+if WAD.versionmodus > 1
+    % ------------------------------------------------------------------------
+    % WAD 2 JSON
+    % ------------------------------------------------------------------------
+    WAD.out.results{end+1} = []; % new item
+    % increase index number
+    WAD.results_index = WAD.results_index + 1;
+    %WAD.out.results{end}.volgnummer = WAD.results_index;
+    WAD.out.results{end}.category = 'float';
+    %WAD.out.results{end}.niveau   = level;
+    WAD.out.results{end}.val      = num2str(value);
+
+    % check if <resultsTag> was added for this action
+    if isfield( WAD, 'currentActionResultsNamePrefix' ) && ~isempty( WAD.currentActionResultsNamePrefix )
+        if ~isempty( description )
+            description = [ WAD.currentActionResultsNamePrefix ' ' description ];
+        else
+            description = WAD.currentActionResultsNamePrefix;        
+        end
+    end
+
+    name = '';
+    if ~isempty( description )
+        name = description;
+    end
+    if ~isempty( variable )
+        name = [ name ' ' variable ];
+    end
+
+    if ~isempty( unit )
+        name = [ name ' ' unit ];
+    end
+    
+    WAD.out.results{end}.name = name;
+    %WAD.out.results{end}.name = ['param' num2str(WAD.results_index)];
+    
+    
+    return
+end
+
+
+% ------------------------------------------------------------------------
+% WAD1 XML object
+% ------------------------------------------------------------------------
 WAD.out.results{end+1} = []; % new item
 % increase index number
 WAD.results_index = WAD.results_index + 1;

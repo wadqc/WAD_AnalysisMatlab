@@ -69,6 +69,10 @@ function [magnitude, phase] = WAD_MR_B0_readGE_B0map( i_iSeries, sSeries, sParam
 % V1.1.2
 % Fix: wrong image number if received in random order.
 % ------------------------------------------------------------------------
+% 20170721 / JK
+% V1.1.3
+% Fix: error message if image was not found.
+% ------------------------------------------------------------------------
 
 
 % ----------------------
@@ -78,8 +82,8 @@ function [magnitude, phase] = WAD_MR_B0_readGE_B0map( i_iSeries, sSeries, sParam
 
 % version info
 my.name = 'WAD_MR_B0_readGE_B0map';
-my.version = '1.1.2';
-my.date = '20150901';
+my.version = '1.1.3';
+my.date = '20170721';
 WAD_vbprint( ['Module ' my.name ' Version ' my.version ' (' my.date ')'] );
 
 
@@ -123,7 +127,7 @@ for ii = 1:length( sSeries.instance )
     end
 end
 if ~foundImage
-    WAD_vbprint( [my.name ': Error: could not find magnitude image (#2) ' num2str( inum ) ' for GE B0 map'] );
+    WAD_vbprint( [my.name ': Error: could not find magnitude image (#2) for GE B0 map'] );
     return;
 end
 
@@ -137,7 +141,7 @@ for ii = 1:length( sSeries.instance )
     end
 end
 if ~foundImage
-    WAD_vbprint( [my.name ': Error: could not find phase image (#1) ' num2str( inum ) ' for GE B0 map'] );
+    WAD_vbprint( [my.name ': Error: could not find phase image (#1) for GE B0 map'] );
     return;
 end
 

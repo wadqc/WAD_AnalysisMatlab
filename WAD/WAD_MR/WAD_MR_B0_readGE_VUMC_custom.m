@@ -74,6 +74,10 @@ function [magnitude, phase] = WAD_MR_B0_readGE_VUMC_custom( i_iSeries, sSeries, 
 %	    <imagePhase>18</imagePhase>
 %	</params>
 % ------------------------------------------------------------------------
+% 20170721 / JK
+% V2.0
+% Adapted to WAD 2
+% ------------------------------------------------------------------------
 
 
 % ----------------------
@@ -83,8 +87,8 @@ function [magnitude, phase] = WAD_MR_B0_readGE_VUMC_custom( i_iSeries, sSeries, 
 
 % version info
 my.name = 'WAD_MR_B0_readGE_VUMC_custom';
-my.version = '1.2';
-my.date = '20161005';
+my.version = '2.0';
+my.date = '20170721';
 WAD_vbprint( ['Module ' my.name ' Version ' my.version ' (' my.date ')'] );
 
 
@@ -116,6 +120,9 @@ if ( isfield( sParams, 'imageMagnitude' ) && ~isempty( sParams.imageMagnitude ) 
     WAD_vbprint( [my.name ':   Found configured magnitude and phase images = ' num2str(sParams.imageMagnitude) ' ' num2str(sParams.imagePhase) ] );
     instanceMagnitude = sParams.imageMagnitude;
     instancePhase = sParams.imagePhase;
+    % WAD2 has config with strings instead of numbers
+    if ischar( instanceMagnitude ), instanceMagnitude = str2double( instanceMagnitude ); end
+    if ischar( instancePhase     ), instancePhase     = str2double( instancePhase     ); end
 else
     % GE has (custom) B0 map in single series, magn/phase pair.
     if length( sSeries.instance ) ~= 2
@@ -140,7 +147,7 @@ for ii = 1:length( sSeries.instance )
     end
 end
 if ~foundImage
-    WAD_vbprint( [my.name ': Error: could not find magnitude image (#1) ' num2str( inum ) ' for GE VUmc custom B0 map'] );
+    WAD_vbprint( [my.name ': Error: could not find magnitude image (#1) ' num2str( instanceMagnitude ) ' for GE VUmc custom B0 map'] );
     return;
 end
 
@@ -154,7 +161,7 @@ for ii = 1:length( sSeries.instance )
     end
 end
 if ~foundImage
-    WAD_vbprint( [my.name ': Error: could not find phase image (#2) ' num2str( inum ) ' for GE VUmc custom B0 map'] );
+    WAD_vbprint( [my.name ': Error: could not find phase image (#2) ' num2str( instancePhase ) ' for GE VUmc custom B0 map'] );
     return;
 end
 
