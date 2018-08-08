@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # WAD2 helper for Matlab
 # In older Matlab versions it takes ages to scan DICOM headers
-import dicom
+import pydicom
 import json
 import glob
 import os
@@ -40,7 +40,7 @@ i_iSeries = 1
 firstInStudy = True
 
 for dicomdir in glob.iglob("*"):
-    print('Scanning: '+dicomdir)
+    print( 'Scanning: '+dicomdir )
     try:
         os.chdir( dicomdir )
     except:
@@ -53,9 +53,9 @@ for dicomdir in glob.iglob("*"):
         # define series dictionary
         seriesInfo = {}
         for dicomfile in glob.iglob("*"):
-            #print( "  "+dicomfile)
+            #print( "  "+dicomfile )
             try:
-                info = dicom.read_file(dicomfile)
+                info = pydicom.read_file(dicomfile)
             except:
                 print('Error reading file as DICOM: '+dicomdir+"/"+dicomfile)
             else:
@@ -83,11 +83,11 @@ for dicomdir in glob.iglob("*"):
         os.chdir( studyDataDir )
 
 
-#print(studyInfo)
+#print( studyInfo )
 
 
 # Write JSON file
-print('Write input.json')
+print( 'Write input.json' )
 with io.open(outputDir+"/"+'input.json', 'w', encoding='utf8') as outfile:
     str_ = json.dumps(studyInfo,
                       indent=4, sort_keys=True,
@@ -101,4 +101,4 @@ with io.open(outputDir+"/"+'input.json', 'w', encoding='utf8') as outfile:
 #
 #print(studyInfo == studyInfoLoaded)
 
-print('Finished wad2_dicomscanner')
+print( 'Finished wad2_dicomscanner' )
