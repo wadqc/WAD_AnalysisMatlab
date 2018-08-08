@@ -1,0 +1,12 @@
+#!/bin/sh
+wadmodule=WAD_MG
+subdir=for_redistribution_files_only
+
+[ -d ${subdir}/${wadmodule}_mcr ] && rm -rf ${subdir}/${wadmodule}_mcr
+[ -e ${wadmodule}.zip ] && rm ${wadmodule}.zip
+if [ ! -x ${wadmodule} ] ; then
+	echo Startup script ${wadmodule} does not exist or is not executable.
+	echo Not creating WAD module
+	exit 1
+fi
+zip -r ${wadmodule}.zip ${wadmodule} ${subdir}
