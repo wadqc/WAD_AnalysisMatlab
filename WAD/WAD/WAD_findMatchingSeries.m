@@ -104,8 +104,17 @@ for i_icSeries = 1:i_nSeries
                             bMatch = false; break; % break from match loop 
                     end % switch field
                 case 'DICOM'
-                    bMatch = matchDicomTag( curMatch, curSeries );
-                    if ~bMatch, break; end % break from match loop                    
+                    switch curMatch.ATTRIBUTE.field
+                        %case 'SeriesDescription'
+                        %    bMatch = matchSeriesDescription( curMatch, curSeries );
+                        %    if ~bMatch, break; end % break from match loop
+                        case 'ImagesInSeries' % surrogate DICOM tag to select series with defined number in images
+                            bMatch = matchImagesInSeries( curMatch, curSeries );
+                            if ~bMatch, break; end % break from match loop
+                        otherwise
+                            bMatch = matchDicomTag( curMatch, curSeries );
+                            if ~bMatch, break; end % break from match loop
+                    end % switch field
                 otherwise
                     WAD_vbprint( [my.name ': Unexpected type content in matching switch/case.'], 1 );
                     bMatch = false; break % break from match loop
@@ -211,8 +220,13 @@ WAD_vbprint( [my.name ': Compare SeriesDescription "' curSeries.description '" w
 function bMatch = matchImagesInSeries( curMatch, curSeries )
 my.name = 'WAD_findMatchingSeries:matchImagesInSeries';
 % compare action content with number of images
-bMatch = isequal( length( curSeries.instance ), curMatch.CONTENT );
-WAD_vbprint( [my.name ': Compare #images ' num2str( length( curSeries.instance ) ) ' with ' num2str( curMatch.CONTENT ) '. Equal? >> ' num2str(bMatch) ], 2 );
+if ischar( curMatch.CONTENT )
+    curMatchImagesInSeries = str2double( curMatch.CONTENT );
+else
+    curMatchImagesInSeries = curMatch.CONTENT;
+end
+bMatch = isequal( length( curSeries.instance ), curMatchImagesInSeries );
+WAD_vbprint( [my.name ': Compare #images ' num2str( length( curSeries.instance ) ) ' with ' num2str( curMatchImagesInSeries ) '. Equal? >> ' num2str(bMatch) ], 2 );
 
 
 function bMatch = matchDicomTag( curMatch, curSeries )
