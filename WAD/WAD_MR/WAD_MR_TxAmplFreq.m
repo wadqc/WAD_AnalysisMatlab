@@ -81,11 +81,15 @@ function WAD_MR_TxAmplFreq( i_iSeries, sSeries, sParams )
 % Private fields are class uint8 and in one column for implicit DICOM, and class char and one row for explicit DICOM
 % char(info.Private_2001_1020(:))' converts both to class char and one row.
 % ------------------------------------------------------------------------
+% 20181003 / JK
+% V1.1.2
+% WAD2 support
+% ------------------------------------------------------------------------
 
 % version info
 my.name = 'WAD_MR_TxAmplFreq';
-my.version = '1.1.1';
-my.date = '20140212';
+my.version = '1.1.2';
+my.date = '20181003';
 WAD_vbprint( ['Module ' my.name ' Version ' my.version ' (' my.date ')'] );
 
 
@@ -104,6 +108,9 @@ if ~isfield( sParams, 'TxAmpl' ) && isfield( sParams, 'TxAmplField' )
     sParams.TxAmpl.field = sParams.TxAmplField;
     if isfield( sParams, 'TxAmplType' )
         sParams.TxAmpl.type = sParams.TxAmplType;
+    end
+    if isfield( sParams, 'TxAmplPattern' )
+        sParams.TxAmpl.pattern = sParams.TxAmplPattern;
     end
 end
 
