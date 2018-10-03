@@ -44,6 +44,13 @@ function WAD_findMatchingSeries( theStudy, theAction )
 % - still compatible with old style limits defined within action
 %   definition, though this is intended to be removed lateron.
 % ------------------------------------------------------------------------
+% VUmc, Amsterdam, NL / Joost Kuijer / jpa.kuijer@vumc.nl
+% 2018-10-03 / JK
+% V1.2:
+% - added optional conversion to double in matchImagesInSeries()
+% - added 'ImagesInSeries' as surrogate DICOM tag to select series with
+%   defined number in images
+% ------------------------------------------------------------------------
 
 
 % ----------------------
@@ -54,8 +61,8 @@ global WAD
 
 % version info
 my.name = 'WAD_findMatchingSeries';
-my.version = '1.1';
-my.date = '20130906';
+my.version = '1.2';
+my.date = '20181003';
 WAD_vbprint( ['Module ' my.name ' Version ' my.version ' (' my.date ')'], 2 );
 
 

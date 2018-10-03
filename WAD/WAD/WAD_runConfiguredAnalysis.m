@@ -51,6 +51,9 @@ function WAD_runConfiguredAnalysis
 % 20170712 / JK
 % V2.0: - WAD2 compatible
 % ------------------------------------------------------------------------
+% 2018100312 / JK
+% allow surrogate DICOM tag ImagesInSeries
+% ------------------------------------------------------------------------
 
 
 % ----------------------
@@ -60,8 +63,8 @@ global WAD
 
 % version info
 my.name = 'WAD_runConfiguredAnalysis';
-my.version = '2.0';
-my.date = '20170712';
+my.version = '2.1';
+my.date = '20181003';
 WAD_vbprint( ['Module ' my.name ' Version ' my.version ' (' my.date ')'], 2 );
 
 
