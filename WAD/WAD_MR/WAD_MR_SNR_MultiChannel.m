@@ -60,7 +60,25 @@ function WAD_MR_SNR_MultiChannel( i_iSeries, sSeries, sParams )
 % Version 2.0
 % Adapted to WAD 2
 % ------------------------------------------------------------------------
-
+% 2019-02-01 / JK
+% Added config option to name multichannel coil SNR from DICOM tag
+% -- WAD1 format --
+% 	<params>
+% 	    <uncombinedImage> <coilNameFromDicomTag>Private_0051_100f</coilNameFromDicomTag> </uncombinedImage>
+%	</params>
+%
+% -- WAD2 format --
+% "WAD_MR_SNR_MultiChannel": {
+%      "filters": {},
+%      "params": {
+%        "match": "ACR SNR 4CH; @ImagesInSeries=4",
+%        "combinedImage": "inNextSeries",
+%        "uncombinedCoilNameFromDicomTag": "Private_0051_100f",
+%        "backgroundROIsize": "7",
+%        "backgroundROIshift": "112",
+%        "ROIradius": "75"
+%      }
+% ------------------------------------------------------------------------
 
 % produce a figure on the screen or be quiet...
 quiet = true;
@@ -164,6 +182,7 @@ end
 % check if uncombinedImage is configured
 isConfiguredUncombinedImages = false;
 hasConfiguredUncombinedCoils = false;
+hasConfiguredCoilNameFromDicomTag = false;
 % WAD 1 style config: find elements: image and coil
 if isfield( sParams, 'uncombinedImage' ) && ~isempty( sParams.uncombinedImage )
     if isfield( sParams.uncombinedImage, 'image' ) && ~isempty( [sParams.uncombinedImage.image] )
@@ -176,6 +195,11 @@ if isfield( sParams, 'uncombinedImage' ) && ~isempty( sParams.uncombinedImage )
         WAD_vbprint( [my.name ': Found configured uncombinedCoil = ' num2str( uncombinedCoil )] );
         hasConfiguredUncombinedCoils = true;
     end
+    if isfield( sParams.uncombinedImage, 'coilNameFromDicomTag' ) && ~isempty( [sParams.uncombinedImage.coilNameFromDicomTag] )
+        coilNameFromDicomTag = sParams.uncombinedImage.coilNameFromDicomTag;
+        WAD_vbprint( [my.name ': Found configured coilNameFromDicomTag = ' coilNameFromDicomTag] );
+        hasConfiguredCoilNameFromDicomTag = true;
+    end    
 end
 
 % WAD 2 style config: find elements: image and coil
@@ -194,6 +218,11 @@ if isfield( sParams, 'uncombinedCoils' ) && ~isempty( [sParams.uncombinedCoils] 
     coilStr = []; for cc = uncombinedCoil, coilStr = [ coilStr ' ' cc{1} ]; end
     WAD_vbprint( [my.name ': Found configured uncombinedCoils = ' coilStr] );
     hasConfiguredUncombinedCoils = true;
+end
+if isfield( sParams, 'uncombinedCoilNameFromDicomTag' ) && ~isempty( [sParams.uncombinedCoilNameFromDicomTag] )
+    coilNameFromDicomTag = sParams.uncombinedCoilNameFromDicomTag;
+    WAD_vbprint( [my.name ': Found configured coilNameFromDicomTag = ' coilNameFromDicomTag] );
+    hasConfiguredCoilNameFromDicomTag = true;
 end
 
 
@@ -315,12 +344,34 @@ for inum = uncombinedImage
     else
         coil = inum;
     end
+    % in case DICOM tag for coil name is configured: get it from there
+    if hasConfiguredCoilNameFromDicomTag
+        info = dicominfo( sSeries.instance(ci).filename );
+        if isfield( info, coilNameFromDicomTag ) && ~isempty( info.(coilNameFromDicomTag) )
+            tmp = info.(coilNameFromDicomTag);
+            % see what we have...
+            sz = size( tmp );
+            if sz(1) == 1
+                % single value, may be string or a number
+                coil = tmp;
+            else
+                % multiple values, transpose uint8 array (=string), take first value otherwise.
+                if isa( tmp, 'uint8' )
+                    coil = char( tmp )';
+                else
+                    coil = tmp(1);
+                end
+            end
+        else
+            WAD_vbprint( [my.name ': Configured field coilNameFromDicomTag = ' coilNameFromDicomTag ' not found in DICOM header'] );
+        end
+    end
     if ischar( coil )
         coilstring = coil;
     elseif iscell( coil )
         coilstring = coil{1};
     else
-        coilstring = num2str(inum);
+        coilstring = num2str(coil);
     end
     
 
