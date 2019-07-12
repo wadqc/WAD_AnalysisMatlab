@@ -1,6 +1,6 @@
 <deployment-project plugin="plugin.ezdeploy" plugin-version="1.0">
-  <configuration file="/home/wad/matlab/standalone_2018a/WAD_MR-stability_2018a.prj" location="/home/wad/matlab/standalone_2018a" name="WAD_MR-stability_2018a" target="target.ezdeploy.standalone" target-name="Application Compiler">
-    <param.appname>WAD_MR</param.appname>
+  <configuration file="/home/wad/matlab/standalone_2018a/WAD_MR-stability_2018a.prj" location="/home/wad/matlab/standalone_2018a" name="WAD_MR-stability_2018a" preferred-package-location="/home/wad/matlab/standalone_2018a/WAD_MR-stability_2018a/for_redistribution" preferred-package-type="package.type.install" target="target.ezdeploy.standalone" target-name="Application Compiler">
+    <param.appname>WAD_MR_stability</param.appname>
     <param.icon />
     <param.icons />
     <param.version>2.0</param.version>
@@ -11,7 +11,7 @@
     <param.description />
     <param.screenshot />
     <param.guid />
-    <param.installpath.string>/WAD_MR/</param.installpath.string>
+    <param.installpath.string>/WAD_MR_stability/</param.installpath.string>
     <param.installpath.combo>option.installpath.userlocal</param.installpath.combo>
     <param.logo />
     <param.install.notes />
@@ -97,13 +97,13 @@ ${LD_LIBRARY_PATH}:MR/v94/runtime/glnxa64:MR/v94/bin/glnxa64:MR/v94/sys/os/glnxa
     <fileset.depfun />
     <build-deliverables>
       <file location="${PROJECT_ROOT}/WAD_MR-stability_2018a/for_testing" name="splash.png" optional="false">/home/wad/matlab/standalone_2018a/WAD_MR-stability_2018a/for_testing/splash.png</file>
-      <file location="${PROJECT_ROOT}/WAD_MR-stability_2018a/for_testing" name="WAD_MR" optional="false">/home/wad/matlab/standalone_2018a/WAD_MR-stability_2018a/for_testing/WAD_MR</file>
-      <file location="${PROJECT_ROOT}/WAD_MR-stability_2018a/for_testing" name="run_WAD_MR.sh" optional="false">/home/wad/matlab/standalone_2018a/WAD_MR-stability_2018a/for_testing/run_WAD_MR.sh</file>
+      <file location="${PROJECT_ROOT}/WAD_MR-stability_2018a/for_testing" name="WAD_MR_stability" optional="false">/home/wad/matlab/standalone_2018a/WAD_MR-stability_2018a/for_testing/WAD_MR_stability</file>
+      <file location="${PROJECT_ROOT}/WAD_MR-stability_2018a/for_testing" name="run_WAD_MR_stability.sh" optional="false">/home/wad/matlab/standalone_2018a/WAD_MR-stability_2018a/for_testing/run_WAD_MR_stability.sh</file>
       <file location="${PROJECT_ROOT}/WAD_MR-stability_2018a/for_testing" name="readme.txt" optional="true">/home/wad/matlab/standalone_2018a/WAD_MR-stability_2018a/for_testing/readme.txt</file>
     </build-deliverables>
     <workflow />
     <matlab>
-      <root>/usr/local/MATLAB/R2018a</root>
+      <root>/backup/system/usr_local/MATLAB/R2018a</root>
       <toolboxes />
     </matlab>
     <platform>
