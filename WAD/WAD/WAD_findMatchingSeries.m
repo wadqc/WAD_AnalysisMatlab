@@ -44,18 +44,25 @@ function WAD_findMatchingSeries( theStudy, theAction )
 % - still compatible with old style limits defined within action
 %   definition, though this is intended to be removed lateron.
 % ------------------------------------------------------------------------
+% VUmc, Amsterdam, NL / Joost Kuijer / jpa.kuijer@vumc.nl
+% 2018-10-03 / JK
+% V1.2:
+% - added optional conversion to double in matchImagesInSeries()
+% - added 'ImagesInSeries' as surrogate DICOM tag to select series with
+%   defined number in images
+% ------------------------------------------------------------------------
 
 
 % ----------------------
 % GLOBALS
 % ----------------------
-%global WAD
+global WAD
 
 
 % version info
 my.name = 'WAD_findMatchingSeries';
-my.version = '1.1';
-my.date = '20130906';
+my.version = '1.2';
+my.date = '20181003';
 WAD_vbprint( ['Module ' my.name ' Version ' my.version ' (' my.date ')'], 2 );
 
 
@@ -104,8 +111,17 @@ for i_icSeries = 1:i_nSeries
                             bMatch = false; break; % break from match loop 
                     end % switch field
                 case 'DICOM'
-                    bMatch = matchDicomTag( curMatch, curSeries );
-                    if ~bMatch, break; end % break from match loop                    
+                    switch curMatch.ATTRIBUTE.field
+                        %case 'SeriesDescription'
+                        %    bMatch = matchSeriesDescription( curMatch, curSeries );
+                        %    if ~bMatch, break; end % break from match loop
+                        case 'ImagesInSeries' % surrogate DICOM tag to select series with defined number in images
+                            bMatch = matchImagesInSeries( curMatch, curSeries );
+                            if ~bMatch, break; end % break from match loop
+                        otherwise
+                            bMatch = matchDicomTag( curMatch, curSeries );
+                            if ~bMatch, break; end % break from match loop
+                    end % switch field
                 otherwise
                     WAD_vbprint( [my.name ': Unexpected type content in matching switch/case.'], 1 );
                     bMatch = false; break % break from match loop
@@ -119,13 +135,47 @@ for i_icSeries = 1:i_nSeries
         WAD_vbprint( [my.name ': match!'], 2 );
         
         % parse any auto comment fields if present
-        if isfield( theAction, 'autoComment' ) && ~isempty( theAction.autoComment )
-            WAD_vbprint( [my.name ': Parse autoComment of ' theAction.name ' on series ' num2str(i_icSeries) ' (DICOM series ' num2str(i_iDcmSeries) ' "' theStudy.series( i_icSeries ).description '")'], 1 );
-            try
-                WAD_parseAutoComment( theStudy.series( i_icSeries ), theAction.autoComment );
-            catch err
-                WAD_ErrorMsg( my.name, ['ERROR parse autoComment ' theAction.name ' on series ' num2str(i_icSeries) ' (DICOM series ' num2str(i_iDcmSeries) ' "' theStudy.series( i_icSeries ).description '")'], err );
-            end % try / catch
+        if WAD.versionmodus < 2
+            % WAD 1
+            if isfield( theAction, 'autoComment' ) && ~isempty( theAction.autoComment )
+                WAD_vbprint( [my.name ': Parse autoComment of ' theAction.name ' on series ' num2str(i_icSeries) ' (DICOM series ' num2str(i_iDcmSeries) ' "' theStudy.series( i_icSeries ).description '")'], 1 );
+                try
+                    WAD_parseAutoComment( theStudy.series( i_icSeries ), theAction.autoComment );
+                catch err
+                    WAD_ErrorMsg( my.name, ['ERROR parse autoComment ' theAction.name ' on series ' num2str(i_icSeries) ' (DICOM series ' num2str(i_iDcmSeries) ' "' theStudy.series( i_icSeries ).description '")'], err );
+                end % try / catch
+            end
+        else
+            % WAD 2
+            % Update DICOM-defined prefix
+            if isfield( theAction.params, 'resultsNamePrefix' ) && ~isempty( theAction.params.resultsNamePrefix ) && theAction.params.resultsNamePrefix(1) == '@'
+                try
+                    dcminfo = dicominfo( theStudy.series( i_icSeries ).instance(1).filename );
+                    theAction.resultsNamePrefix = dcminfo.( theAction.params.resultsNamePrefix(2:end) );
+                    if isnumeric( theAction.resultsNamePrefix )
+                        theAction.resultsNamePrefix = num2str( theAction.resultsNamePrefix );
+                    end
+                    WAD_vbprint( [my.name ' in action ' theAction.name ': resultsTag was set to "' theAction.resultsNamePrefix '"' ], 1 );
+                    WAD.currentActionResultsNamePrefix = theAction.resultsNamePrefix;
+                catch err
+                    WAD_ErrorMsg( my.name, ['ERROR parse resultsNamePrefix ' theAction.name ' on series ' num2str(i_icSeries) ' (DICOM series ' num2str(i_iDcmSeries) ' "' theStudy.series( i_icSeries ).description '")'], err );
+                end % try / catch
+            end
+            
+            % auto comments
+            i_ic = 1; % loop over autocomment fields
+            while isfield( theAction.params, ['autoComment' num2str(i_ic)] )
+                fcomment = ['autoComment' num2str(i_ic)];
+                if ~isempty( theAction.params.(fcomment) )
+                    WAD_vbprint( [my.name ': Parse autoComment '  ' of ' theAction.name ' on series ' num2str(i_icSeries) ' (DICOM series ' num2str(i_iDcmSeries) ' "' theStudy.series( i_icSeries ).description '")'], 1 );
+                    try
+                        WAD_parseAutoComment( theStudy.series( i_icSeries ), theAction.params.(fcomment) );
+                    catch err
+                        WAD_ErrorMsg( my.name, ['ERROR parse autoComment ' theAction.name ' on series ' num2str(i_icSeries) ' (DICOM series ' num2str(i_iDcmSeries) ' "' theStudy.series( i_icSeries ).description '")'], err );
+                    end % try / catch
+                end
+                i_ic = i_ic+1;
+            end
         end
 
         % Action function declaration must match one of these definitions:
@@ -133,6 +183,9 @@ for i_icSeries = 1:i_nSeries
         % - v1.1 format              : actionName( seriesNumber, seriesStruct, paramStruct )
         % Produce a warning message if old style action limits are defined
         % for a new style action function.
+        % Note: WAD2 gets action limits from Meta config file, which is not
+        % passed to the analysis module! For WAD the action limits are
+        % dummy variables.
         hasOldStyleActionLimits = ~isempty( theAction.limits );
         isOldStyleActionFunction = ( nargin( theAction.fh ) == 4 );
         if isOldStyleActionFunction
@@ -174,8 +227,13 @@ WAD_vbprint( [my.name ': Compare SeriesDescription "' curSeries.description '" w
 function bMatch = matchImagesInSeries( curMatch, curSeries )
 my.name = 'WAD_findMatchingSeries:matchImagesInSeries';
 % compare action content with number of images
-bMatch = isequal( length( curSeries.instance ), curMatch.CONTENT );
-WAD_vbprint( [my.name ': Compare #images ' num2str( length( curSeries.instance ) ) ' with ' num2str( curMatch.CONTENT ) '. Equal? >> ' num2str(bMatch) ], 2 );
+if ischar( curMatch.CONTENT )
+    curMatchImagesInSeries = str2double( curMatch.CONTENT );
+else
+    curMatchImagesInSeries = curMatch.CONTENT;
+end
+bMatch = isequal( length( curSeries.instance ), curMatchImagesInSeries );
+WAD_vbprint( [my.name ': Compare #images ' num2str( length( curSeries.instance ) ) ' with ' num2str( curMatchImagesInSeries ) '. Equal? >> ' num2str(bMatch) ], 2 );
 
 
 function bMatch = matchDicomTag( curMatch, curSeries )

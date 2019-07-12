@@ -96,6 +96,10 @@ function WAD_MR_geomZ( i_iSeries, sSeries, sParams )
 % ------------------------------------------------------------------------
 % JK - 20120807 v2.2: new (v1.1) style action limits
 % ------------------------------------------------------------------------
+% JK - 20170726 v2.3: rename result 'Geometrie Z' to 'Geometrie Z series'
+% ------------------------------------------------------------------------
+% JK - 20180913 v2.4: shortened red lines inside image boundary
+% ------------------------------------------------------------------------
 
 % produce a figure on the screen or be quiet...
 quiet = true;
@@ -103,8 +107,8 @@ isInteractive = false;
 
 % version info
 my.name = 'WAD_MR_geomZ';
-my.version = '2.2';
-my.date = '20131127';
+my.version = '2.3';
+my.date = '20170726';
 WAD_vbprint( ['Module ' my.name ' Version ' my.version ' (' my.date ')'] );
 
 %gen_object_display( sSeries );
@@ -285,8 +289,8 @@ if isInteractive, close( h ), end
 % In the matlab help, it can be found that the center pixel of image I in the Radon transformation is defined to be floor((size(I)+1)/2)
 CenterPixel = floor((size(a)+1)/2);
 
-[x_edge_upper, y_edge_upper] = draw_the_edge(CenterPixel,largest_dimension,UpperDistance_pix,Theta_Upper_deg);
-[x_edge_lower, y_edge_lower] = draw_the_edge(CenterPixel,largest_dimension,LowerDistance_pix,Theta_Lower_deg);
+[x_edge_upper, y_edge_upper] = draw_the_edge(CenterPixel,largest_dimension./2,UpperDistance_pix,Theta_Upper_deg);
+[x_edge_lower, y_edge_lower] = draw_the_edge(CenterPixel,largest_dimension./2,LowerDistance_pix,Theta_Lower_deg);
 [x_distance_upper, y_distance_upper] = draw_the_distance(CenterPixel,UpperDistance_pix,Theta_Upper_deg);
 [x_distance_lower, y_distance_lower] = draw_the_distance(CenterPixel,LowerDistance_pix,Theta_Lower_deg);
 
@@ -322,7 +326,7 @@ hold off
 
 
 % Write figure to level 2
-WAD_resultsAppendString( 2, ['Analysis on series: ' num2str(sSeries.number) ' / image: ' num2str(inum) ], 'Geometrie Z' )
+WAD_resultsAppendString( 2, ['Analysis on series: ' num2str(sSeries.number) ' / image: ' num2str(inum) ], 'Geometrie Z series' )
 WAD_resultsAppendFigure( 2, hFig1, 'geomZ_fitted', 'Geometrie Z: randdetectie' );
 if quiet
     % delete non-visible image

@@ -40,32 +40,65 @@ function WAD_resultsAppendObject( level, filename, description )
 %         actions, and still get unique identifiers in the results
 %         database.
 % ------------------------------------------------------------------------
+% 2017-07-17 / JK / WAD2
+% ------------------------------------------------------------------------
 
 global WAD
 
 WAD_vbprint( 'Module WAD_resultsAppendObject()', 2 );
 
-% WAD XML object
-WAD.out.results{end+1} = []; % new item
-WAD.results_index = WAD.results_index + 1;
-WAD.out.results{end}.volgnummer = WAD.results_index;
-WAD.out.results{end}.type = 'object';
-WAD.out.results{end}.niveau = level;
-% object file path and name, fullfile() works on all platforms
-% (Windows/Linux)
-WAD.out.results{end}.object_naam_pad = fullfile( WAD.in.analysemodule_outputdir, filename );
+if WAD.versionmodus < 2
 
-% check if <resultsTag> was added for this action
-if isfield( WAD, 'currentActionResultsNamePrefix' ) && ~isempty( WAD.currentActionResultsNamePrefix )
-    if ~isempty( description )
-        description = [ WAD.currentActionResultsNamePrefix ' ' description ];
-    else
-        description = WAD.currentActionResultsNamePrefix;        
+    % ------------------------------------------------------------------------
+    % WAD1 XML object
+    % ------------------------------------------------------------------------
+    WAD.out.results{end+1} = []; % new item
+    WAD.results_index = WAD.results_index + 1;
+    WAD.out.results{end}.volgnummer = WAD.results_index;
+    WAD.out.results{end}.type = 'object';
+    WAD.out.results{end}.niveau = level;
+    % object file path and name, fullfile() works on all platforms
+    % (Windows/Linux)
+    WAD.out.results{end}.object_naam_pad = fullfile( WAD.in.analysemodule_outputdir, filename );
+
+    % check if <resultsTag> was added for this action
+    if isfield( WAD, 'currentActionResultsNamePrefix' ) && ~isempty( WAD.currentActionResultsNamePrefix )
+        if ~isempty( description )
+            description = [ WAD.currentActionResultsNamePrefix ' ' description ];
+        else
+            description = WAD.currentActionResultsNamePrefix;        
+        end
     end
-end
 
-if ~isempty( description ), ...
-    WAD.out.results{end}.omschrijving = description;
-end
+    if ~isempty( description ), ...
+        WAD.out.results{end}.omschrijving = description;
+    end
+
+else
+    % ------------------------------------------------------------------------
+    % WAD2 JSON object
+    % ------------------------------------------------------------------------
+    WAD.out.results{end+1} = []; % new item
+    WAD.results_index = WAD.results_index + 1;
+    %WAD.out.results{end}.volgnummer = WAD.results_index;
+    WAD.out.results{end}.category = 'object';
+    %WAD.out.results{end}.niveau = level;
+    % WAD2 wants the full path included in filename
+    WAD.out.results{end}.val = [ WAD.in.analysemodule_outputdir '/' filename ];
+
+    % check if <resultsTag> was added for this action
+    if isfield( WAD, 'currentActionResultsNamePrefix' ) && ~isempty( WAD.currentActionResultsNamePrefix )
+        if ~isempty( description )
+            description = [ WAD.currentActionResultsNamePrefix ' ' description ];
+        else
+            description = WAD.currentActionResultsNamePrefix;        
+        end
+    end
+
+    if ~isempty( description ), ...
+        WAD.out.results{end}.name = description;
+        %WAD.out.results{end}.name = ['param' num2str(WAD.results_index)];
+
+    end
 
 end

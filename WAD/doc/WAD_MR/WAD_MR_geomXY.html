@@ -93,115 +93,121 @@ This function is called by:
 0031 <span class="comment">% ------------------------------------------------------------------------</span>
 0032 <span class="comment">% 2008-10-24 / JK adapted to WAD</span>
 0033 <span class="comment">% ------------------------------------------------------------------------</span>
-0034 
-0035 
-0036 <span class="comment">% produce a figure on the screen or be quiet...</span>
-0037 quiet = true;
-0038 isInteractive = false;
-0039 
-0040 <span class="comment">% ----------------------</span>
-0041 <span class="comment">% GLOBALS</span>
+0034 <span class="comment">% 2017-07-26 / JK adapted to WAD2: removed duplicate description entries</span>
+0035 <span class="comment">% ------------------------------------------------------------------------</span>
+0036 
+0037 
+0038 <span class="comment">% produce a figure on the screen or be quiet...</span>
+0039 quiet = true;
+0040 isInteractive = false;
+0041 
 0042 <span class="comment">% ----------------------</span>
-0043 <span class="keyword">global</span> WAD
-0044 
-0045 <span class="comment">% version info</span>
-0046 my.name = <span class="string">'WAD_MR_geomXY'</span>;
-0047 my.version = <span class="string">'1.1'</span>;
-0048 my.date = <span class="string">'20130904'</span>;
-0049 <a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [<span class="string">'Module '</span> my.name <span class="string">' Version '</span> my.version <span class="string">' ('</span> my.date <span class="string">')'</span>] );
-0050 
-0051 
+0043 <span class="comment">% GLOBALS</span>
+0044 <span class="comment">% ----------------------</span>
+0045 <span class="keyword">global</span> WAD
+0046 
+0047 <span class="comment">% version info</span>
+0048 my.name = <span class="string">'WAD_MR_geomXY'</span>;
+0049 my.version = <span class="string">'1.1'</span>;
+0050 my.date = <span class="string">'20130904'</span>;
+0051 <a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [<span class="string">'Module '</span> my.name <span class="string">' Version '</span> my.version <span class="string">' ('</span> my.date <span class="string">')'</span>] );
 0052 
-0053 <span class="comment">% ---------------------------------------------</span>
-0054 <span class="comment">% select the plain water image without features</span>
+0053 
+0054 
 0055 <span class="comment">% ---------------------------------------------</span>
-0056 <span class="comment">% default: use plain water slice in 11-slice ACR protocol</span>
-0057 inum = 7;
-0058 <span class="comment">% may be overruled by series config...</span>
-0059 <span class="keyword">if</span> isfield( sParams, <span class="string">'image'</span> ) &amp;&amp; ~isempty( sParams.image )
-0060     inum = sParams.image;
-0061     <span class="comment">% handle specials...</span>
-0062     <span class="keyword">if</span> isequal( inum, WAD.const.firstInSeries )
-0063         inum = 1;
-0064     <span class="keyword">elseif</span> isequal( inum, WAD.const.lastInSeries )
-0065         inum = length( sSeries.instance );
-0066     <span class="keyword">end</span>
-0067 <span class="keyword">end</span>
-0068 <span class="comment">% is it just one slice? then we use it...</span>
-0069 <span class="keyword">if</span> length( sSeries.instance ) == 1
-0070     inum = 1;
-0071 <span class="keyword">end</span>
-0072 
-0073 
-0074 <span class="comment">% find the image</span>
-0075 foundImage = false;
-0076 <span class="keyword">for</span> ii = 1:length( sSeries.instance )
-0077     <span class="keyword">if</span> sSeries.instance(ii).number == inum
-0078         ci = ii;
-0079         foundImage = true;
-0080         <span class="keyword">break</span>;
-0081     <span class="keyword">end</span>
-0082 <span class="keyword">end</span>
-0083 <span class="keyword">if</span> ~foundImage
-0084     <a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">': Error: could not find configured image '</span> num2str( inum ) <span class="string">' for geometry X Y evalutation'</span>] );
-0085     <a href="../WAD/myErrordlg.html" class="code" title="function h = myErrordlg(isInteractive,varargin)">myErrordlg</a>( isInteractive, [<span class="string">'Cannot find configured image '</span> num2str( inum ) <span class="string">' for geometry evaluation.'</span>], <span class="string">'Geomety X and Y'</span>, <span class="string">'on'</span> );
-0086     <span class="keyword">return</span>;
-0087 <span class="keyword">end</span>
-0088 
-0089 <span class="comment">% display waitbar in interactive mode</span>
-0090 <span class="keyword">if</span> isInteractive, h = waitbar( 0, <span class="string">'Calculating Geometry X and Y...'</span> ); <span class="keyword">end</span>
-0091 
-0092 <span class="comment">% do the evaluation...</span>
-0093 <span class="comment">% define the interpolation if not defined as parameter in the config file</span>
-0094 <a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">':   calculating diameter and centre coordinates ...'</span>] );
-0095 <span class="keyword">if</span> ~isfield( sParams, <span class="string">'interpolPower'</span> ) || isempty( sParams.interpolPower )
-0096     sParams.interpolPower = 1; <span class="comment">% default setting: use half the pixel size, goes slower but should be a little more precise.</span>
-0097 <span class="keyword">end</span>
-0098 <a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">':   Interpolation set to 2 ^ '</span> num2str(sParams.interpolPower) <span class="string">'. This is configurable in &lt;params&gt; &lt;interpolPower&gt;'</span> ] );
-0099 
-0100 <span class="keyword">try</span>
-0101     [diameter_pix, centre_pix, hFigGeomXY] = <a href="WAD_MR_privateSizePos_pix.html" class="code" title="function [diameter_pix, centre_pix, figureHandle ] = WAD_MR_privateSizePos_pix( sImage, sParams, quiet )">WAD_MR_privateSizePos_pix</a>( sSeries.instance(ci), sParams, quiet );
-0102 <span class="keyword">catch</span> err
-0103     <a href="../WAD/WAD_ErrorMsg.html" class="code" title="function WAD_ErrorMsg( name, mymessage, err )">WAD_ErrorMsg</a>( my.name, <span class="string">'ERROR calculating diameter and centre coordinates.'</span>, err );
-0104     <span class="keyword">return</span>
-0105 <span class="keyword">end</span>
-0106 
-0107 <a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">':   centre location at '</span> num2str(centre_pix)] );
-0108 
-0109 <span class="comment">% get the pixel size from DICOM header</span>
-0110 <span class="keyword">try</span>
-0111     dcmInfo = dicominfo( sSeries.instance(ci).filename );
-0112 <span class="keyword">catch</span> err
-0113     <a href="../WAD/WAD_ErrorMsg.html" class="code" title="function WAD_ErrorMsg( name, mymessage, err )">WAD_ErrorMsg</a>( my.name, <span class="string">'ERROR reading DICOM image header for SNR.'</span>, err );
-0114     <span class="keyword">return</span>
-0115 <span class="keyword">end</span>
-0116 
-0117 pixelSpacing = dcmInfo.PixelSpacing;
-0118 
-0119 <span class="comment">% convert diameter from pixels to mm</span>
-0120 <span class="comment">% !!!! TO DO: check X and Y indices !!!!</span>
-0121 <span class="comment">% why is the index reversed from first index -&gt; y and second index -&gt; x?</span>
-0122 diameterX_mm = diameter_pix(1) .* pixelSpacing(2); <span class="comment">% ???</span>
-0123 diameterY_mm = diameter_pix(2) .* pixelSpacing(1); <span class="comment">% ???</span>
+0056 <span class="comment">% select the plain water image without features</span>
+0057 <span class="comment">% ---------------------------------------------</span>
+0058 <span class="comment">% default: use plain water slice in 11-slice ACR protocol</span>
+0059 inum = 7;
+0060 <span class="comment">% may be overruled by series config...</span>
+0061 <span class="keyword">if</span> isfield( sParams, <span class="string">'image'</span> ) &amp;&amp; ~isempty( sParams.image )
+0062     inum = sParams.image;
+0063     <span class="comment">% handle specials...</span>
+0064     <span class="keyword">if</span> isequal( inum, WAD.const.firstInSeries )
+0065         inum = 1;
+0066     <span class="keyword">elseif</span> isequal( inum, WAD.const.lastInSeries )
+0067         inum = length( sSeries.instance );
+0068     <span class="keyword">end</span>
+0069 <span class="keyword">end</span>
+0070 <span class="comment">% in WAD2 the number is passed as string</span>
+0071 <span class="keyword">if</span> ischar( inum )
+0072     inum = str2double( inum );
+0073 <span class="keyword">end</span>
+0074 <span class="comment">% is it just one slice? then we use it...</span>
+0075 <span class="keyword">if</span> length( sSeries.instance ) == 1
+0076     inum = 1;
+0077 <span class="keyword">end</span>
+0078 
+0079 
+0080 <span class="comment">% find the image</span>
+0081 foundImage = false;
+0082 <span class="keyword">for</span> ii = 1:length( sSeries.instance )
+0083     <span class="keyword">if</span> sSeries.instance(ii).number == inum
+0084         ci = ii;
+0085         foundImage = true;
+0086         <span class="keyword">break</span>;
+0087     <span class="keyword">end</span>
+0088 <span class="keyword">end</span>
+0089 <span class="keyword">if</span> ~foundImage
+0090     <a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">': Error: could not find configured image '</span> num2str( inum ) <span class="string">' for geometry X Y evalutation'</span>] );
+0091     <a href="../WAD/myErrordlg.html" class="code" title="function h = myErrordlg(isInteractive,varargin)">myErrordlg</a>( isInteractive, [<span class="string">'Cannot find configured image '</span> num2str( inum ) <span class="string">' for geometry evaluation.'</span>], <span class="string">'Geomety X and Y'</span>, <span class="string">'on'</span> );
+0092     <span class="keyword">return</span>;
+0093 <span class="keyword">end</span>
+0094 
+0095 <span class="comment">% display waitbar in interactive mode</span>
+0096 <span class="keyword">if</span> isInteractive, h = waitbar( 0, <span class="string">'Calculating Geometry X and Y...'</span> ); <span class="keyword">end</span>
+0097 
+0098 <span class="comment">% do the evaluation...</span>
+0099 <span class="comment">% define the interpolation if not defined as parameter in the config file</span>
+0100 <a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">':   calculating diameter and centre coordinates ...'</span>] );
+0101 <span class="keyword">if</span> ~isfield( sParams, <span class="string">'interpolPower'</span> ) || isempty( sParams.interpolPower )
+0102     sParams.interpolPower = 1; <span class="comment">% default setting: use half the pixel size, goes slower but should be a little more precise.</span>
+0103 <span class="keyword">end</span>
+0104 <a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">':   Interpolation set to 2 ^ '</span> num2str(sParams.interpolPower) <span class="string">'. This is configurable in &lt;params&gt; &lt;interpolPower&gt;'</span> ] );
+0105 
+0106 <span class="keyword">try</span>
+0107     [diameter_pix, centre_pix, hFigGeomXY] = <a href="WAD_MR_privateSizePos_pix.html" class="code" title="function [diameter_pix, centre_pix, figureHandle ] = WAD_MR_privateSizePos_pix( sImage, sParams, quiet )">WAD_MR_privateSizePos_pix</a>( sSeries.instance(ci), sParams, quiet );
+0108 <span class="keyword">catch</span> err
+0109     <a href="../WAD/WAD_ErrorMsg.html" class="code" title="function WAD_ErrorMsg( name, mymessage, err )">WAD_ErrorMsg</a>( my.name, <span class="string">'ERROR calculating diameter and centre coordinates.'</span>, err );
+0110     <span class="keyword">return</span>
+0111 <span class="keyword">end</span>
+0112 
+0113 <a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">':   centre location at '</span> num2str(centre_pix)] );
+0114 
+0115 <span class="comment">% get the pixel size from DICOM header</span>
+0116 <span class="keyword">try</span>
+0117     dcmInfo = dicominfo( sSeries.instance(ci).filename );
+0118 <span class="keyword">catch</span> err
+0119     <a href="../WAD/WAD_ErrorMsg.html" class="code" title="function WAD_ErrorMsg( name, mymessage, err )">WAD_ErrorMsg</a>( my.name, <span class="string">'ERROR reading DICOM image header for SNR.'</span>, err );
+0120     <span class="keyword">return</span>
+0121 <span class="keyword">end</span>
+0122 
+0123 pixelSpacing = dcmInfo.PixelSpacing;
 0124 
-0125 <a href="../WAD/WAD_resultsAppendString.html" class="code" title="function WAD_resultsAppendString( level, value, description )">WAD_resultsAppendString</a>( 2, [<span class="string">'Analysis on series: '</span> num2str( sSeries.number ) <span class="string">' / image: '</span> num2str( inum ) ], <span class="string">'Geometrie XY'</span> );
-0126 <a href="../WAD/WAD_resultsAppendString.html" class="code" title="function WAD_resultsAppendString( level, value, description )">WAD_resultsAppendString</a>( 2, [<span class="string">'Centre location at '</span> num2str(centre_pix)], <span class="string">'Geometrie XY'</span> );
-0127 
-0128 <a href="../WAD/WAD_resultsAppendFigure.html" class="code" title="function WAD_resultsAppendFigure( level, handle, tag, description )">WAD_resultsAppendFigure</a>( 2, hFigGeomXY, <span class="string">'geomXY'</span>, <span class="string">'Geometrie X en Y: randdetectie'</span> );
-0129 
-0130 <span class="keyword">if</span> quiet
-0131     <span class="comment">% delete non-visible image</span>
-0132     delete( hFigGeomXY );
-0133 <span class="keyword">end</span>
-0134 
-0135 <a href="../WAD/WAD_resultsAppendFloat.html" class="code" title="function WAD_resultsAppendFloat( level, value, variable, unit, description, sLimits, limits_field_name )">WAD_resultsAppendFloat</a>( 1, diameterX_mm, <span class="string">'Diameter'</span>, <span class="string">'mm'</span>, <span class="string">'Geometrie X'</span> );
-0136 <a href="../WAD/WAD_resultsAppendFloat.html" class="code" title="function WAD_resultsAppendFloat( level, value, variable, unit, description, sLimits, limits_field_name )">WAD_resultsAppendFloat</a>( 1, diameterY_mm, <span class="string">'Diameter'</span>, <span class="string">'mm'</span>, <span class="string">'Geometrie Y'</span> );
-0137 
-0138 
-0139 <span class="comment">% close waitbar in interactive mode</span>
-0140 <span class="keyword">if</span> isInteractive, close( h ), <span class="keyword">end</span>
-0141 
-0142 <span class="keyword">return</span></pre></div>
-<hr><address>Generated on Fri 07-Aug-2015 09:34:21 by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" target="_parent">m2html</a></strong> &copy; 2005</address>
+0125 <span class="comment">% convert diameter from pixels to mm</span>
+0126 <span class="comment">% !!!! TO DO: check X and Y indices !!!!</span>
+0127 <span class="comment">% why is the index reversed from first index -&gt; y and second index -&gt; x?</span>
+0128 diameterX_mm = diameter_pix(1) .* pixelSpacing(2); <span class="comment">% ???</span>
+0129 diameterY_mm = diameter_pix(2) .* pixelSpacing(1); <span class="comment">% ???</span>
+0130 
+0131 <a href="../WAD/WAD_resultsAppendString.html" class="code" title="function WAD_resultsAppendString( level, value, description )">WAD_resultsAppendString</a>( 2, [<span class="string">'Analysis on series: '</span> num2str( sSeries.number ) <span class="string">' / image: '</span> num2str( inum ) ], <span class="string">'Geometrie XY series'</span> );
+0132 <a href="../WAD/WAD_resultsAppendString.html" class="code" title="function WAD_resultsAppendString( level, value, description )">WAD_resultsAppendString</a>( 2, [<span class="string">'Centre location at '</span> num2str(centre_pix)], <span class="string">'Geometrie XY centre pix'</span> );
+0133 
+0134 <a href="../WAD/WAD_resultsAppendFigure.html" class="code" title="function WAD_resultsAppendFigure( level, handle, tag, description )">WAD_resultsAppendFigure</a>( 2, hFigGeomXY, <span class="string">'geomXY'</span>, <span class="string">'Geometrie X en Y: randdetectie'</span> );
+0135 
+0136 <span class="keyword">if</span> quiet
+0137     <span class="comment">% delete non-visible image</span>
+0138     delete( hFigGeomXY );
+0139 <span class="keyword">end</span>
+0140 
+0141 <a href="../WAD/WAD_resultsAppendFloat.html" class="code" title="function WAD_resultsAppendFloat( level, value, variable, unit, description, sLimits, limits_field_name )">WAD_resultsAppendFloat</a>( 1, diameterX_mm, <span class="string">'Diameter'</span>, <span class="string">'mm'</span>, <span class="string">'Geometrie X'</span> );
+0142 <a href="../WAD/WAD_resultsAppendFloat.html" class="code" title="function WAD_resultsAppendFloat( level, value, variable, unit, description, sLimits, limits_field_name )">WAD_resultsAppendFloat</a>( 1, diameterY_mm, <span class="string">'Diameter'</span>, <span class="string">'mm'</span>, <span class="string">'Geometrie Y'</span> );
+0143 
+0144 
+0145 <span class="comment">% close waitbar in interactive mode</span>
+0146 <span class="keyword">if</span> isInteractive, close( h ), <span class="keyword">end</span>
+0147 
+0148 <span class="keyword">return</span></pre></div>
+<hr><address>Generated on Wed 22-Nov-2017 16:40:02 by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" target="_parent">m2html</a></strong> &copy; 2005</address>
 </body>
 </html>

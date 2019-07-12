@@ -68,6 +68,10 @@ function [magnitude, phase] = WAD_MR_B0_readPhilips_B0map( i_iSeries, sSeries, s
 % V2.1.2
 % Fix: wrong image number if received in random order.
 % ------------------------------------------------------------------------
+% 20170721 / JK
+% V2.2
+% Adapted to WAD2
+% ------------------------------------------------------------------------
 
 
 % ----------------------
@@ -77,8 +81,8 @@ function [magnitude, phase] = WAD_MR_B0_readPhilips_B0map( i_iSeries, sSeries, s
 
 % version info
 my.name = 'WAD_MR_B0_readPhilips_B0map';
-my.version = '2.1.2';
-my.date = '20150901';
+my.version = '2.2';
+my.date = '20170721';
 WAD_vbprint( ['Module ' my.name ' Version ' my.version ' (' my.date ')'] );
 
 
@@ -180,6 +184,8 @@ phase.dB0_Hz = phase.image * factor - offset;
 % only possible if delta-TE is known!
 if isfield( sParams, 'deltaTE_ms' )
     phase.dTE = sParams.deltaTE_ms;
+    % WAD2 passes params as strings
+    if ischar(phase.dTE), phase.dTE=str2double(phase.dTE); end
     phase.dPhi_rad = phase.dB0_Hz * (2*pi) * phase.dTE * 1E-3;
     phase.type = 'dPhi_rad';
 else

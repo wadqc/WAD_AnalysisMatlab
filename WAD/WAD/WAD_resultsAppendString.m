@@ -47,7 +47,8 @@ function WAD_resultsAppendString( level, value, description )
 % 		<omschrijving>Fase-coderingsrichting</omschrijving>
 % 		<criterium>ROW</criterium>
 % 	</grens>
-
+% ------------------------------------------------------------------------
+% 2017-07-17 / JK / WAD2
 % ------------------------------------------------------------------------
 
 
@@ -58,40 +59,74 @@ limitsFieldName = 'grens';
 
 WAD_vbprint( 'Module WAD_resultsAppendString()', 2 );
 
-% WAD XML object
-WAD.out.results{end+1} = []; % new item
-% increase index number
-WAD.results_index = WAD.results_index + 1;
-WAD.out.results{end}.volgnummer = WAD.results_index;
-WAD.out.results{end}.type = 'char';
-WAD.out.results{end}.niveau = level;
-WAD.out.results{end}.waarde = value;
+if WAD.versionmodus < 2
 
+    % ------------------------------------------------------------------------
+    % WAD 1 XML object
+    % ------------------------------------------------------------------------
+    % Field name of array with action limits in config file
+    limitsFieldName = 'grens';
 
-% check if <resultsTag> was added for this action
-if isfield( WAD, 'currentActionResultsNamePrefix' ) && ~isempty( WAD.currentActionResultsNamePrefix )
-    if ~isempty( description )
-        description = [ WAD.currentActionResultsNamePrefix ' ' description ];
-    else
-        description = WAD.currentActionResultsNamePrefix;        
+    WAD.out.results{end+1} = []; % new item
+    % increase index number
+    WAD.results_index = WAD.results_index + 1;
+    WAD.out.results{end}.volgnummer = WAD.results_index;
+    WAD.out.results{end}.type = 'char';
+    WAD.out.results{end}.niveau = level;
+    WAD.out.results{end}.waarde = value;
+
+    % check if <resultsTag> was added for this action
+    if isfield( WAD, 'currentActionResultsNamePrefix' ) && ~isempty( WAD.currentActionResultsNamePrefix )
+        if ~isempty( description )
+            description = [ WAD.currentActionResultsNamePrefix ' ' description ];
+        else
+            description = WAD.currentActionResultsNamePrefix;        
+        end
     end
+
+    if ~isempty( description ), WAD.out.results{end}.omschrijving = description; end
+
+    i_iLim = findLimits( limitsFieldName, description );
+    if ~isempty( i_iLim )
+        % We have a match, use the first match...
+        lmts = WAD.cfg.(limitsFieldName)( i_iLim(1) );
+
+        % Check if relative action limits are defined
+        if isfield( lmts, 'criterium' ) && ~isempty( lmts.criterium )
+            WAD.out.results{end}.criterium = lmts.criterium;
+        end
+    end
+
+    %gen_object_display( handles.WAD );
+
+else
+    
+    % ------------------------------------------------------------------------
+    % WAD 2 JSON object
+    % ------------------------------------------------------------------------
+    WAD.out.results{end+1} = []; % new item
+    % increase index number
+    WAD.results_index = WAD.results_index + 1;
+    %WAD.out.results{end}.volgnummer = WAD.results_index;
+    WAD.out.results{end}.category = 'string';
+    %WAD.out.results{end}.niveau = level;
+    WAD.out.results{end}.val = value;
+
+    % check if <resultsTag> was added for this action
+    if isfield( WAD, 'currentActionResultsNamePrefix' ) && ~isempty( WAD.currentActionResultsNamePrefix )
+        if ~isempty( description )
+            description = [ WAD.currentActionResultsNamePrefix ' ' description ];
+        else
+            description = WAD.currentActionResultsNamePrefix;        
+        end
+    end
+
+    WAD.out.results{end}.name = description;
+    %WAD.out.results{end}.name = ['param' num2str(WAD.results_index)];
+
+
 end
 
-if ~isempty( description ), WAD.out.results{end}.omschrijving = description; end
-
-
-i_iLim = findLimits( limitsFieldName, description );
-if ~isempty( i_iLim )
-    % We have a match, use the first match...
-    lmts = WAD.cfg.(limitsFieldName)( i_iLim(1) );
-
-    % Check if relative action limits are defined
-    if isfield( lmts, 'criterium' ) && ~isempty( lmts.criterium )
-        WAD.out.results{end}.criterium = lmts.criterium;
-    end
-end
-
-%gen_object_display( handles.WAD );
 end
 
 

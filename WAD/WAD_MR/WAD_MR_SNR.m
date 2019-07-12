@@ -35,6 +35,9 @@ function WAD_MR_SNR( i_iSeries, sSeries, sParams )
 % VUmc, Amsterdam, NL / Joost Kuijer / jpa.kuijer@vumc.nl
 % 2013-12-19 bugfix: process hangs in WAD_MR_privateSNR_ghost()
 % ------------------------------------------------------------------------
+% 2017-07-26 / JK adapted to WAD2: renamed description 'SNR' to 'SNR
+% series'
+% ------------------------------------------------------------------------
 
 % produce a figure on the screen or be quiet...
 quiet = true;
@@ -47,8 +50,8 @@ global WAD
 
 % version info
 my.name = 'WAD_MR_SNR';
-my.version = '1.1.1';
-my.date = '20131219';
+my.version = '2.0';
+my.date = '20170717';
 WAD_vbprint( ['Module ' my.name ' Version ' my.version ' (' my.date ')'] );
 
 
@@ -67,6 +70,10 @@ if isfield( sParams, 'image' ) && ~isempty( sParams.image )
     elseif isequal( inum, WAD.const.lastInSeries )
         inum = length( sSeries.instance );
     end
+end
+% in WAD2 the number is passed as string
+if ischar( inum )
+    inum = str2double( inum );
 end
 % is it just one slice? then we use it...
 if length( sSeries.instance ) == 1
@@ -104,6 +111,10 @@ WAD_vbprint( [my.name ':   Calculating centre coordinates ...'] );
 
 if ~isfield( sParams, 'interpolPower' ) || isempty( sParams.interpolPower )
     sParams.interpolPower = 0; % default setting: no interpolation for calculation of centre of phantom
+end
+% in WAD2 the number is passed as string
+if ischar( sParams.interpolPower )
+    sParams.interpolPower = str2double( sParams.interpolPower );
 end
 WAD_vbprint( [my.name ':   Interpolation set to 2 ^ ' num2str(sParams.interpolPower) '. This is configurable in <params> <interpolPower>' ] );
 
@@ -167,7 +178,7 @@ end
     
 % image uniformity
 WAD_resultsAppendFloat( 1, imageUniformity_percent, 'Uniformity', '%', 'Image' );
-WAD_resultsAppendString( 2, ['SNR on series: ' num2str(sSeries.number) ' / image: ' num2str(inum)], 'SNR' );
+WAD_resultsAppendString( 2, ['SNR on series: ' num2str(sSeries.number) ' / image: ' num2str(inum)], 'SNR series' );
 
 WAD_resultsAppendFigure( 2, hFigSNR, 'SNR_ROI', 'ROIs for SNR and ghosting' );
 

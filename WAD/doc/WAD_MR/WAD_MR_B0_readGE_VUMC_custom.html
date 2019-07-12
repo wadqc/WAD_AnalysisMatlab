@@ -121,74 +121,134 @@ This function is called by:
 0059 <span class="comment">% Private fields are class uint8 and in one column for implicit DICOM, and class char and one row for explicit DICOM</span>
 0060 <span class="comment">% char(info.Private_2001_1020(:))' converts both to class char and one row.</span>
 0061 <span class="comment">% ------------------------------------------------------------------------</span>
-0062 
-0063 
-0064 <span class="comment">% ----------------------</span>
-0065 <span class="comment">% GLOBALS</span>
-0066 <span class="comment">% ----------------------</span>
-0067 <span class="comment">%global WAD</span>
-0068 
-0069 <span class="comment">% version info</span>
-0070 my.name = <span class="string">'WAD_MR_B0_readGE_VUMC_custom'</span>;
-0071 my.version = <span class="string">'1.1.1'</span>;
-0072 my.date = <span class="string">'20140212'</span>;
-0073 <a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [<span class="string">'Module '</span> my.name <span class="string">' Version '</span> my.version <span class="string">' ('</span> my.date <span class="string">')'</span>] );
-0074 
-0075 
-0076 <span class="comment">% output arguments</span>
-0077 magnitude = [];
-0078 phase = [];
-0079 
-0080 
-0081 <span class="comment">% ----------------------------------------------------</span>
-0082 <span class="comment">% check image type, get dicom header of first file</span>
-0083 <span class="comment">% ----------------------------------------------------</span>
-0084 fname = sSeries.instance( 1 ).filename;
-0085 <a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">':   Check type of B0 map... reading DICOM header of file '</span> fname ] );
-0086 info = dicominfo( fname );
+0062 <span class="comment">% 20150901 / JK</span>
+0063 <span class="comment">% V1.1.2</span>
+0064 <span class="comment">% Fix: wrong image number if received in random order.</span>
+0065 <span class="comment">% ------------------------------------------------------------------------</span>
+0066 <span class="comment">% 20161005 / JK</span>
+0067 <span class="comment">% V1.2</span>
+0068 <span class="comment">% Support multi-slice B0 acquisition</span>
+0069 <span class="comment">% Added configured magnitude and phase instance</span>
+0070 <span class="comment">% numbers in parameter section:</span>
+0071 <span class="comment">%     &lt;params&gt;</span>
+0072 <span class="comment">%         &lt;type&gt;GE_VUMC_custom&lt;/type&gt;</span>
+0073 <span class="comment">%        &lt;imageMagnitude&gt;7&lt;/imageMagnitude&gt;</span>
+0074 <span class="comment">%        &lt;imagePhase&gt;18&lt;/imagePhase&gt;</span>
+0075 <span class="comment">%    &lt;/params&gt;</span>
+0076 <span class="comment">% ------------------------------------------------------------------------</span>
+0077 <span class="comment">% 20170721 / JK</span>
+0078 <span class="comment">% V2.0</span>
+0079 <span class="comment">% Adapted to WAD 2</span>
+0080 <span class="comment">% ------------------------------------------------------------------------</span>
+0081 
+0082 
+0083 <span class="comment">% ----------------------</span>
+0084 <span class="comment">% GLOBALS</span>
+0085 <span class="comment">% ----------------------</span>
+0086 <span class="comment">%global WAD</span>
 0087 
-0088 <span class="keyword">if</span> isfield( info, <span class="string">'Private_0019_109c'</span> ) &amp;&amp;  strfind( char(info.Private_0019_109c(:))', <span class="string">'fgre_B0'</span> )
-0089     <span class="comment">% custom sequence for B0 map on GE</span>
-0090     <a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">':   Detected VUmc custom B0 map for GE.'</span>] );
-0091 <span class="keyword">else</span>
-0092     <a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">':   Could not detect Siemens VUmc custom B0 map for GE. Private_0019_109c not equal to &quot;fgre_B0&quot;'</span>] );
-0093     error( <span class="string">'Error during import of phase images.'</span> )
-0094 <span class="keyword">end</span>
-0095 
-0096 <a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">':   Setting type of B0 map to GE custom.'</span>] );
-0097 <span class="comment">% GE has (custom) B0 map in single series, magn/phase pair.</span>
-0098 <span class="keyword">if</span> length( sSeries.instance ) ~= 2
-0099     <a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">':   ERROR: B0 map has more than one slice. Skip analysis'</span>] );
-0100     error( <span class="string">'Error during import of phase images.'</span> )
-0101 <span class="keyword">end</span>
-0102 
-0103 <span class="comment">% magnitude series / image</span>
-0104 mci = 1;
-0105 <span class="comment">% phase series / image</span>
-0106 pci = 2;
-0107 
-0108 <span class="comment">% ----------------------------------------------------</span>
-0109 <span class="comment">% read DICOM images</span>
-0110 <span class="comment">% ----------------------------------------------------</span>
-0111 magnitude.filename = sSeries.instance( mci ).filename;
-0112 magnitude.info  = dicominfo( magnitude.filename );
-0113 magnitude.image = double( dicomread( magnitude.info ) );
+0088 <span class="comment">% version info</span>
+0089 my.name = <span class="string">'WAD_MR_B0_readGE_VUMC_custom'</span>;
+0090 my.version = <span class="string">'2.0'</span>;
+0091 my.date = <span class="string">'20170721'</span>;
+0092 <a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [<span class="string">'Module '</span> my.name <span class="string">' Version '</span> my.version <span class="string">' ('</span> my.date <span class="string">')'</span>] );
+0093 
+0094 
+0095 <span class="comment">% output arguments</span>
+0096 magnitude = [];
+0097 phase = [];
+0098 
+0099 
+0100 <span class="comment">% ----------------------------------------------------</span>
+0101 <span class="comment">% check image type, get dicom header of first file</span>
+0102 <span class="comment">% ----------------------------------------------------</span>
+0103 fname = sSeries.instance( 1 ).filename;
+0104 <a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">':   Check type of B0 map... reading DICOM header of file '</span> fname ] );
+0105 info = dicominfo( fname );
+0106 
+0107 <span class="keyword">if</span> isfield( info, <span class="string">'Private_0019_109c'</span> ) &amp;&amp;  strfind( char(info.Private_0019_109c(:))', <span class="string">'fgre_B0'</span> )
+0108     <span class="comment">% custom sequence for B0 map on GE</span>
+0109     <a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">':   Detected VUmc custom B0 map for GE.'</span>] );
+0110 <span class="keyword">else</span>
+0111     <a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">':   Could not detect VUmc custom B0 map for GE. Private_0019_109c not equal to &quot;fgre_B0&quot;'</span>] );
+0112     error( <span class="string">'Error during import of phase images.'</span> )
+0113 <span class="keyword">end</span>
 0114 
-0115 phase.filename  = sSeries.instance( pci ).filename;
-0116 phase.info      = dicominfo( phase.filename );
-0117 phase.image     = double( dicomread( phase.info ) );
-0118 
-0119 <span class="comment">% conversion phase map from pixel values to radians</span>
-0120 factor = 1/1000;
-0121 offset = 0;
-0122 
-0123 <span class="comment">% convert from phase image from pixel values to radians</span>
-0124 phase.dPhi_rad = phase.image * factor - offset;
-0125 
-0126 <span class="comment">% GE custom has time between echoes as TE in DICOM header of the</span>
-0127 <span class="comment">% PHASE image</span>
-0128 phase.dTE = phase.info.EchoTime;
-0129</pre></div>
-<hr><address>Generated on Fri 07-Aug-2015 09:34:21 by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" target="_parent">m2html</a></strong> &copy; 2005</address>
+0115 <a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">':   Setting type of B0 map to GE custom.'</span>] );
+0116 
+0117 <span class="comment">% check if magnitude / phase instance numbers have been configured</span>
+0118 <span class="keyword">if</span> ( isfield( sParams, <span class="string">'imageMagnitude'</span> ) &amp;&amp; ~isempty( sParams.imageMagnitude ) ) <span class="keyword">...</span>
+0119 &amp;&amp; ( isfield( sParams, <span class="string">'imagePhase'</span> ) &amp;&amp; ~isempty( sParams.imagePhase ) )
+0120     <a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">':   Found configured magnitude and phase images = '</span> num2str(sParams.imageMagnitude) <span class="string">' '</span> num2str(sParams.imagePhase) ] );
+0121     instanceMagnitude = sParams.imageMagnitude;
+0122     instancePhase = sParams.imagePhase;
+0123     <span class="comment">% WAD2 has config with strings instead of numbers</span>
+0124     <span class="keyword">if</span> ischar( instanceMagnitude ), instanceMagnitude = str2double( instanceMagnitude ); <span class="keyword">end</span>
+0125     <span class="keyword">if</span> ischar( instancePhase     ), instancePhase     = str2double( instancePhase     ); <span class="keyword">end</span>
+0126 <span class="keyword">else</span>
+0127     <span class="comment">% GE has (custom) B0 map in single series, magn/phase pair.</span>
+0128     <span class="keyword">if</span> length( sSeries.instance ) ~= 2
+0129         <a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">':   ERROR: Magnitude and phase instances not configured, and B0 map has more than one slice. Skip analysis'</span>] );
+0130         error( <span class="string">'Error during import of phase images.'</span> )
+0131     <span class="keyword">end</span>
+0132     <a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">':   Series is single slice B0 map, no magn/phs instance numbers configured.'</span> ] );
+0133     instanceMagnitude = 1;
+0134     instancePhase = 2;
+0135 <span class="keyword">end</span>
+0136 
+0137 
+0138 <span class="comment">% ---------------------------------------------</span>
+0139 <span class="comment">% find the image</span>
+0140 <span class="comment">% ---------------------------------------------</span>
+0141 foundImage = false;
+0142 <span class="keyword">for</span> ii = 1:length( sSeries.instance )
+0143     <span class="keyword">if</span> sSeries.instance(ii).number == instanceMagnitude
+0144         mci = ii;
+0145         foundImage = true;
+0146         <span class="keyword">break</span>;
+0147     <span class="keyword">end</span>
+0148 <span class="keyword">end</span>
+0149 <span class="keyword">if</span> ~foundImage
+0150     <a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">': Error: could not find magnitude image (#1) '</span> num2str( instanceMagnitude ) <span class="string">' for GE VUmc custom B0 map'</span>] );
+0151     <span class="keyword">return</span>;
+0152 <span class="keyword">end</span>
+0153 
+0154 <span class="comment">% find phase image</span>
+0155 foundImage = false;
+0156 <span class="keyword">for</span> ii = 1:length( sSeries.instance )
+0157     <span class="keyword">if</span> sSeries.instance(ii).number == instancePhase
+0158         pci = ii;
+0159         foundImage = true;
+0160         <span class="keyword">break</span>;
+0161     <span class="keyword">end</span>
+0162 <span class="keyword">end</span>
+0163 <span class="keyword">if</span> ~foundImage
+0164     <a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">': Error: could not find phase image (#2) '</span> num2str( instancePhase ) <span class="string">' for GE VUmc custom B0 map'</span>] );
+0165     <span class="keyword">return</span>;
+0166 <span class="keyword">end</span>
+0167 
+0168 <span class="comment">% ----------------------------------------------------</span>
+0169 <span class="comment">% read DICOM images</span>
+0170 <span class="comment">% ----------------------------------------------------</span>
+0171 magnitude.filename = sSeries.instance( mci ).filename;
+0172 magnitude.info  = dicominfo( magnitude.filename );
+0173 magnitude.image = double( dicomread( magnitude.info ) );
+0174 
+0175 phase.filename  = sSeries.instance( pci ).filename;
+0176 phase.info      = dicominfo( phase.filename );
+0177 phase.image     = double( dicomread( phase.info ) );
+0178 
+0179 <span class="comment">% conversion phase map from pixel values to radians</span>
+0180 factor = 1/1000;
+0181 offset = 0;
+0182 
+0183 <span class="comment">% convert from phase image from pixel values to radians</span>
+0184 phase.dPhi_rad = phase.image * factor - offset;
+0185 
+0186 <span class="comment">% GE custom has time between echoes as TE in DICOM header of the</span>
+0187 <span class="comment">% PHASE image</span>
+0188 phase.dTE = phase.info.EchoTime;
+0189</pre></div>
+<hr><address>Generated on Wed 22-Nov-2017 16:40:02 by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" target="_parent">m2html</a></strong> &copy; 2005</address>
 </body>
 </html>

@@ -19,7 +19,7 @@
 % along with this program.  If not, see <http://www.gnu.org/licenses/>.
 % ------------------------------------------------------------------------
 
-function WAD_MR( wadInputFileXML )
+function WAD_MR( varargin )
 % Main routine to be called from the WAD framework (WAD_Processor)
 %
 % In fact this is just a modality-specific wrapper around the standard WAD
@@ -33,35 +33,8 @@ function WAD_MR( wadInputFileXML )
 % 20140116 / JK / v1.1.1
 % - Support Toshiba B0 map (iAAS)
 % ------------------------------------------------------------------------
-% 20161021 / JK / v1.1.2
-% - Support GE multislice B0 map and multislice multichannel SNR
-%
-%   For multislice B0: need to configure magnitude and phase instance
-%   numbers in parameter section:
-% 	<name>WAD_MR_B0_uniformity</name>
-% 	<match>B0_MAP</match>
-% 	<params>
-% 	    <type>GE_VUMC_custom</type>
-%	    <imageMagnitude>7</imageMagnitude>
-%	    <imagePhase>18</imagePhase>
-%	</params>
-%
-%   For multislice multichannel SNR: need to configure combined and
-%   uncombined instance numbers in parameter section:
-% 	<name>WAD_MR_SNR_MultiChannel</name>
-% 	<match>ACR SNR 8CH</match>
-% 	<params>
-% 	    <combinedImage>63</combinedImage>
-% 	    <uncombinedImage> <image>55</image> <coil>1</coil> </uncombinedImage>
-% 	    <uncombinedImage> <image>56</image> <coil>2</coil> </uncombinedImage>
-% 	    <uncombinedImage> <image>57</image> <coil>3</coil> </uncombinedImage>
-% 	    <uncombinedImage> <image>58</image> <coil>4</coil> </uncombinedImage>
-% 	    <uncombinedImage> <image>59</image> <coil>5</coil> </uncombinedImage>
-% 	    <uncombinedImage> <image>60</image> <coil>6</coil> </uncombinedImage>
-% 	    <uncombinedImage> <image>61</image> <coil>7</coil> </uncombinedImage>
-% 	    <uncombinedImage> <image>62</image> <coil>8</coil> </uncombinedImage>
-%	</params>
-%
+% 20170712 / JK / v2.0
+% Support WAD1 and WAD2 module calls and input
 % ------------------------------------------------------------------------
 
 
@@ -70,8 +43,8 @@ function WAD_MR( wadInputFileXML )
 % ----------------------
 % version info
 my.name = 'WAD_MR';
-my.version = '1.1.2';
-my.date = '20161021';
+my.version = '2.0';
+my.date = '20170712';
 
 disp( ['Starting analysis module ' my.name '  Version ' my.version ' ' my.date] );
 
@@ -81,7 +54,8 @@ disp( ['Starting analysis module ' my.name '  Version ' my.version ' ' my.date] 
 % ----------------------
 if nargin < 1
     disp( ['ERROR in ' my.name ' main program: missing WAD XML input file.'] );
-    disp( ['Usage: ' my.name ' <XMLInputFile>'] );
+    disp( ['Usage [WAD1 syntax]: ' my.name ' <XMLInputFile>'] );
+    disp( ['Usage [WAD2 syntax]: ' my.name ' -c <config.json> -d <study_data_folder> -r <results.json>'] );
     disp( ['Aborting ' my.name ' main program.'] );
     return
 end
@@ -109,4 +83,4 @@ WAD.const.defaultBackgroundRoiSize = 7; % [mm]
 % ----------------------
 % call main function
 % ----------------------
-WAD_main( wadInputFileXML );
+WAD_main( varargin{:} );

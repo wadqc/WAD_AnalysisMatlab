@@ -49,17 +49,20 @@ function WAD_MG_flatField( i_iSeries, sSeries, sParams )
 % New definition has slightly different SNR when noise is inhomogeneous
 % over the detector.
 % ------------------------------------------------------------------------
+% 20171023 / JK
+% Support WAD2.0
+% ------------------------------------------------------------------------
 
 
 % ----------------------
 % GLOBALS
 % ----------------------
-%global WAD
+global WAD
 
 % version info
 my.name = 'WAD_MG_flatField';
-my.version = '1.1';
-my.date = '20160330';
+my.version = '1.2';
+my.date = '20171023';
 WAD_vbprint( ['Module ' my.name ' Version ' my.version ' (' my.date ')'] );
 
 
@@ -164,7 +167,12 @@ end
 
 % set threshold for deviating pixels
 if isfield( sParams, 'threshold' ) && ~isempty( sParams.threshold )
-    roi.threshold = sParams.threshold; % threshold for deviating pixels
+    % WAD2 compatibility
+    if ischar( sParams.threshold )
+        roi.threshold = str2double( sParams.threshold ); % threshold for deviating pixels        
+    else
+        roi.threshold = sParams.threshold; % threshold for deviating pixels
+    end
     WAD_vbprint( [my.name ':   Threshold for deviating pixels set at ' num2str(roi.threshold*100) '%.'] );
 else
     % no threshold defined, not calculating deviating pixels
@@ -174,7 +182,12 @@ end
 
 % set threshold for deviating ROIs (in terms of SNR
 if isfield( sParams, 'SNRthreshold' ) && ~isempty( sParams.SNRthreshold )
-    SNRthreshold = sParams.SNRthreshold; % threshold for deviating ROIs
+    % WAD2 compatibility
+    if ischar( sParams.SNRthreshold )
+        SNRthreshold = str2double( sParams.SNRthreshold ); % threshold for deviating ROIs
+    else
+        SNRthreshold = sParams.SNRthreshold; % threshold for deviating ROIs
+    end
     WAD_vbprint( [my.name ':   Threshold for deviating SNR of ROIs set at ' num2str(SNRthreshold*100) '%.'] );
 else
     % no threshold defined, not calculating deviating pixels
@@ -327,7 +340,9 @@ end
 if isInteractive, close(h), end
 
 % write results
-WAD_resultsAppendString( 2, ['Analysis on series ' num2str( sSeries.number ) ' - image ' num2str(ci)], 'Flatfield' );
+description = 'Flatfield'; % default for WAD1, but doubled entries unconvenient for WAD2.
+if WAD.versionmodus > 1, description = 'Flatfield series info'; end
+WAD_resultsAppendString( 2, ['Analysis on series ' num2str( sSeries.number ) ' - image ' num2str(ci)], description );
 % global stats
 WAD_resultsAppendFloat( 1, theMean, 'Mean', [], 'Flatfield Global' );
 WAD_resultsAppendFloat( 1, SD, 'SD', [], 'Flatfield Global' );
@@ -339,12 +354,14 @@ WAD_resultsAppendFloat( 1, SNR_ROI, 'SNR', [], 'Flatfield ROI' );
 
 % report stuff related to deviating pixels only if threshold was defined
 if roi.threshold > 0
-    WAD_resultsAppendString( 2, ['Threshold for deviating pixels set at ' num2str(roi.threshold*100) '%.'], 'Flatfield' );
+    if WAD.versionmodus > 1, description = 'Flatfield threshold'; end
+    WAD_resultsAppendString( 2, ['Threshold for deviating pixels set at ' num2str(roi.threshold*100) '%.'], description );
     WAD_resultsAppendFloat( 1, numDeviatingPix, 'Deviating', 'pixels', 'Flatfield Deviating Pixels' );
 
     % write deviating pixel coordinates to calculation log file
-    WAD_resultsAppendString( 2, 'Deviating pixels (Coordinates in pixels starting at top-left corner)', 'Flatfield' );
-    WAD_resultsAppendString( 2, 'X      Y   value  ROI mean', 'Flatfield' );
+    if WAD.versionmodus > 1, description = 'Flatfield deviating pixels'; end
+    WAD_resultsAppendString( 2, 'Deviating pixels (Coordinates in pixels starting at top-left corner)', description );
+    WAD_resultsAppendString( 2, 'X      Y   value  ROI mean', description );
     % and sieve ignored (double) pixels
     sievedDevPixX = zeros( nSievedDevPix, 1 );
     sievedDevPixY = zeros( nSievedDevPix, 1 );
@@ -356,7 +373,8 @@ if roi.threshold > 0
             sievedDevPixY(j) = devPixY(i);
             % write to calculations log file
             coordtxt = sprintf( '%6.0f %6.0f %6.0f %6.2f', devPixX(i), devPixY(i), devPixValue(i), devPixRoiMean(i) );
-            WAD_resultsAppendString( 2, coordtxt, 'Flatfield' );
+            if WAD.versionmodus > 1, description = 'Flatfield deviating pixels'; end
+            WAD_resultsAppendString( 2, coordtxt, description );
             % also write to log file
             WAD_vbprint( [my.name ':   ' coordtxt] );
         end
@@ -399,7 +417,8 @@ if roi.threshold > 0
     plot( sievedDevPixX/imDispPx, sievedDevPixY/imDispPx, 'r.', 'MarkerSize', 20 )
 
     % flatfield figure is a primary result
-    WAD_resultsAppendFigure( 1, hFig, 'flatfield', 'Flatfield' );
+    if WAD.versionmodus > 1, description = 'Flatfield Image'; end
+    WAD_resultsAppendFigure( 1, hFig, 'flatfield', description );
     if quiet
         % delete non-visible image
         delete( hFig );
@@ -410,11 +429,12 @@ else % deviating pixels were not calculated...
 end
 
 
+if WAD.versionmodus > 1, description = 'Flatfield threshold deviating ROIs'; end
 if SNRthreshold > 0
-    WAD_resultsAppendString( 2, ['Threshold for deviating ROIs set at ' num2str(SNRthreshold*100) '%.'], 'Flatfield' );
+    WAD_resultsAppendString( 2, ['Threshold for deviating ROIs set at ' num2str(SNRthreshold*100) '%.'], description );
     WAD_resultsAppendFloat( 1, numDeviatingRoi, 'Deviating', 'ROIs', 'Flatfield Deviation ROI' );
 else % deviating ROIs were not calculated...
-    WAD_resultsAppendString( 2, 'Threshold for deviating ROIs was not defined, no deviating ROIs calculated.', 'Flatfield' );
+    WAD_resultsAppendString( 2, 'Threshold for deviating ROIs was not defined, no deviating ROIs calculated.', description );
 end
 
 

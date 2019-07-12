@@ -81,11 +81,15 @@ function WAD_MR_TxAmplFreq( i_iSeries, sSeries, sParams )
 % Private fields are class uint8 and in one column for implicit DICOM, and class char and one row for explicit DICOM
 % char(info.Private_2001_1020(:))' converts both to class char and one row.
 % ------------------------------------------------------------------------
+% 20181003 / JK
+% V1.1.2
+% WAD2 support
+% ------------------------------------------------------------------------
 
 % version info
 my.name = 'WAD_MR_TxAmplFreq';
-my.version = '1.1.1';
-my.date = '20140212';
+my.version = '1.1.2';
+my.date = '20181003';
 WAD_vbprint( ['Module ' my.name ' Version ' my.version ' (' my.date ')'] );
 
 
@@ -98,11 +102,31 @@ catch err
     return
 end
 
+% WAD1/2 compatibility: WAD2 has TxAmplField and TxAmplType params.
+if ~isfield( sParams, 'TxAmpl' ) && isfield( sParams, 'TxAmplField' )
+    sParams.TxAmpl = [];
+    sParams.TxAmpl.field = sParams.TxAmplField;
+    if isfield( sParams, 'TxAmplType' )
+        sParams.TxAmpl.type = sParams.TxAmplType;
+    end
+    if isfield( sParams, 'TxAmplPattern' )
+        sParams.TxAmpl.pattern = sParams.TxAmplPattern;
+    end
+end
+
+if ~isfield( sParams, 'TxFreq' ) && isfield( sParams, 'TxFreqField' )
+    sParams.TxFreq = [];
+    sParams.TxFreq.field = sParams.TxFreqField;
+    if isfield( sParams, 'TxFreq_f0_MHz' )
+        sParams.TxFreq.f0_MHz = str2double(sParams.TxFreq_f0_MHz);
+    end
+end
 
 % TxAmpl may not be defined for all system types, because it usually
 % resides in a private field.
 if isfield( sParams, 'TxAmpl' ) && isfield( sParams.TxAmpl, 'field' )
-    WAD_vbprint( [my.name ': Getting TX amplitude from header'] );
+    % WAD1
+    WAD_vbprint( [my.name ': WAD1 type param: getting TX amplitude from header'] );
     TxAmpl = getField( dicomheader, sParams.TxAmpl );
     % Write result
     WAD_resultsAppendFloat( 1, TxAmpl, 'Amplitude', [], 'Transmitter' );

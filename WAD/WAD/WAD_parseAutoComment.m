@@ -44,7 +44,7 @@ function WAD_parseAutoComment( sSeries, sAutoComment )
 % ----------------------
 % GLOBALS
 % ----------------------
-%global WAD
+global WAD
 
 
 % version info
@@ -59,6 +59,23 @@ if isempty( sAutoComment )
     return
 end
 
+if WAD.versionmodus > 1
+    % WAD 2 style config
+    % syntax is: ac.description='<your description>'; ac.field='<DICOM field name>'; ac.level=<level>;
+    try
+        commentToEvaluate = sAutoComment;
+        eval( commentToEvaluate );
+        sAutoComment = ac;
+    catch err
+        disp( ['ERROR in ' my.name ' while evaluating autoComment string.'] );
+        disp( ['"' commentToEvaluate '"'] );
+        disp( err.message );
+        return
+    end
+end
+
+        
+        
 % number of comments in list
 nComments = length( sAutoComment );
 

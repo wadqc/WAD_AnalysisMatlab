@@ -23,7 +23,7 @@
 <div class="box"><strong>------------------------------------------------------------------------</strong></div>
 
 <h2><a name="_synopsis"></a>SYNOPSIS <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
-<div class="box"><strong>function WAD_MR( wadInputFileXML ) </strong></div>
+<div class="box"><strong>function WAD_MR( varargin ) </strong></div>
 
 <h2><a name="_description"></a>DESCRIPTION <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
 <div class="fragment"><pre class="comment"> ------------------------------------------------------------------------
@@ -51,7 +51,7 @@
 <h2><a name="_cross"></a>CROSS-REFERENCE INFORMATION <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
 This function calls:
 <ul style="list-style-image:url(../matlabicon.gif)">
-<li><a href="../WAD/WAD_main.html" class="code" title="function WAD_main( wadInputFileXML )">WAD_main</a>	------------------------------------------------------------------------</li></ul>
+<li><a href="../WAD/WAD_main.html" class="code" title="function WAD_main( varargin )">WAD_main</a>	------------------------------------------------------------------------</li></ul>
 This function is called by:
 <ul style="list-style-image:url(../matlabicon.gif)">
 </ul>
@@ -81,7 +81,7 @@ This function is called by:
 0019 <span class="comment">% along with this program.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
 0020 <span class="comment">% ------------------------------------------------------------------------</span>
 0021 
-0022 <a name="_sub0" href="#_subfunctions" class="code">function WAD_MR( wadInputFileXML )</a>
+0022 <a name="_sub0" href="#_subfunctions" class="code">function WAD_MR( varargin )</a>
 0023 <span class="comment">% Main routine to be called from the WAD framework (WAD_Processor)</span>
 0024 <span class="comment">%</span>
 0025 <span class="comment">% In fact this is just a modality-specific wrapper around the standard WAD</span>
@@ -95,53 +95,57 @@ This function is called by:
 0033 <span class="comment">% 20140116 / JK / v1.1.1</span>
 0034 <span class="comment">% - Support Toshiba B0 map (iAAS)</span>
 0035 <span class="comment">% ------------------------------------------------------------------------</span>
-0036 
-0037 
-0038 <span class="comment">% ----------------------</span>
-0039 <span class="comment">% defines</span>
-0040 <span class="comment">% ----------------------</span>
-0041 <span class="comment">% version info</span>
-0042 my.name = <span class="string">'WAD_MR'</span>;
-0043 my.version = <span class="string">'1.1.1'</span>;
-0044 my.date = <span class="string">'20140116'</span>;
-0045 
-0046 disp( [<span class="string">'Starting analysis module '</span> my.name <span class="string">'  Version '</span> my.version <span class="string">' '</span> my.date] );
-0047 
+0036 <span class="comment">% 20170712 / JK / v2.0</span>
+0037 <span class="comment">% Support WAD1 and WAD2 module calls and input</span>
+0038 <span class="comment">% ------------------------------------------------------------------------</span>
+0039 
+0040 
+0041 <span class="comment">% ----------------------</span>
+0042 <span class="comment">% defines</span>
+0043 <span class="comment">% ----------------------</span>
+0044 <span class="comment">% version info</span>
+0045 my.name = <span class="string">'WAD_MR'</span>;
+0046 my.version = <span class="string">'2.0'</span>;
+0047 my.date = <span class="string">'20170712'</span>;
 0048 
-0049 <span class="comment">% ----------------------</span>
-0050 <span class="comment">% check input arguments</span>
-0051 <span class="comment">% ----------------------</span>
-0052 <span class="keyword">if</span> nargin &lt; 1
-0053     disp( [<span class="string">'ERROR in '</span> my.name <span class="string">' main program: missing WAD XML input file.'</span>] );
-0054     disp( [<span class="string">'Usage: '</span> my.name <span class="string">' &lt;XMLInputFile&gt;'</span>] );
-0055     disp( [<span class="string">'Aborting '</span> my.name <span class="string">' main program.'</span>] );
-0056     <span class="keyword">return</span>
-0057 <span class="keyword">end</span>
-0058 
-0059 
-0060 <span class="comment">% ----------------------</span>
-0061 <span class="comment">% GLOBALS</span>
-0062 <span class="comment">% ----------------------</span>
-0063 clear <span class="keyword">global</span> WAD
-0064 <span class="keyword">global</span> WAD
-0065 
-0066 
-0067 <span class="comment">% ----------------------</span>
-0068 <span class="comment">% initialize modality-specific constants</span>
-0069 <span class="comment">% ----------------------</span>
-0070 <span class="comment">% combined image options</span>
-0071 WAD.const.firstInSeries = <span class="string">'firstInSeries'</span>;
-0072 WAD.const.lastInSeries  = <span class="string">'lastInSeries'</span>;
-0073 WAD.const.inNextSeries  = <span class="string">'inNextSeries'</span>;
-0074 <span class="comment">% default size and shift [mm] for SNR/ghosting ROI's</span>
-0075 WAD.const.defaultRoiRadius = 75; <span class="comment">% [mm]</span>
-0076 WAD.const.defaultBackgroundRoiShift = 108; <span class="comment">% [mm]</span>
-0077 WAD.const.defaultBackgroundRoiSize = 7; <span class="comment">% [mm]</span>
-0078 
-0079 <span class="comment">% ----------------------</span>
-0080 <span class="comment">% call main function</span>
-0081 <span class="comment">% ----------------------</span>
-0082 <a href="../WAD/WAD_main.html" class="code" title="function WAD_main( wadInputFileXML )">WAD_main</a>( wadInputFileXML );</pre></div>
-<hr><address>Generated on Fri 07-Aug-2015 09:34:21 by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" target="_parent">m2html</a></strong> &copy; 2005</address>
+0049 disp( [<span class="string">'Starting analysis module '</span> my.name <span class="string">'  Version '</span> my.version <span class="string">' '</span> my.date] );
+0050 
+0051 
+0052 <span class="comment">% ----------------------</span>
+0053 <span class="comment">% check input arguments</span>
+0054 <span class="comment">% ----------------------</span>
+0055 <span class="keyword">if</span> nargin &lt; 1
+0056     disp( [<span class="string">'ERROR in '</span> my.name <span class="string">' main program: missing WAD XML input file.'</span>] );
+0057     disp( [<span class="string">'Usage [WAD1 syntax]: '</span> my.name <span class="string">' &lt;XMLInputFile&gt;'</span>] );
+0058     disp( [<span class="string">'Usage [WAD2 syntax]: '</span> my.name <span class="string">' -c &lt;config.json&gt; -d &lt;study_data_folder&gt; -r &lt;results.json&gt;'</span>] );
+0059     disp( [<span class="string">'Aborting '</span> my.name <span class="string">' main program.'</span>] );
+0060     <span class="keyword">return</span>
+0061 <span class="keyword">end</span>
+0062 
+0063 
+0064 <span class="comment">% ----------------------</span>
+0065 <span class="comment">% GLOBALS</span>
+0066 <span class="comment">% ----------------------</span>
+0067 clear <span class="keyword">global</span> WAD
+0068 <span class="keyword">global</span> WAD
+0069 
+0070 
+0071 <span class="comment">% ----------------------</span>
+0072 <span class="comment">% initialize modality-specific constants</span>
+0073 <span class="comment">% ----------------------</span>
+0074 <span class="comment">% combined image options</span>
+0075 WAD.const.firstInSeries = <span class="string">'firstInSeries'</span>;
+0076 WAD.const.lastInSeries  = <span class="string">'lastInSeries'</span>;
+0077 WAD.const.inNextSeries  = <span class="string">'inNextSeries'</span>;
+0078 <span class="comment">% default size and shift [mm] for SNR/ghosting ROI's</span>
+0079 WAD.const.defaultRoiRadius = 75; <span class="comment">% [mm]</span>
+0080 WAD.const.defaultBackgroundRoiShift = 108; <span class="comment">% [mm]</span>
+0081 WAD.const.defaultBackgroundRoiSize = 7; <span class="comment">% [mm]</span>
+0082 
+0083 <span class="comment">% ----------------------</span>
+0084 <span class="comment">% call main function</span>
+0085 <span class="comment">% ----------------------</span>
+0086 <a href="../WAD/WAD_main.html" class="code" title="function WAD_main( varargin )">WAD_main</a>( varargin{:} );</pre></div>
+<hr><address>Generated on Wed 22-Nov-2017 16:40:02 by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" target="_parent">m2html</a></strong> &copy; 2005</address>
 </body>
 </html>

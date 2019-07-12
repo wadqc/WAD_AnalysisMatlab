@@ -62,6 +62,10 @@ function WAD_MR_B0_uniformity( i_iSeries, sSeries, sParams )
 % V1.1.1
 % - support for B0 maps in ppm or Hz
 % ------------------------------------------------------------------------
+% 20170726 / JK
+% V1.1.2
+% - WAD2: removed duplicate result descriptions
+% ------------------------------------------------------------------------
 
 % ----------------------
 % GLOBALS
@@ -70,8 +74,8 @@ function WAD_MR_B0_uniformity( i_iSeries, sSeries, sParams )
 
 % version info
 my.name = 'WAD_MR_B0_uniformity';
-my.version = '1.1.1';
-my.date = '20140207';
+my.version = '1.1.2';
+my.date = '20170726';
 WAD_vbprint( ['Module ' my.name ' Version ' my.version ' (' my.date ')'] );
 
 
@@ -230,8 +234,8 @@ axis off
 title('B0 uniformity [ppm]', 'Interpreter', 'none');
 colorbar
 
-WAD_resultsAppendString( 2, ['B0 map calculated from series: ' num2str(sSeries.number) ], 'B0 uniformiteit' );
-WAD_resultsAppendFigure( 2, hFig, 'B0map', 'B0 uniformiteit' );
+WAD_resultsAppendString( 2, ['B0 map calculated from series: ' num2str(sSeries.number) ], 'B0 uniformiteit series' );
+WAD_resultsAppendFigure( 2, hFig, 'B0map', 'B0 map' );
 
 if quiet
     % delete non-visible image

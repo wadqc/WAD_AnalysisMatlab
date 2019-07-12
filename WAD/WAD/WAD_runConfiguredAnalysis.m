@@ -47,6 +47,13 @@ function WAD_runConfiguredAnalysis
 %         actions, and still get unique identifiers in the results
 %         database.
 % ------------------------------------------------------------------------
+% VUmc, Amsterdam, NL / Joost Kuijer / jpa.kuijer@vumc.nl
+% 20170712 / JK
+% V2.0: - WAD2 compatible
+% ------------------------------------------------------------------------
+% 2018100312 / JK
+% allow surrogate DICOM tag ImagesInSeries
+% ------------------------------------------------------------------------
 
 
 % ----------------------
@@ -56,10 +63,21 @@ global WAD
 
 % version info
 my.name = 'WAD_runConfiguredAnalysis';
-my.version = '1.1';
-my.date = '20131127';
+my.version = '2.1';
+my.date = '20181003';
 WAD_vbprint( ['Module ' my.name ' Version ' my.version ' (' my.date ')'], 2 );
 
+
+% WAD1/2 compatibility
+% WAD2 uses 'actions' as fieldname, WAD1 uses 'action'
+if isfield( WAD.cfg, 'actions' )
+    WAD.cfg.action = cell2mat( struct2cell( WAD.cfg.actions ) );
+    fn = fieldnames( WAD.cfg.actions );
+    % WAD2 has action name as field name, WAD1 has action name in .name
+    for i_icAction = 1:length( WAD.cfg.action )
+        WAD.cfg.action( i_icAction ).name = fn{ i_icAction };
+    end
+end
 
 if ~isfield( WAD.cfg, 'action' )
     % no actions defined
@@ -69,6 +87,26 @@ end
 
 % shortcut access to current study
 curStudy = WAD.in.patient(1).study(1);
+
+
+% WAD2 defines AcquisitionDateTime result:
+% {
+%   "name": "AcquisitionDateTime",
+%   "category": "datetime",
+%   "val": "2015-01-13 10:53:54"
+% },
+if WAD.versionmodus > 1
+    try
+        % take date time from first image
+        WAD_vbprint( [my.name ': getting date/time from image ' curStudy.series(1).instance(1).filename ], 1 );
+        dcminfo = dicominfo( curStudy.series(1).instance(1).filename );
+        WAD_resultsAppendDateTime( dcminfo.StudyDate, dcminfo.StudyTime )
+    catch err
+        WAD_ErrorMsg( my.name, ['ERROR getting studydate/time from first DICOM image.'], err );
+        return
+    end
+end
+
 
 % ----------------------
 % loop over configured actions
@@ -104,6 +142,53 @@ for i_icAction = 1:i_nAction
     % --------------------
     % check "match" field
     % --------------------
+    % WAD1/2 compatibility: WAD2 has match field in params, WAD1 in action
+    if ~isfield( curAct, 'match' ) && isfield( curAct, 'params' ) && isfield( curAct.params, 'match' ) && ~isempty( curAct.params.match )
+        % should be WAD2, multiple match criteria separated by ;
+        match = textscan(curAct.params.match, '%s', 'Delimiter', ';');
+        % the array we want is in the first cell
+        match = match{1}';
+        
+        matchStr = []; % just for informative text output
+        % loop over match criteria
+        for i_icM = 1:length( match )
+            singleMatch = match{i_icM};
+            % look for match criterium that starts with @ (meaning match with specific DICOM field)
+            if singleMatch(1) == '@'
+                % match with DICOM field
+                % format : @<DICOM field name>=<field content>
+                % example: '@ImageType=ORIGINAL\PRIMARY\GDC'
+                % skip first @ character
+                matchDcm = textscan( singleMatch(2:end), '%s', 'Delimiter', '=');
+                % the array we want is in the first cell
+                matchDcm = matchDcm{1}';
+                % it should have length 2, first is field name, second is content to match with
+                if length( matchDcm ) ~= 2
+                    WAD_vbprint( [my.name ': ERROR reading match criterium "' singleMatch '"' ] );
+                    continue
+                end
+                % copy to WAD1-type xml-read struct
+                curAct.match{i_icM}.ATTRIBUTE.type = 'DICOM';
+                curAct.match{i_icM}.ATTRIBUTE.field = matchDcm{1};
+                curAct.match{i_icM}.CONTENT = matchDcm{2};
+            else
+                % match with SeriesDescription DICOM field
+                if length( match ) == 1
+                    curAct.match = singleMatch;
+                else
+                    curAct.match{i_icM} = singleMatch;
+                end
+            end
+            
+            matchStr = [ matchStr '"' singleMatch '" ' ];
+        end
+        WAD_vbprint( [my.name ': Found configured match criteria = ' matchStr] );
+        
+        
+        % WAD2 has optional items type and field in fields matchType and matchField
+        %if isfield( curAct.params, 'matchType' )
+    end
+
     if ~isfield( curAct, 'match' ) || isempty( curAct.match )
         % Change V1.0: not considered an error, repair with empty match.
         % Empty match results in match with any series.
@@ -126,9 +211,14 @@ for i_icAction = 1:i_nAction
 
     % --------------------
     % check "resultsNamePrefix" field
+    % option to configure a prefix for the result 'description'
     % --------------------
+    % WAD2: in params field
+    if isfield( curAct.params, 'resultsNamePrefix' ) && ~isempty( curAct.params.resultsNamePrefix )
+        % WAD2 style prefix
+        curAct.resultsNamePrefix = curAct.params.resultsNamePrefix;
+    end
     if ~isfield( curAct, 'resultsNamePrefix' )
-        % option to configure a prefix for the result field 'omschrijving'
         curAct.resultsNamePrefix = [];
     end
 

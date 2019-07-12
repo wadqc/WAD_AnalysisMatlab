@@ -1,0 +1,23 @@
+#!/bin/sh
+wadmodule=WAD_MR
+moduleSuffix=_mcr94_x64.exe
+subdir=for_redistribution_files_only
+# startupscript should have extension .sh
+
+# WAD does not export extension-less files
+# Matlab compiler does not produce executable files with extension
+# Thus: need to add an extension if new version was compiled.
+if [ -e ${subdir}/${wadmodule} ] ; then
+	echo Rename ${subdir}/${wadmodule} to ${subdir}/${wadmodule}${moduleSuffix}
+	mv ${subdir}/${wadmodule} ${subdir}/${wadmodule}${moduleSuffix}
+fi
+
+# remove Matlab MCR temp directory (old Matlab version only)
+[ -d ${subdir}/${wadmodule}_mcr ] && rm -rf ${subdir}/${wadmodule}_mcr
+[ -e ${wadmodule}.zip ] && rm ${wadmodule}.zip
+if [ ! -x ${wadmodule}.sh ] ; then
+	echo Startup script ${wadmodule}.sh does not exist or is not executable.
+	echo Not creating WAD module
+	exit 1
+fi
+zip -r ${wadmodule}.zip ${wadmodule}.sh ${subdir}

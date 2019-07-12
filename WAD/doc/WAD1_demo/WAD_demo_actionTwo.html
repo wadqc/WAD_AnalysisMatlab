@@ -1,0 +1,299 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+                "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html>
+<head>
+  <title>Description of WAD_demo_actionTwo</title>
+  <meta name="keywords" content="WAD_demo_actionTwo">
+  <meta name="description" content="------------------------------------------------------------------------">
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+  <meta name="generator" content="m2html &copy; 2005 Guillaume Flandin">
+  <meta name="robots" content="index, follow">
+  <link type="text/css" rel="stylesheet" href="../m2html.css">
+  <script type="text/javascript">
+    if (top.frames.length == 0) { top.location = "../index.html"; };
+  </script>
+</head>
+<body>
+<a name="_top"></a>
+<!-- menu.html WAD1_demo -->
+<h1>WAD_demo_actionTwo
+</h1>
+
+<h2><a name="_name"></a>PURPOSE <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="box"><strong>------------------------------------------------------------------------</strong></div>
+
+<h2><a name="_synopsis"></a>SYNOPSIS <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="box"><strong>function WAD_demo_actionTwo( i_iSeries, sSeries, sParams ) </strong></div>
+
+<h2><a name="_description"></a>DESCRIPTION <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="fragment"><pre class="comment"> ------------------------------------------------------------------------
+ WAD_MR is an MRI analysis module written for IQC.
+ NVKF WAD IQC software is a framework for automatic analysis of DICOM objects.
+ 
+ Copyright 2012-2013  Joost Kuijer / jpa.kuijer@vumc.nl
+ 
+ 
+ This program is free software: you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation, either version 3 of the License, or
+ (at your option) any later version.
+ 
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+ 
+ You should have received a copy of the GNU General Public License
+ along with this program.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+ ------------------------------------------------------------------------</pre></div>
+
+<!-- crossreference -->
+<h2><a name="_cross"></a>CROSS-REFERENCE INFORMATION <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+This function calls:
+<ul style="list-style-image:url(../matlabicon.gif)">
+<li><a href="../WAD/WAD_ErrorMsg.html" class="code" title="function WAD_ErrorMsg( name, mymessage, err )">WAD_ErrorMsg</a>	------------------------------------------------------------------------</li><li><a href="../WAD/WAD_resultsAppendFigure.html" class="code" title="function WAD_resultsAppendFigure( level, handle, tag, description )">WAD_resultsAppendFigure</a>	------------------------------------------------------------------------</li><li><a href="../WAD/WAD_resultsAppendFloat.html" class="code" title="function WAD_resultsAppendFloat( level, value, variable, unit, description, sLimits, limits_field_name )">WAD_resultsAppendFloat</a>	------------------------------------------------------------------------</li><li><a href="../WAD/WAD_resultsAppendString.html" class="code" title="function WAD_resultsAppendString( level, value, description )">WAD_resultsAppendString</a>	------------------------------------------------------------------------</li><li><a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>	------------------------------------------------------------------------</li></ul>
+This function is called by:
+<ul style="list-style-image:url(../matlabicon.gif)">
+</ul>
+<!-- crossreference -->
+
+
+
+<h2><a name="_source"></a>SOURCE CODE <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="fragment"><pre>0001 <span class="comment">% ------------------------------------------------------------------------</span>
+0002 <span class="comment">% WAD_MR is an MRI analysis module written for IQC.</span>
+0003 <span class="comment">% NVKF WAD IQC software is a framework for automatic analysis of DICOM objects.</span>
+0004 <span class="comment">%</span>
+0005 <span class="comment">% Copyright 2012-2013  Joost Kuijer / jpa.kuijer@vumc.nl</span>
+0006 <span class="comment">%</span>
+0007 <span class="comment">%</span>
+0008 <span class="comment">% This program is free software: you can redistribute it and/or modify</span>
+0009 <span class="comment">% it under the terms of the GNU General Public License as published by</span>
+0010 <span class="comment">% the Free Software Foundation, either version 3 of the License, or</span>
+0011 <span class="comment">% (at your option) any later version.</span>
+0012 <span class="comment">%</span>
+0013 <span class="comment">% This program is distributed in the hope that it will be useful,</span>
+0014 <span class="comment">% but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
+0015 <span class="comment">% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
+0016 <span class="comment">% GNU General Public License for more details.</span>
+0017 <span class="comment">%</span>
+0018 <span class="comment">% You should have received a copy of the GNU General Public License</span>
+0019 <span class="comment">% along with this program.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
+0020 <span class="comment">% ------------------------------------------------------------------------</span>
+0021 
+0022 <a name="_sub0" href="#_subfunctions" class="code">function WAD_demo_actionTwo( i_iSeries, sSeries, sParams )</a>
+0023 <span class="comment">% Get some parameters from the DICOM header</span>
+0024 <span class="comment">%</span>
+0025 <span class="comment">% Input</span>
+0026 <span class="comment">% - i_iSeries: the actual SeriesNumber (source: XML input file)</span>
+0027 <span class="comment">% - sSeries: structure with actual series information as parsed from the</span>
+0028 <span class="comment">%   XML input file. Check the input file what is actually in there.</span>
+0029 <span class="comment">% - sParams: structure with the parameter fields defined in the</span>
+0030 <span class="comment">%   configuration file for this action. If not defined in config, sParams</span>
+0031 <span class="comment">%   is empty [].</span>
+0032 <span class="comment">% - sLimits: stucture with action limits defined in the configuration file</span>
+0033 <span class="comment">%   for this action. If not defined in config, sLimits is emptry [].</span>
+0034 <span class="comment">%</span>
+0035 <span class="comment">% Note that the full input file structure may be accessed through the</span>
+0036 <span class="comment">% global variable WAD.in</span>
+0037 <span class="comment">%</span>
+0038 <span class="comment">% Output: written via WAD_resultsAppend*() interface</span>
+0039 <span class="comment">%</span>
+0040 <span class="comment">% ------------------------------------------------------------------------</span>
+0041 <span class="comment">% WAD demo</span>
+0042 <span class="comment">% file: WAD_demo_actionOne</span>
+0043 <span class="comment">%</span>
+0044 <span class="comment">% ------------------------------------------------------------------------</span>
+0045 <span class="comment">% VUmc, Amsterdam, NL / Joost Kuijer / jpa.kuijer@vumc.nl</span>
+0046 <span class="comment">% 2013-09-05 / JK</span>
+0047 <span class="comment">% first version</span>
+0048 <span class="comment">% ------------------------------------------------------------------------</span>
+0049 <span class="comment">% VUmc, Amsterdam, NL / Joost Kuijer / jpa.kuijer@vumc.nl</span>
+0050 <span class="comment">% 20131127 / JK</span>
+0051 <span class="comment">% v1.1 implemented new style action limits</span>
+0052 <span class="comment">%</span>
+0053 <span class="comment">% To upgrade your own module to the new style:</span>
+0054 <span class="comment">% - remove last two arguments from your calls to WAD_resultsAppendFloat(...)</span>
+0055 <span class="comment">% - edit your module configuration file</span>
+0056 <span class="comment">% ------------------------------------------------------------------------</span>
+0057 
+0058 
+0059 <span class="comment">% version info</span>
+0060 my.name = <span class="string">'WAD_demo_actionTwo'</span>;
+0061 my.version = <span class="string">'1.1'</span>;
+0062 my.date = <span class="string">'20131127'</span>;
+0063 
+0064 <span class="comment">% output to log file (object at results level 2)</span>
+0065 <a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [<span class="string">'Module '</span> my.name <span class="string">' Version '</span> my.version <span class="string">' ('</span> my.date <span class="string">')'</span>] );
+0066 
+0067 <span class="comment">% A switch to show the images on screen during testing, but allows easy</span>
+0068 <span class="comment">% switch off for release version.</span>
+0069 <span class="comment">% Use quiet = true for release version!</span>
+0070 quiet = true;
+0071 
+0072 <span class="comment">% ----------------------</span>
+0073 <span class="comment">% GLOBALS</span>
+0074 <span class="comment">% ----------------------</span>
+0075 <span class="comment">% if you defined anything in WAD_demo.m or need to use WAD.in</span>
+0076 <span class="comment">% otherwise you may remove the next line...</span>
+0077 <span class="comment">%global WAD</span>
+0078 
+0079 
+0080 
+0081 <span class="comment">% read dicom header of first image of series</span>
+0082 <a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">':   Reading DICOM header: '</span> sSeries.instance(1).filename ] );
+0083 <span class="keyword">try</span>
+0084     img = dicomread( sSeries.instance(1).filename );
+0085 <span class="keyword">catch</span> err
+0086     <a href="../WAD/WAD_ErrorMsg.html" class="code" title="function WAD_ErrorMsg( name, mymessage, err )">WAD_ErrorMsg</a>( my.name, [<span class="string">'ERROR reading DICOM info from file &quot;'</span> sSeries.instance(1).filename <span class="string">'&quot;)'</span>], err );
+0087     <span class="keyword">return</span>
+0088 <span class="keyword">end</span>
+0089 
+0090 
+0091 <span class="comment">% calculate something from that data</span>
+0092 meanSignal = mean2( img );
+0093 relStdSignal_percent  = std2( img ) ./ meanSignal * 100;
+0094 
+0095 <span class="comment">% You may use the string type result to create a heading in the table</span>
+0096 <a href="../WAD/WAD_resultsAppendString.html" class="code" title="function WAD_resultsAppendString( level, value, description )">WAD_resultsAppendString</a>( 1, [], <span class="string">'Image Statistics'</span> );
+0097 
+0098 
+0099 <span class="comment">% Now write the numbers and define which action limits are related</span>
+0100 <span class="comment">% WAD_resultsAppendFloat( level, value, variable, unit, description, limits, limits_field_name )</span>
+0101 <span class="comment">% Note that the last argument refers to the field name in sLimits, and</span>
+0102 <span class="comment">% should match the name in the action limit definition in the config XML.</span>
+0103 <a href="../WAD/WAD_resultsAppendFloat.html" class="code" title="function WAD_resultsAppendFloat( level, value, variable, unit, description, sLimits, limits_field_name )">WAD_resultsAppendFloat</a>( 1, meanSignal           , <span class="string">'Mean'</span>       , [] , <span class="string">'Signal'</span> );
+0104 <a href="../WAD/WAD_resultsAppendFloat.html" class="code" title="function WAD_resultsAppendFloat( level, value, variable, unit, description, sLimits, limits_field_name )">WAD_resultsAppendFloat</a>( 1, relStdSignal_percent , <span class="string">'Relative SD'</span>, <span class="string">'%'</span>, <span class="string">'Signal'</span> );
+0105 
+0106 <span class="comment">% Corresponding action limit definition in configuration file:</span>
+0107 <span class="comment">%&lt;grens&gt;</span>
+0108 <span class="comment">%   &lt;!-- SIGNAL MEAN: 150 +/- 10% en 20% --&gt;</span>
+0109 <span class="comment">%     &lt;omschrijving&gt;Signal&lt;/omschrijving&gt;</span>
+0110 <span class="comment">%     &lt;grootheid&gt;Mean&lt;/grootheid&gt;</span>
+0111 <span class="comment">%     &lt;grens_relatief_referentie&gt;150&lt;/grens_relatief_referentie&gt;</span>
+0112 <span class="comment">%     &lt;grens_relatief_kritisch&gt;20%&lt;/grens_relatief_kritisch&gt;</span>
+0113 <span class="comment">%     &lt;grens_relatief_acceptabel&gt;10%&lt;/grens_relatief_acceptabel&gt;</span>
+0114 <span class="comment">%</span>
+0115 <span class="comment">%     &lt;!-- alternatieve formuleringen met zelfde resultaat</span>
+0116 <span class="comment">%     *** relatief verschil ***</span>
+0117 <span class="comment">%     NB: let op syntax verschil, hieronder wordt geen %-teken gebruikt!</span>
+0118 <span class="comment">%     &lt;grens_relatief_referentie&gt;150&lt;/grens_relatief_referentie&gt;</span>
+0119 <span class="comment">%     &lt;grens_relatief_kritisch&gt;30&lt;/grens_relatief_kritisch&gt;</span>
+0120 <span class="comment">%     &lt;grens_relatief_acceptabel&gt;15&lt;/grens_relatief_acceptabel&gt;</span>
+0121 <span class="comment">%</span>
+0122 <span class="comment">%     *** absolute grenzen ***</span>
+0123 <span class="comment">%     &lt;grens_kritisch_onder&gt;120&lt;/grens_kritisch_onder&gt;</span>
+0124 <span class="comment">%     &lt;grens_kritisch_boven&gt;180&lt;/grens_kritisch_boven&gt;</span>
+0125 <span class="comment">%     &lt;grens_acceptabel_onder&gt;135&lt;/grens_acceptabel_onder&gt;</span>
+0126 <span class="comment">%     &lt;grens_acceptabel_boven&gt;165&lt;/grens_acceptabel_boven&gt;</span>
+0127 <span class="comment">%     --&gt;</span>
+0128 <span class="comment">%&lt;/grens&gt;</span>
+0129 <span class="comment">%</span>
+0130 <span class="comment">%</span>
+0131 <span class="comment">%&lt;grens&gt;</span>
+0132 <span class="comment">%   &lt;!-- SIGNAL SD: max 10 en 20 % (NB: eenheid is %, limieten absoluut (dus ook in %)) --&gt;</span>
+0133 <span class="comment">%     &lt;omschrijving&gt;Signal&lt;/omschrijving&gt;</span>
+0134 <span class="comment">%     &lt;grootheid&gt;Relative SD&lt;/grootheid&gt;</span>
+0135 <span class="comment">%     &lt;eenheid&gt;%&lt;/eenheid&gt;</span>
+0136 <span class="comment">%     &lt;grens_kritisch_onder&gt;0&lt;/grens_kritisch_onder&gt;</span>
+0137 <span class="comment">%     &lt;grens_kritisch_boven&gt;20&lt;/grens_kritisch_boven&gt;</span>
+0138 <span class="comment">%     &lt;grens_acceptabel_onder&gt;0&lt;/grens_acceptabel_onder&gt;</span>
+0139 <span class="comment">%     &lt;grens_acceptabel_boven&gt;10&lt;/grens_acceptabel_boven&gt;</span>
+0140 <span class="comment">%&lt;/grens&gt;</span>
+0141 
+0142 
+0143 <span class="comment">% Just another example: result is simply a number</span>
+0144 aNumber = 42;
+0145 <a href="../WAD/WAD_resultsAppendFloat.html" class="code" title="function WAD_resultsAppendFloat( level, value, variable, unit, description, sLimits, limits_field_name )">WAD_resultsAppendFloat</a>( 2, aNumber, <span class="string">'Distance'</span>, <span class="string">'mm'</span>, <span class="string">'Phantom'</span> );
+0146 
+0147 
+0148 <span class="comment">% Include some figures as well</span>
+0149 <span class="keyword">if</span> quiet 
+0150     fig_visible = <span class="string">'off'</span>;
+0151 <span class="keyword">else</span>
+0152     fig_visible = <span class="string">'on'</span>;
+0153 <span class="keyword">end</span>
+0154 
+0155 <span class="comment">% Example of parameter use: define a configurable ROI</span>
+0156 <span class="comment">% In the config file define</span>
+0157 <span class="comment">%       &lt;params&gt;</span>
+0158 <span class="comment">%         &lt;!-- ROI definition, pixel index starts with 1 (not 0) --&gt;</span>
+0159 <span class="comment">%         &lt;Xmin&gt;32&lt;/Xmin&gt;</span>
+0160 <span class="comment">%         &lt;Xmax&gt;64&lt;/Xmax&gt;</span>
+0161 <span class="comment">%         &lt;Ymin&gt;60&lt;/Ymin&gt;</span>
+0162 <span class="comment">%         &lt;Ymax&gt;80&lt;/Ymax&gt;</span>
+0163 <span class="comment">%     &lt;/params&gt;</span>
+0164 <span class="comment">%</span>
+0165 
+0166 <span class="comment">% Define some default values</span>
+0167 imgsize = size( img );
+0168 <span class="comment">% Default ROI is full image</span>
+0169 Xmin = 1; Xmax = imgsize(2);
+0170 Ymin = 1; Ymax = imgsize(1);
+0171 
+0172 <span class="comment">% Check if parameters were defined and check ranges too!</span>
+0173 <span class="comment">% Note that params are optional in the config file.</span>
+0174 <span class="keyword">if</span> isfield( sParams, <span class="string">'Xmin'</span> ) &amp;&amp; ~isempty( sParams.Xmin )
+0175     Xmin = max( sParams.Xmin, Xmin);
+0176 <span class="keyword">end</span>
+0177 <span class="keyword">if</span> isfield( sParams, <span class="string">'Xmax'</span> ) &amp;&amp; ~isempty( sParams.Xmax )
+0178     Xmax = min( sParams.Xmax, Xmax);
+0179 <span class="keyword">end</span>
+0180 <span class="keyword">if</span> isfield( sParams, <span class="string">'Ymin'</span> ) &amp;&amp; ~isempty( sParams.Ymin )
+0181     Ymin = max( sParams.Ymin, Ymin);
+0182 <span class="keyword">end</span>
+0183 <span class="keyword">if</span> isfield( sParams, <span class="string">'Ymax'</span> ) &amp;&amp; ~isempty( sParams.Ymax )
+0184     Ymax = min( sParams.Ymax, Ymax);
+0185 <span class="keyword">end</span>
+0186 
+0187 <span class="comment">% some diagnostic info to level 2 results</span>
+0188 <a href="../WAD/WAD_resultsAppendString.html" class="code" title="function WAD_resultsAppendString( level, value, description )">WAD_resultsAppendString</a>( 2, [<span class="string">'X='</span> num2str(Xmin) <span class="string">':'</span> num2str(Xmax) <span class="string">' Y='</span> num2str(Ymin) <span class="string">':'</span> num2str(Ymax)], <span class="string">'ROI definition'</span> );
+0189 
+0190 <span class="comment">% copy the ROI out of the image</span>
+0191 theImage = img( Ymin:Ymax, Xmin:Xmax );
+0192 
+0193 <span class="comment">% create figure</span>
+0194 hFig = figure( <span class="string">'Visible'</span>, fig_visible, <span class="string">'MenuBar'</span>, <span class="string">'none'</span>, <span class="string">'Name'</span>, <span class="string">'Image ROI'</span> );
+0195 colormap(gray);
+0196 imagesc( theImage );
+0197 axis image
+0198 axis square
+0199 axis off
+0200 title(<span class="string">'Your Image Title Here'</span>, <span class="string">'Interpreter'</span>, <span class="string">'none'</span>);
+0201 
+0202 <span class="comment">% Export the figure a result (object) at results level 2</span>
+0203 <span class="comment">% WAD_resultsAppendFigure( level, handle, tag, description )</span>
+0204 <span class="comment">% - tag should be a unique string within this module, it is a prefix</span>
+0205 <span class="comment">%   for the image file name</span>
+0206 <span class="comment">% - description is shown below the image in on the results page</span>
+0207 <a href="../WAD/WAD_resultsAppendFigure.html" class="code" title="function WAD_resultsAppendFigure( level, handle, tag, description )">WAD_resultsAppendFigure</a>( 2, hFig, <span class="string">'roi'</span>, <span class="string">'ROI Pixel Data'</span> );
+0208 
+0209 <span class="comment">% delete non-visible image</span>
+0210 <span class="keyword">if</span> quiet 
+0211     delete( hFig );
+0212 <span class="keyword">end</span>
+0213 
+0214 
+0215 
+0216 
+0217 <span class="comment">% another plot though not very related to the actual image data...</span>
+0218 t = 0 : 0.01 : 2;
+0219 s = sin( pi .* t.^2 );
+0220 
+0221 hFig2 = figure( <span class="string">'Visible'</span>, fig_visible, <span class="string">'MenuBar'</span>, <span class="string">'none'</span>, <span class="string">'Name'</span>, <span class="string">'Nice Plot'</span> );
+0222 plot( t, s );
+0223 title(<span class="string">'Your Image Title Here'</span>, <span class="string">'Interpreter'</span>, <span class="string">'none'</span>);
+0224 
+0225 <span class="comment">% Export the figure a result (object) at results level 1</span>
+0226 <a href="../WAD/WAD_resultsAppendFigure.html" class="code" title="function WAD_resultsAppendFigure( level, handle, tag, description )">WAD_resultsAppendFigure</a>( 1, hFig2, <span class="string">'justAnotherPlot'</span>, <span class="string">'Sine Plot'</span> );
+0227 
+0228 <span class="comment">% delete non-visible image</span>
+0229 <span class="keyword">if</span> quiet 
+0230     delete( hFig2 );
+0231 <span class="keyword">end</span>
+0232 
+0233 
+0234 <span class="keyword">return</span></pre></div>
+<hr><address>Generated on Wed 22-Nov-2017 16:40:02 by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" target="_parent">m2html</a></strong> &copy; 2005</address>
+</body>
+</html>

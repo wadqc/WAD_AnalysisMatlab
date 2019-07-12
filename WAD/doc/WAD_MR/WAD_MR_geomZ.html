@@ -160,482 +160,484 @@ This function is called by:
 0096 <span class="comment">% ------------------------------------------------------------------------</span>
 0097 <span class="comment">% JK - 20120807 v2.2: new (v1.1) style action limits</span>
 0098 <span class="comment">% ------------------------------------------------------------------------</span>
-0099 
-0100 <span class="comment">% produce a figure on the screen or be quiet...</span>
-0101 quiet = true;
-0102 isInteractive = false;
-0103 
-0104 <span class="comment">% version info</span>
-0105 my.name = <span class="string">'WAD_MR_geomZ'</span>;
-0106 my.version = <span class="string">'2.2'</span>;
-0107 my.date = <span class="string">'20131127'</span>;
-0108 <a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [<span class="string">'Module '</span> my.name <span class="string">' Version '</span> my.version <span class="string">' ('</span> my.date <span class="string">')'</span>] );
-0109 
-0110 <span class="comment">%gen_object_display( sSeries );</span>
-0111 <span class="comment">%gen_object_display( sParams );</span>
-0112 
-0113 
-0114 <span class="comment">% select the image within the series</span>
-0115 inum = 1; <span class="comment">% there should be only 1 image...</span>
-0116 
-0117 
-0118 <span class="comment">% find the image</span>
-0119 foundImage = false;
-0120 <span class="keyword">for</span> ii = 1:length( sSeries.instance )
-0121     <span class="keyword">if</span> ( sSeries.instance(ii).number == inum )
-0122         ci = ii;
-0123         foundImage = true;
-0124         <span class="keyword">break</span>;
-0125     <span class="keyword">end</span>
-0126 <span class="keyword">end</span>
-0127 <span class="keyword">if</span> ~foundImage
-0128     <a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">': Error: could not find image number '</span> num2str( inum ) <span class="string">' for geometry Z'</span>], 1 );
-0129     <a href="../WAD/myErrordlg.html" class="code" title="function h = myErrordlg(isInteractive,varargin)">myErrordlg</a>( isInteractive, [<span class="string">'Cannot find configured image number '</span> num2str( inum ) <span class="string">' for geometry Z evaluation.'</span>], <span class="string">'Geometry Z'</span>, <span class="string">'on'</span> );
-0130     <span class="keyword">return</span>;
-0131 <span class="keyword">end</span>
-0132 
-0133 <span class="comment">% display waitbar in interactive mode</span>
-0134 <span class="keyword">if</span> isInteractive, h = waitbar( 0, <span class="string">'Calculating geometry Z'</span> ); <span class="keyword">end</span>
-0135 <a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">': Calculating geometry Z ...'</span>] );
-0136 
-0137 <span class="comment">% read the DICOM image</span>
-0138 <a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">':   loading DICOM image file: '</span> sSeries.instance(ci).filename ] );
-0139 <span class="keyword">try</span>
-0140     dcmInfo = dicominfo( sSeries.instance(ci).filename );
-0141 <span class="keyword">catch</span> err
-0142     <a href="../WAD/WAD_ErrorMsg.html" class="code" title="function WAD_ErrorMsg( name, mymessage, err )">WAD_ErrorMsg</a>( my.name, [<span class="string">'ERROR reading DICOM info from file &quot;'</span> sSeries.instance(ci).filename <span class="string">'&quot;)'</span>], err );
-0143     <span class="keyword">return</span>
-0144 <span class="keyword">end</span>
-0145 <span class="keyword">try</span>
-0146     a = dicomread( dcmInfo );
-0147 <span class="keyword">catch</span> err
-0148     <a href="../WAD/WAD_ErrorMsg.html" class="code" title="function WAD_ErrorMsg( name, mymessage, err )">WAD_ErrorMsg</a>( my.name, [<span class="string">'ERROR reading pixel data from DICOM file &quot;'</span> sSeries.instance(ci).filename <span class="string">'&quot;)'</span>], err );
-0149     <span class="keyword">return</span>
-0150 <span class="keyword">end</span>
-0151 
-0152 
-0153 <span class="comment">%warndlg('Testcase CT fantoom: removing bottom part of image');</span>
-0154 <span class="comment">%a(400:end,:)=0;</span>
-0155 
-0156 <span class="comment">% check that pixel size is square</span>
-0157 dcmPxSp = dcmInfo.PixelSpacing;
-0158 <span class="keyword">if</span> dcmPxSp(1) ~= dcmPxSp(2)
-0159     <a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">': Error: pixel size not equal in row and column direction. Currently not supported.'</span>] );
-0160     <a href="../WAD/myErrordlg.html" class="code" title="function h = myErrordlg(isInteractive,varargin)">myErrordlg</a>( isInteractive, <span class="string">'Pixel size not equal in row and column direction. Currently not supported.'</span>, <span class="string">'Geometry Z'</span>, <span class="string">'on'</span> );
-0161     <span class="keyword">return</span>;
-0162 <span class="keyword">end</span>
-0163 pixelspacing = dcmPxSp(1);
-0164 
-0165 <span class="comment">% JK - interpolate pixels to reduce discretisation of length measurement</span>
-0166 <span class="comment">%WAD_vbprint( [my.name ':  starting interpolation'] );</span>
-0167 <span class="comment">%a = interp2(a,1,'cubic');</span>
-0168 <span class="comment">%pixelspacing = pixelspacing / 2;</span>
-0169 
-0170 image_dimension = size(a);
-0171 largest_dimension = max(image_dimension);
-0172 
-0173 <span class="comment">% 1. find the APPROXIMATE center row</span>
-0174 sum_over_columns = zeros( 1, image_dimension(1) );
-0175 <span class="keyword">for</span> i=1:image_dimension(1),
-0176     sum_over_columns(i) = sum(a(i,:));
-0177 <span class="keyword">end</span>
-0178 approx_center_row_pix = <a href="#_sub2" class="code" title="subfunction centerpixel = find_center_row(linesum,pixelspacing)">find_center_row</a>(sum_over_columns,pixelspacing);   
-0179 
-0180 <span class="comment">% 2. find the APPROXIMATE center column</span>
-0181 sum_over_rows = zeros( 1, image_dimension(2) );
-0182 <span class="keyword">for</span> i=1:image_dimension(2),
-0183       sum_over_rows(i) = sum(a(approx_center_row_pix:image_dimension(1),i));
-0184 <span class="keyword">end</span>
-0185 approx_center_column_pix = <a href="#_sub3" class="code" title="subfunction centerpixel = find_center_column(linesum,pixelspacing)">find_center_column</a>(sum_over_rows,pixelspacing);
-0186 
-0187 <span class="comment">%warndlg('Testcase: fix center row/col');</span>
-0188 <span class="comment">%sim testcase: approx_center_row_pix = 256; approx_center_column_pix = 256;</span>
-0189 <span class="comment">%CT GE testcase:</span>
-0190 <span class="comment">%approx_center_row_pix = 221; approx_center_column_pix = 246;</span>
-0191 
-0192 <a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">':   estimated approximate centre at row '</span> num2str(approx_center_row_pix) <span class="string">' and col '</span> num2str(approx_center_column_pix)] );
+0099 <span class="comment">% JK - 20170726 v2.3: rename result 'Geometrie Z' to 'Geometrie Z series'</span>
+0100 <span class="comment">% ------------------------------------------------------------------------</span>
+0101 
+0102 <span class="comment">% produce a figure on the screen or be quiet...</span>
+0103 quiet = true;
+0104 isInteractive = false;
+0105 
+0106 <span class="comment">% version info</span>
+0107 my.name = <span class="string">'WAD_MR_geomZ'</span>;
+0108 my.version = <span class="string">'2.3'</span>;
+0109 my.date = <span class="string">'20170726'</span>;
+0110 <a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [<span class="string">'Module '</span> my.name <span class="string">' Version '</span> my.version <span class="string">' ('</span> my.date <span class="string">')'</span>] );
+0111 
+0112 <span class="comment">%gen_object_display( sSeries );</span>
+0113 <span class="comment">%gen_object_display( sParams );</span>
+0114 
+0115 
+0116 <span class="comment">% select the image within the series</span>
+0117 inum = 1; <span class="comment">% there should be only 1 image...</span>
+0118 
+0119 
+0120 <span class="comment">% find the image</span>
+0121 foundImage = false;
+0122 <span class="keyword">for</span> ii = 1:length( sSeries.instance )
+0123     <span class="keyword">if</span> ( sSeries.instance(ii).number == inum )
+0124         ci = ii;
+0125         foundImage = true;
+0126         <span class="keyword">break</span>;
+0127     <span class="keyword">end</span>
+0128 <span class="keyword">end</span>
+0129 <span class="keyword">if</span> ~foundImage
+0130     <a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">': Error: could not find image number '</span> num2str( inum ) <span class="string">' for geometry Z'</span>], 1 );
+0131     <a href="../WAD/myErrordlg.html" class="code" title="function h = myErrordlg(isInteractive,varargin)">myErrordlg</a>( isInteractive, [<span class="string">'Cannot find configured image number '</span> num2str( inum ) <span class="string">' for geometry Z evaluation.'</span>], <span class="string">'Geometry Z'</span>, <span class="string">'on'</span> );
+0132     <span class="keyword">return</span>;
+0133 <span class="keyword">end</span>
+0134 
+0135 <span class="comment">% display waitbar in interactive mode</span>
+0136 <span class="keyword">if</span> isInteractive, h = waitbar( 0, <span class="string">'Calculating geometry Z'</span> ); <span class="keyword">end</span>
+0137 <a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">': Calculating geometry Z ...'</span>] );
+0138 
+0139 <span class="comment">% read the DICOM image</span>
+0140 <a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">':   loading DICOM image file: '</span> sSeries.instance(ci).filename ] );
+0141 <span class="keyword">try</span>
+0142     dcmInfo = dicominfo( sSeries.instance(ci).filename );
+0143 <span class="keyword">catch</span> err
+0144     <a href="../WAD/WAD_ErrorMsg.html" class="code" title="function WAD_ErrorMsg( name, mymessage, err )">WAD_ErrorMsg</a>( my.name, [<span class="string">'ERROR reading DICOM info from file &quot;'</span> sSeries.instance(ci).filename <span class="string">'&quot;)'</span>], err );
+0145     <span class="keyword">return</span>
+0146 <span class="keyword">end</span>
+0147 <span class="keyword">try</span>
+0148     a = dicomread( dcmInfo );
+0149 <span class="keyword">catch</span> err
+0150     <a href="../WAD/WAD_ErrorMsg.html" class="code" title="function WAD_ErrorMsg( name, mymessage, err )">WAD_ErrorMsg</a>( my.name, [<span class="string">'ERROR reading pixel data from DICOM file &quot;'</span> sSeries.instance(ci).filename <span class="string">'&quot;)'</span>], err );
+0151     <span class="keyword">return</span>
+0152 <span class="keyword">end</span>
+0153 
+0154 
+0155 <span class="comment">%warndlg('Testcase CT fantoom: removing bottom part of image');</span>
+0156 <span class="comment">%a(400:end,:)=0;</span>
+0157 
+0158 <span class="comment">% check that pixel size is square</span>
+0159 dcmPxSp = dcmInfo.PixelSpacing;
+0160 <span class="keyword">if</span> dcmPxSp(1) ~= dcmPxSp(2)
+0161     <a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">': Error: pixel size not equal in row and column direction. Currently not supported.'</span>] );
+0162     <a href="../WAD/myErrordlg.html" class="code" title="function h = myErrordlg(isInteractive,varargin)">myErrordlg</a>( isInteractive, <span class="string">'Pixel size not equal in row and column direction. Currently not supported.'</span>, <span class="string">'Geometry Z'</span>, <span class="string">'on'</span> );
+0163     <span class="keyword">return</span>;
+0164 <span class="keyword">end</span>
+0165 pixelspacing = dcmPxSp(1);
+0166 
+0167 <span class="comment">% JK - interpolate pixels to reduce discretisation of length measurement</span>
+0168 <span class="comment">%WAD_vbprint( [my.name ':  starting interpolation'] );</span>
+0169 <span class="comment">%a = interp2(a,1,'cubic');</span>
+0170 <span class="comment">%pixelspacing = pixelspacing / 2;</span>
+0171 
+0172 image_dimension = size(a);
+0173 largest_dimension = max(image_dimension);
+0174 
+0175 <span class="comment">% 1. find the APPROXIMATE center row</span>
+0176 sum_over_columns = zeros( 1, image_dimension(1) );
+0177 <span class="keyword">for</span> i=1:image_dimension(1),
+0178     sum_over_columns(i) = sum(a(i,:));
+0179 <span class="keyword">end</span>
+0180 approx_center_row_pix = <a href="#_sub2" class="code" title="subfunction centerpixel = find_center_row(linesum,pixelspacing)">find_center_row</a>(sum_over_columns,pixelspacing);   
+0181 
+0182 <span class="comment">% 2. find the APPROXIMATE center column</span>
+0183 sum_over_rows = zeros( 1, image_dimension(2) );
+0184 <span class="keyword">for</span> i=1:image_dimension(2),
+0185       sum_over_rows(i) = sum(a(approx_center_row_pix:image_dimension(1),i));
+0186 <span class="keyword">end</span>
+0187 approx_center_column_pix = <a href="#_sub3" class="code" title="subfunction centerpixel = find_center_column(linesum,pixelspacing)">find_center_column</a>(sum_over_rows,pixelspacing);
+0188 
+0189 <span class="comment">%warndlg('Testcase: fix center row/col');</span>
+0190 <span class="comment">%sim testcase: approx_center_row_pix = 256; approx_center_column_pix = 256;</span>
+0191 <span class="comment">%CT GE testcase:</span>
+0192 <span class="comment">%approx_center_row_pix = 221; approx_center_column_pix = 246;</span>
 0193 
-0194 
-0195 <span class="comment">% 3. Edge detection</span>
-0196 <span class="comment">% JK - 090925: use gradient image instead of binary edge image</span>
-0197 <span class="comment">% bw = edge(a,'Sobel','horizontal');  % 'Prewitt' gives similar results</span>
-0198 <a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">':   calculating gradient image'</span>] );
-0199 [gx,gy] = gradient( double(a) );
-0200 bw = sqrt( gx.^2 + gy.^2 ); <span class="comment">% magnitude of gradient</span>
-0201 <span class="comment">%figure; colormap(gray(256)); image(bw)</span>
-0202 
-0203 
-0204 <span class="comment">% update waitbar in interactive mode</span>
-0205 <span class="keyword">if</span> isInteractive, waitbar( 0.3, h ); <span class="keyword">end</span>
-0206 
-0207 
-0208 <span class="comment">% 4. Make a cropped image</span>
-0209 <span class="comment">%    Consider only the middle part (45 mm left to 45 mm right)</span>
-0210 <a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">':   cropping image'</span>] );
-0211 start = round(approx_center_column_pix - 25/pixelspacing);
-0212 stop  = round(approx_center_column_pix + 45/pixelspacing);
-0213 
-0214 <span class="comment">% Make vertical blue lines to show which part is selected</span>
-0215 x_blueline1 = [start,start];
-0216 y_blueline1 = [1,image_dimension(1)];
-0217 x_blueline2 = [stop,stop];
-0218 y_blueline2 = [1,image_dimension(1)];
-0219 
-0220 bw2=bw;
-0221 <span class="keyword">for</span> i=1:start,
-0222     <span class="keyword">for</span> j=1:image_dimension(1),
-0223         bw2(j,i)=0;
-0224     <span class="keyword">end</span>
-0225 <span class="keyword">end</span>
-0226 
-0227 <span class="keyword">for</span> i=stop:image_dimension(2),
-0228     <span class="keyword">for</span> j=1:image_dimension(1),
-0229         bw2(j,i)=0;
-0230     <span class="keyword">end</span>
-0231 <span class="keyword">end</span>
-0232 
-0233 <span class="comment">% update waitbar in interactive mode</span>
-0234 <span class="keyword">if</span> isInteractive, waitbar( 0.5, h ); <span class="keyword">end</span>
-0235 
-0236 <span class="comment">%figure; colormap(gray(256)); image(bw2)</span>
+0194 <a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">':   estimated approximate centre at row '</span> num2str(approx_center_row_pix) <span class="string">' and col '</span> num2str(approx_center_column_pix)] );
+0195 
+0196 
+0197 <span class="comment">% 3. Edge detection</span>
+0198 <span class="comment">% JK - 090925: use gradient image instead of binary edge image</span>
+0199 <span class="comment">% bw = edge(a,'Sobel','horizontal');  % 'Prewitt' gives similar results</span>
+0200 <a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">':   calculating gradient image'</span>] );
+0201 [gx,gy] = gradient( double(a) );
+0202 bw = sqrt( gx.^2 + gy.^2 ); <span class="comment">% magnitude of gradient</span>
+0203 <span class="comment">%figure; colormap(gray(256)); image(bw)</span>
+0204 
+0205 
+0206 <span class="comment">% update waitbar in interactive mode</span>
+0207 <span class="keyword">if</span> isInteractive, waitbar( 0.3, h ); <span class="keyword">end</span>
+0208 
+0209 
+0210 <span class="comment">% 4. Make a cropped image</span>
+0211 <span class="comment">%    Consider only the middle part (45 mm left to 45 mm right)</span>
+0212 <a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">':   cropping image'</span>] );
+0213 start = round(approx_center_column_pix - 25/pixelspacing);
+0214 stop  = round(approx_center_column_pix + 45/pixelspacing);
+0215 
+0216 <span class="comment">% Make vertical blue lines to show which part is selected</span>
+0217 x_blueline1 = [start,start];
+0218 y_blueline1 = [1,image_dimension(1)];
+0219 x_blueline2 = [stop,stop];
+0220 y_blueline2 = [1,image_dimension(1)];
+0221 
+0222 bw2=bw;
+0223 <span class="keyword">for</span> i=1:start,
+0224     <span class="keyword">for</span> j=1:image_dimension(1),
+0225         bw2(j,i)=0;
+0226     <span class="keyword">end</span>
+0227 <span class="keyword">end</span>
+0228 
+0229 <span class="keyword">for</span> i=stop:image_dimension(2),
+0230     <span class="keyword">for</span> j=1:image_dimension(1),
+0231         bw2(j,i)=0;
+0232     <span class="keyword">end</span>
+0233 <span class="keyword">end</span>
+0234 
+0235 <span class="comment">% update waitbar in interactive mode</span>
+0236 <span class="keyword">if</span> isInteractive, waitbar( 0.5, h ); <span class="keyword">end</span>
 0237 
-0238 <span class="comment">% 5. Radon transform</span>
-0239 <a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">':   calculating Radon transform'</span>] );
-0240 theta = 70:0.5:110;                  <span class="comment">% steps of 0.5 degrees are chosen (this is somewhat arbitrarily)</span>
-0241 [R,xp] = radon(bw2,theta);
-0242 
-0243 <span class="comment">%figure; imshow(R,[]);</span>
+0238 <span class="comment">%figure; colormap(gray(256)); image(bw2)</span>
+0239 
+0240 <span class="comment">% 5. Radon transform</span>
+0241 <a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">':   calculating Radon transform'</span>] );
+0242 theta = 70:0.5:110;                  <span class="comment">% steps of 0.5 degrees are chosen (this is somewhat arbitrarily)</span>
+0243 [R,xp] = radon(bw2,theta);
 0244 
-0245 <span class="comment">% update waitbar in interactive mode</span>
-0246 <span class="keyword">if</span> isInteractive, waitbar( 0.8, h ); <span class="keyword">end</span>
-0247 
-0248 <span class="comment">%figure; imagesc(theta, xp, R); colormap(hot);</span>
-0249 <span class="comment">%xlabel('\theta (degrees)'); ylabel('x\prime');</span>
-0250 <span class="comment">%title('R_{\theta} (x\prime)');</span>
-0251 <span class="comment">%colorbar</span>
-0252 
-0253 <span class="comment">% 6. Find the peaks in the Radon matrix</span>
-0254 <span class="comment">%    An edge in the upper half of the image corresponds to a peak in the lower</span>
-0255 <span class="comment">%    half of the Radon matrix.</span>
-0256 <a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">':   finding peaks in Radon space'</span>] );
-0257 middle_xp_pix = find(xp==0);
-0258 ApproxZshift_pix = image_dimension(1)/2 - approx_center_row_pix;    <span class="comment">% negative means a downshift</span>
-0259 
-0260 <span class="comment">% Find the peak corresponding to the upper edge</span>
-0261 StartUpper_pix = middle_xp_pix + round(ApproxZshift_pix) + round(65/pixelspacing);
-0262 StopUpper_pix  = middle_xp_pix + round(ApproxZshift_pix) + round(85/pixelspacing);
-0263 [UpperDistance_pix, Theta_Upper_deg] = <a href="#_sub1" class="code" title="subfunction [distance_pix, Theta_deg] = find_the_peak(R,xp,theta,start_pix,stop_pix)">find_the_peak</a>(R,xp,theta,StartUpper_pix,StopUpper_pix);
-0264 
-0265 <span class="comment">% Find the peak corresponding to the lower edge</span>
-0266 StartLower_pix = middle_xp_pix + round(ApproxZshift_pix) - round(85/pixelspacing);
-0267 StopLower_pix  = middle_xp_pix + round(ApproxZshift_pix) - round(65/pixelspacing);
-0268 [LowerDistance_pix, Theta_Lower_deg] = <a href="#_sub1" class="code" title="subfunction [distance_pix, Theta_deg] = find_the_peak(R,xp,theta,start_pix,stop_pix)">find_the_peak</a>(R,xp,theta,StartLower_pix,StopLower_pix);
-0269 
-0270 <span class="comment">% 7. Calculate the size of the phantom along its longitudinal axis</span>
-0271 Zsize_pix = UpperDistance_pix - LowerDistance_pix;
-0272 
-0273 lengthZ_mm = Zsize_pix * pixelspacing;
-0274 rotationSAG_deg = 0.5 .* (Theta_Upper_deg + Theta_Lower_deg) - 90;
-0275 
-0276 <a href="../WAD/WAD_resultsAppendFloat.html" class="code" title="function WAD_resultsAppendFloat( level, value, variable, unit, description, sLimits, limits_field_name )">WAD_resultsAppendFloat</a>( 1, lengthZ_mm, <span class="string">'Lengte'</span>, <span class="string">'mm'</span>, <span class="string">'Geometrie Z'</span> );
-0277 <a href="../WAD/WAD_resultsAppendFloat.html" class="code" title="function WAD_resultsAppendFloat( level, value, variable, unit, description, sLimits, limits_field_name )">WAD_resultsAppendFloat</a>( 1, rotationSAG_deg, <span class="string">'Rotatie'</span>, <span class="string">'graden'</span>, <span class="string">'Geometrie Z'</span> );
-0278 
-0279 <span class="comment">%handles.results.lengthZ_mm</span>
+0245 <span class="comment">%figure; imshow(R,[]);</span>
+0246 
+0247 <span class="comment">% update waitbar in interactive mode</span>
+0248 <span class="keyword">if</span> isInteractive, waitbar( 0.8, h ); <span class="keyword">end</span>
+0249 
+0250 <span class="comment">%figure; imagesc(theta, xp, R); colormap(hot);</span>
+0251 <span class="comment">%xlabel('\theta (degrees)'); ylabel('x\prime');</span>
+0252 <span class="comment">%title('R_{\theta} (x\prime)');</span>
+0253 <span class="comment">%colorbar</span>
+0254 
+0255 <span class="comment">% 6. Find the peaks in the Radon matrix</span>
+0256 <span class="comment">%    An edge in the upper half of the image corresponds to a peak in the lower</span>
+0257 <span class="comment">%    half of the Radon matrix.</span>
+0258 <a href="../WAD/WAD_vbprint.html" class="code" title="function WAD_vbprint( arg, level )">WAD_vbprint</a>( [my.name <span class="string">':   finding peaks in Radon space'</span>] );
+0259 middle_xp_pix = find(xp==0);
+0260 ApproxZshift_pix = image_dimension(1)/2 - approx_center_row_pix;    <span class="comment">% negative means a downshift</span>
+0261 
+0262 <span class="comment">% Find the peak corresponding to the upper edge</span>
+0263 StartUpper_pix = middle_xp_pix + round(ApproxZshift_pix) + round(65/pixelspacing);
+0264 StopUpper_pix  = middle_xp_pix + round(ApproxZshift_pix) + round(85/pixelspacing);
+0265 [UpperDistance_pix, Theta_Upper_deg] = <a href="#_sub1" class="code" title="subfunction [distance_pix, Theta_deg] = find_the_peak(R,xp,theta,start_pix,stop_pix)">find_the_peak</a>(R,xp,theta,StartUpper_pix,StopUpper_pix);
+0266 
+0267 <span class="comment">% Find the peak corresponding to the lower edge</span>
+0268 StartLower_pix = middle_xp_pix + round(ApproxZshift_pix) - round(85/pixelspacing);
+0269 StopLower_pix  = middle_xp_pix + round(ApproxZshift_pix) - round(65/pixelspacing);
+0270 [LowerDistance_pix, Theta_Lower_deg] = <a href="#_sub1" class="code" title="subfunction [distance_pix, Theta_deg] = find_the_peak(R,xp,theta,start_pix,stop_pix)">find_the_peak</a>(R,xp,theta,StartLower_pix,StopLower_pix);
+0271 
+0272 <span class="comment">% 7. Calculate the size of the phantom along its longitudinal axis</span>
+0273 Zsize_pix = UpperDistance_pix - LowerDistance_pix;
+0274 
+0275 lengthZ_mm = Zsize_pix * pixelspacing;
+0276 rotationSAG_deg = 0.5 .* (Theta_Upper_deg + Theta_Lower_deg) - 90;
+0277 
+0278 <a href="../WAD/WAD_resultsAppendFloat.html" class="code" title="function WAD_resultsAppendFloat( level, value, variable, unit, description, sLimits, limits_field_name )">WAD_resultsAppendFloat</a>( 1, lengthZ_mm, <span class="string">'Lengte'</span>, <span class="string">'mm'</span>, <span class="string">'Geometrie Z'</span> );
+0279 <a href="../WAD/WAD_resultsAppendFloat.html" class="code" title="function WAD_resultsAppendFloat( level, value, variable, unit, description, sLimits, limits_field_name )">WAD_resultsAppendFloat</a>( 1, rotationSAG_deg, <span class="string">'Rotatie'</span>, <span class="string">'graden'</span>, <span class="string">'Geometrie Z'</span> );
 0280 
-0281 <span class="comment">% close waitbar in interactive mode</span>
-0282 <span class="keyword">if</span> isInteractive, close( h ), <span class="keyword">end</span>
-0283 
-0284 
-0285 <span class="comment">% In the matlab help, it can be found that the center pixel of image I in the Radon transformation is defined to be floor((size(I)+1)/2)</span>
-0286 CenterPixel = floor((size(a)+1)/2);
-0287 
-0288 [x_edge_upper, y_edge_upper] = <a href="#_sub5" class="code" title="subfunction [x,y] = draw_the_edge(CenterPixel,largest_dimension,Distance_pix,Theta_deg)">draw_the_edge</a>(CenterPixel,largest_dimension,UpperDistance_pix,Theta_Upper_deg);
-0289 [x_edge_lower, y_edge_lower] = <a href="#_sub5" class="code" title="subfunction [x,y] = draw_the_edge(CenterPixel,largest_dimension,Distance_pix,Theta_deg)">draw_the_edge</a>(CenterPixel,largest_dimension,LowerDistance_pix,Theta_Lower_deg);
-0290 [x_distance_upper, y_distance_upper] = <a href="#_sub6" class="code" title="subfunction [x,y] = draw_the_distance(CenterPixel,Distance_pix,Theta_deg)">draw_the_distance</a>(CenterPixel,UpperDistance_pix,Theta_Upper_deg);
-0291 [x_distance_lower, y_distance_lower] = <a href="#_sub6" class="code" title="subfunction [x,y] = draw_the_distance(CenterPixel,Distance_pix,Theta_deg)">draw_the_distance</a>(CenterPixel,LowerDistance_pix,Theta_Lower_deg);
-0292 
-0293 <span class="comment">% Draw all lines in the images</span>
-0294 <span class="comment">% create figure</span>
-0295 <span class="keyword">if</span> quiet 
-0296     fig_visible = <span class="string">'off'</span>;
-0297 <span class="keyword">else</span>
-0298     fig_visible = <span class="string">'on'</span>;
-0299 <span class="keyword">end</span>
-0300 
-0301 <span class="comment">% create figure</span>
-0302 hFig1 = figure( <span class="string">'Visible'</span>, fig_visible, <span class="string">'MenuBar'</span>, <span class="string">'none'</span>, <span class="string">'Name'</span>, <span class="string">'Geometry Z'</span> );
-0303 colormap( gray(256) );
-0304 imagesc( a );
-0305 axis image
-0306 axis square
-0307 axis off
-0308 title( [ <span class="string">'series '</span> num2str(sSeries.number) <span class="string">' - image '</span> num2str(sSeries.instance(ci).number)], <span class="string">'Interpreter'</span>, <span class="string">'none'</span> );
-0309 
-0310 <span class="comment">%figure; colormap(gray(256)); imagesc(a);</span>
+0281 <span class="comment">%handles.results.lengthZ_mm</span>
+0282 
+0283 <span class="comment">% close waitbar in interactive mode</span>
+0284 <span class="keyword">if</span> isInteractive, close( h ), <span class="keyword">end</span>
+0285 
+0286 
+0287 <span class="comment">% In the matlab help, it can be found that the center pixel of image I in the Radon transformation is defined to be floor((size(I)+1)/2)</span>
+0288 CenterPixel = floor((size(a)+1)/2);
+0289 
+0290 [x_edge_upper, y_edge_upper] = <a href="#_sub5" class="code" title="subfunction [x,y] = draw_the_edge(CenterPixel,largest_dimension,Distance_pix,Theta_deg)">draw_the_edge</a>(CenterPixel,largest_dimension,UpperDistance_pix,Theta_Upper_deg);
+0291 [x_edge_lower, y_edge_lower] = <a href="#_sub5" class="code" title="subfunction [x,y] = draw_the_edge(CenterPixel,largest_dimension,Distance_pix,Theta_deg)">draw_the_edge</a>(CenterPixel,largest_dimension,LowerDistance_pix,Theta_Lower_deg);
+0292 [x_distance_upper, y_distance_upper] = <a href="#_sub6" class="code" title="subfunction [x,y] = draw_the_distance(CenterPixel,Distance_pix,Theta_deg)">draw_the_distance</a>(CenterPixel,UpperDistance_pix,Theta_Upper_deg);
+0293 [x_distance_lower, y_distance_lower] = <a href="#_sub6" class="code" title="subfunction [x,y] = draw_the_distance(CenterPixel,Distance_pix,Theta_deg)">draw_the_distance</a>(CenterPixel,LowerDistance_pix,Theta_Lower_deg);
+0294 
+0295 <span class="comment">% Draw all lines in the images</span>
+0296 <span class="comment">% create figure</span>
+0297 <span class="keyword">if</span> quiet 
+0298     fig_visible = <span class="string">'off'</span>;
+0299 <span class="keyword">else</span>
+0300     fig_visible = <span class="string">'on'</span>;
+0301 <span class="keyword">end</span>
+0302 
+0303 <span class="comment">% create figure</span>
+0304 hFig1 = figure( <span class="string">'Visible'</span>, fig_visible, <span class="string">'MenuBar'</span>, <span class="string">'none'</span>, <span class="string">'Name'</span>, <span class="string">'Geometry Z'</span> );
+0305 colormap( gray(256) );
+0306 imagesc( a );
+0307 axis image
+0308 axis square
+0309 axis off
+0310 title( [ <span class="string">'series '</span> num2str(sSeries.number) <span class="string">' - image '</span> num2str(sSeries.instance(ci).number)], <span class="string">'Interpreter'</span>, <span class="string">'none'</span> );
 0311 
-0312 hold on
+0312 <span class="comment">%figure; colormap(gray(256)); imagesc(a);</span>
 0313 
-0314 plot(x_edge_upper,y_edge_upper,<span class="string">'r-'</span>);
-0315 plot(x_distance_upper,y_distance_upper,<span class="string">'r-'</span>);
-0316 plot(x_edge_lower,y_edge_lower,<span class="string">'r-'</span>);
-0317 plot(x_distance_lower,y_distance_lower,<span class="string">'r-'</span>);
-0318 plot(x_blueline1,y_blueline1,<span class="string">'b-'</span>);
-0319 plot(x_blueline2,y_blueline2,<span class="string">'b-'</span>);
-0320 
-0321 hold off
+0314 hold on
+0315 
+0316 plot(x_edge_upper,y_edge_upper,<span class="string">'r-'</span>);
+0317 plot(x_distance_upper,y_distance_upper,<span class="string">'r-'</span>);
+0318 plot(x_edge_lower,y_edge_lower,<span class="string">'r-'</span>);
+0319 plot(x_distance_lower,y_distance_lower,<span class="string">'r-'</span>);
+0320 plot(x_blueline1,y_blueline1,<span class="string">'b-'</span>);
+0321 plot(x_blueline2,y_blueline2,<span class="string">'b-'</span>);
 0322 
-0323 
-0324 <span class="comment">% Write figure to level 2</span>
-0325 <a href="../WAD/WAD_resultsAppendString.html" class="code" title="function WAD_resultsAppendString( level, value, description )">WAD_resultsAppendString</a>( 2, [<span class="string">'Analysis on series: '</span> num2str(sSeries.number) <span class="string">' / image: '</span> num2str(inum) ], <span class="string">'Geometrie Z'</span> )
-0326 <a href="../WAD/WAD_resultsAppendFigure.html" class="code" title="function WAD_resultsAppendFigure( level, handle, tag, description )">WAD_resultsAppendFigure</a>( 2, hFig1, <span class="string">'geomZ_fitted'</span>, <span class="string">'Geometrie Z: randdetectie'</span> );
-0327 <span class="keyword">if</span> quiet
-0328     <span class="comment">% delete non-visible image</span>
-0329     delete( hFig1 );
-0330 <span class="keyword">end</span>
-0331 
-0332 
-0333 <span class="comment">% create figure</span>
-0334 hFig2 = figure( <span class="string">'Visible'</span>, fig_visible, <span class="string">'MenuBar'</span>, <span class="string">'none'</span>, <span class="string">'Name'</span>, <span class="string">'SNR / Ghosting'</span> );
-0335 colormap( gray(256) );
-0336 image( bw )
-0337 axis image
-0338 axis square
-0339 axis off
-0340 title( [ <span class="string">'series '</span> num2str(sSeries.number) <span class="string">' - image '</span> num2str(sSeries.instance(ci).number)], <span class="string">'Interpreter'</span>, <span class="string">'none'</span> );
-0341 <span class="comment">%figure; colormap(gray(2)); image(bw)</span>
-0342 
-0343 hold on
+0323 hold off
+0324 
+0325 
+0326 <span class="comment">% Write figure to level 2</span>
+0327 <a href="../WAD/WAD_resultsAppendString.html" class="code" title="function WAD_resultsAppendString( level, value, description )">WAD_resultsAppendString</a>( 2, [<span class="string">'Analysis on series: '</span> num2str(sSeries.number) <span class="string">' / image: '</span> num2str(inum) ], <span class="string">'Geometrie Z series'</span> )
+0328 <a href="../WAD/WAD_resultsAppendFigure.html" class="code" title="function WAD_resultsAppendFigure( level, handle, tag, description )">WAD_resultsAppendFigure</a>( 2, hFig1, <span class="string">'geomZ_fitted'</span>, <span class="string">'Geometrie Z: randdetectie'</span> );
+0329 <span class="keyword">if</span> quiet
+0330     <span class="comment">% delete non-visible image</span>
+0331     delete( hFig1 );
+0332 <span class="keyword">end</span>
+0333 
+0334 
+0335 <span class="comment">% create figure</span>
+0336 hFig2 = figure( <span class="string">'Visible'</span>, fig_visible, <span class="string">'MenuBar'</span>, <span class="string">'none'</span>, <span class="string">'Name'</span>, <span class="string">'SNR / Ghosting'</span> );
+0337 colormap( gray(256) );
+0338 image( bw )
+0339 axis image
+0340 axis square
+0341 axis off
+0342 title( [ <span class="string">'series '</span> num2str(sSeries.number) <span class="string">' - image '</span> num2str(sSeries.instance(ci).number)], <span class="string">'Interpreter'</span>, <span class="string">'none'</span> );
+0343 <span class="comment">%figure; colormap(gray(2)); image(bw)</span>
 0344 
-0345 plot(x_edge_upper,y_edge_upper,<span class="string">'r-'</span>);
-0346 plot(x_distance_upper,y_distance_upper,<span class="string">'r-'</span>);
-0347 plot(x_edge_lower,y_edge_lower,<span class="string">'r-'</span>);
-0348 plot(x_distance_lower,y_distance_lower,<span class="string">'r-'</span>);
-0349 plot(x_blueline1,y_blueline1,<span class="string">'b-'</span>);
-0350 plot(x_blueline2,y_blueline2,<span class="string">'b-'</span>);
-0351 
-0352 hold off;
+0345 hold on
+0346 
+0347 plot(x_edge_upper,y_edge_upper,<span class="string">'r-'</span>);
+0348 plot(x_distance_upper,y_distance_upper,<span class="string">'r-'</span>);
+0349 plot(x_edge_lower,y_edge_lower,<span class="string">'r-'</span>);
+0350 plot(x_distance_lower,y_distance_lower,<span class="string">'r-'</span>);
+0351 plot(x_blueline1,y_blueline1,<span class="string">'b-'</span>);
+0352 plot(x_blueline2,y_blueline2,<span class="string">'b-'</span>);
 0353 
-0354 <span class="comment">% Write figure to level 2</span>
-0355 <a href="../WAD/WAD_resultsAppendFigure.html" class="code" title="function WAD_resultsAppendFigure( level, handle, tag, description )">WAD_resultsAppendFigure</a>( 2, hFig2, <span class="string">'geomZ_thresholded'</span>, <span class="string">'Geometrie Z: randdetectie (edge image)'</span> );
-0356 <span class="keyword">if</span> quiet
-0357     <span class="comment">% delete non-visible image</span>
-0358     delete( hFig2 );
-0359 <span class="keyword">end</span>
-0360 
-0361 
+0354 hold off;
+0355 
+0356 <span class="comment">% Write figure to level 2</span>
+0357 <a href="../WAD/WAD_resultsAppendFigure.html" class="code" title="function WAD_resultsAppendFigure( level, handle, tag, description )">WAD_resultsAppendFigure</a>( 2, hFig2, <span class="string">'geomZ_thresholded'</span>, <span class="string">'Geometrie Z: randdetectie (edge image)'</span> );
+0358 <span class="keyword">if</span> quiet
+0359     <span class="comment">% delete non-visible image</span>
+0360     delete( hFig2 );
+0361 <span class="keyword">end</span>
 0362 
-0363 <span class="comment">%%%%%%%%%%%%%%%%%%%%%%% SUB-FUNCTION %%%%%%%%%%%%%%%%%%%%%%%</span>
-0364 <a name="_sub1" href="#_subfunctions" class="code">function [distance_pix, Theta_deg] = find_the_peak(R,xp,theta,start_pix,stop_pix)</a>
-0365 <span class="comment">% JK - 090925: use zero-crossing of derivative instead of maximum.</span>
-0366 <span class="comment">%figure; imshow(R(start_pix:stop_pix,:),[]);</span>
-0367 
-0368 <span class="comment">%[MaxPerTheta_vector LocationMaxPerTheta_vector] = max(R(start_pix:stop_pix,:));</span>
-0369 [GlobalMax Theta_pix] = max(max(R(start_pix:stop_pix,:)));
-0370 
-0371 Theta_deg = theta(Theta_pix);
-0372 <span class="comment">%dummy = LocationMaxPerTheta_vector(Theta_pix);</span>
-0373 <span class="comment">%LocationMax_pix = dummy + start_pix - 1;</span>
-0374 
-0375 <span class="comment">% JK - 090925: take the pixels at the angle where the maximum is located</span>
-0376 lineAtTheta = R(start_pix:stop_pix,Theta_pix);
-0377 <span class="comment">%figure; plot(lineAtTheta);</span>
-0378 <span class="comment">%figure; plot(gradient(lineAtTheta));</span>
-0379 
-0380 <span class="comment">% find the position of the maximum</span>
-0381 zerocross_pix = <a href="#_sub4" class="code" title="subfunction zerocross_pix = find_zerocrossing_pix( x )">find_zerocrossing_pix</a>( gradient(lineAtTheta) );
-0382 LocationMax_pix = zerocross_pix + start_pix - 1;
-0383 
-0384 <span class="comment">%distance_pix = xp(LocationMax_pix);</span>
-0385 distance_pix = interp1( xp, LocationMax_pix);
-0386 
-0387 
-0388 <span class="comment">%%%%%%%%%%%%%%%%%%%%%%% SUB-FUNCTION %%%%%%%%%%%%%%%%%%%%%%%</span>
-0389 <a name="_sub2" href="#_subfunctions" class="code">function centerpixel = find_center_row(linesum,pixelspacing)</a>
-0390 
-0391 number_of_rows = length(linesum);
+0363 
+0364 
+0365 <span class="comment">%%%%%%%%%%%%%%%%%%%%%%% SUB-FUNCTION %%%%%%%%%%%%%%%%%%%%%%%</span>
+0366 <a name="_sub1" href="#_subfunctions" class="code">function [distance_pix, Theta_deg] = find_the_peak(R,xp,theta,start_pix,stop_pix)</a>
+0367 <span class="comment">% JK - 090925: use zero-crossing of derivative instead of maximum.</span>
+0368 <span class="comment">%figure; imshow(R(start_pix:stop_pix,:),[]);</span>
+0369 
+0370 <span class="comment">%[MaxPerTheta_vector LocationMaxPerTheta_vector] = max(R(start_pix:stop_pix,:));</span>
+0371 [GlobalMax Theta_pix] = max(max(R(start_pix:stop_pix,:)));
+0372 
+0373 Theta_deg = theta(Theta_pix);
+0374 <span class="comment">%dummy = LocationMaxPerTheta_vector(Theta_pix);</span>
+0375 <span class="comment">%LocationMax_pix = dummy + start_pix - 1;</span>
+0376 
+0377 <span class="comment">% JK - 090925: take the pixels at the angle where the maximum is located</span>
+0378 lineAtTheta = R(start_pix:stop_pix,Theta_pix);
+0379 <span class="comment">%figure; plot(lineAtTheta);</span>
+0380 <span class="comment">%figure; plot(gradient(lineAtTheta));</span>
+0381 
+0382 <span class="comment">% find the position of the maximum</span>
+0383 zerocross_pix = <a href="#_sub4" class="code" title="subfunction zerocross_pix = find_zerocrossing_pix( x )">find_zerocrossing_pix</a>( gradient(lineAtTheta) );
+0384 LocationMax_pix = zerocross_pix + start_pix - 1;
+0385 
+0386 <span class="comment">%distance_pix = xp(LocationMax_pix);</span>
+0387 distance_pix = interp1( xp, LocationMax_pix);
+0388 
+0389 
+0390 <span class="comment">%%%%%%%%%%%%%%%%%%%%%%% SUB-FUNCTION %%%%%%%%%%%%%%%%%%%%%%%</span>
+0391 <a name="_sub2" href="#_subfunctions" class="code">function centerpixel = find_center_row(linesum,pixelspacing)</a>
 0392 
-0393 fx = gradient(linesum);
+0393 number_of_rows = length(linesum);
 0394 
-0395 <span class="comment">%figure; plot(linesum);</span>
-0396 <span class="comment">%figure; plot(fx);</span>
-0397 
-0398 <span class="comment">% find smallest element larger than zero</span>
-0399 n=0;
-0400 <span class="keyword">for</span> i=1:number_of_rows,
-0401    <span class="keyword">if</span>(linesum(i) &gt; 0)
-0402       n = n + 1;
-0403       <span class="keyword">if</span>( n == 1) 
-0404           smallest = linesum(i);
-0405       <span class="keyword">elseif</span> (linesum(i) &lt; smallest)
-0406              smallest = linesum(i);    
-0407       <span class="keyword">end</span>    
-0408    <span class="keyword">end</span>    
-0409 <span class="keyword">end</span>
-0410 
-0411 <span class="comment">% make zero elements equal to smallest</span>
-0412 <span class="keyword">for</span> i=1:number_of_rows,
-0413    <span class="keyword">if</span> (linesum(i)==0)
-0414        linesum(i)= smallest;
-0415    <span class="keyword">end</span>    
-0416 <span class="keyword">end</span>
-0417 
-0418 <span class="comment">% laat een mask van plus min 10 mm lopen</span>
-0419 bandwidth = round(10/pixelspacing);
-0420 
-0421 test_value_left  = zeros( 1, number_of_rows );
-0422 test_value_right = zeros( 1, number_of_rows );
-0423 <span class="keyword">for</span> i = 1 : number_of_rows
-0424    test_value_left(i) = 0;
-0425    test_value_right(i) = 0;
-0426    <span class="keyword">for</span> j= 1:bandwidth,   
-0427      <span class="keyword">if</span> (i+j &gt; number_of_rows)
-0428          value_right = smallest;
-0429      <span class="keyword">else</span>
-0430          value_right = linesum(i+j);
-0431      <span class="keyword">end</span>  
-0432      <span class="keyword">if</span> (i-j &lt; 1)
-0433          value_left = smallest;
-0434      <span class="keyword">else</span>    
-0435          value_left = linesum(i-j);
-0436      <span class="keyword">end</span>    
-0437      ratio_left = value_right / value_left;
-0438      ratio_right = value_left / value_right;     
-0439      test_value_left(i) = test_value_left(i) + ratio_left;
-0440      test_value_right(i) = test_value_right(i) + ratio_right;
-0441    <span class="keyword">end</span>   
-0442 <span class="keyword">end</span>
-0443 
-0444 linesum_left  = zeros( 1, number_of_rows );
-0445 linesum_right = zeros( 1, number_of_rows );
-0446 <span class="keyword">for</span> i=1:number_of_rows;
-0447    linesum_left(i) = fx(i)*test_value_left(i);
-0448    linesum_right(i) = fx(i)*test_value_right(i);
-0449 <span class="keyword">end</span>
-0450 
-0451 <span class="comment">% skip some pixels near edge of image...</span>
-0452 skip_pix = 10;
-0453 linesum_left(1:skip_pix) = 0;
-0454 linesum_left(number_of_rows-skip_pix:number_of_rows) = 0;
-0455 linesum_right(1:skip_pix) = 0;
-0456 linesum_right(number_of_rows-skip_pix:number_of_rows) = 0;
-0457 
-0458 <span class="comment">%figure; plot(test_value_left);</span>
-0459 <span class="comment">%figure; plot(test_value_right);</span>
-0460 <span class="comment">%figure; plot(linesum_left);</span>
-0461 <span class="comment">%figure; plot(linesum_right);</span>
-0462 
-0463 <span class="comment">% find the upper edge</span>
-0464 [maximum loc_max] = max(linesum_left);
-0465 
-0466 <span class="comment">% find the lower edge</span>
-0467 [minimum loc_min] = min(linesum_right);
-0468 
-0469 centerpixel = round((loc_min + loc_max)/2);
+0395 fx = gradient(linesum);
+0396 
+0397 <span class="comment">%figure; plot(linesum);</span>
+0398 <span class="comment">%figure; plot(fx);</span>
+0399 
+0400 <span class="comment">% find smallest element larger than zero</span>
+0401 n=0;
+0402 <span class="keyword">for</span> i=1:number_of_rows,
+0403    <span class="keyword">if</span>(linesum(i) &gt; 0)
+0404       n = n + 1;
+0405       <span class="keyword">if</span>( n == 1) 
+0406           smallest = linesum(i);
+0407       <span class="keyword">elseif</span> (linesum(i) &lt; smallest)
+0408              smallest = linesum(i);    
+0409       <span class="keyword">end</span>    
+0410    <span class="keyword">end</span>    
+0411 <span class="keyword">end</span>
+0412 
+0413 <span class="comment">% make zero elements equal to smallest</span>
+0414 <span class="keyword">for</span> i=1:number_of_rows,
+0415    <span class="keyword">if</span> (linesum(i)==0)
+0416        linesum(i)= smallest;
+0417    <span class="keyword">end</span>    
+0418 <span class="keyword">end</span>
+0419 
+0420 <span class="comment">% laat een mask van plus min 10 mm lopen</span>
+0421 bandwidth = round(10/pixelspacing);
+0422 
+0423 test_value_left  = zeros( 1, number_of_rows );
+0424 test_value_right = zeros( 1, number_of_rows );
+0425 <span class="keyword">for</span> i = 1 : number_of_rows
+0426    test_value_left(i) = 0;
+0427    test_value_right(i) = 0;
+0428    <span class="keyword">for</span> j= 1:bandwidth,   
+0429      <span class="keyword">if</span> (i+j &gt; number_of_rows)
+0430          value_right = smallest;
+0431      <span class="keyword">else</span>
+0432          value_right = linesum(i+j);
+0433      <span class="keyword">end</span>  
+0434      <span class="keyword">if</span> (i-j &lt; 1)
+0435          value_left = smallest;
+0436      <span class="keyword">else</span>    
+0437          value_left = linesum(i-j);
+0438      <span class="keyword">end</span>    
+0439      ratio_left = value_right / value_left;
+0440      ratio_right = value_left / value_right;     
+0441      test_value_left(i) = test_value_left(i) + ratio_left;
+0442      test_value_right(i) = test_value_right(i) + ratio_right;
+0443    <span class="keyword">end</span>   
+0444 <span class="keyword">end</span>
+0445 
+0446 linesum_left  = zeros( 1, number_of_rows );
+0447 linesum_right = zeros( 1, number_of_rows );
+0448 <span class="keyword">for</span> i=1:number_of_rows;
+0449    linesum_left(i) = fx(i)*test_value_left(i);
+0450    linesum_right(i) = fx(i)*test_value_right(i);
+0451 <span class="keyword">end</span>
+0452 
+0453 <span class="comment">% skip some pixels near edge of image...</span>
+0454 skip_pix = 10;
+0455 linesum_left(1:skip_pix) = 0;
+0456 linesum_left(number_of_rows-skip_pix:number_of_rows) = 0;
+0457 linesum_right(1:skip_pix) = 0;
+0458 linesum_right(number_of_rows-skip_pix:number_of_rows) = 0;
+0459 
+0460 <span class="comment">%figure; plot(test_value_left);</span>
+0461 <span class="comment">%figure; plot(test_value_right);</span>
+0462 <span class="comment">%figure; plot(linesum_left);</span>
+0463 <span class="comment">%figure; plot(linesum_right);</span>
+0464 
+0465 <span class="comment">% find the upper edge</span>
+0466 [maximum loc_max] = max(linesum_left);
+0467 
+0468 <span class="comment">% find the lower edge</span>
+0469 [minimum loc_min] = min(linesum_right);
 0470 
-0471 <span class="comment">%%%%%%%%%%%%%%%%%%%%%%% SUB-FUNCTION %%%%%%%%%%%%%%%%%%%%%%%</span>
-0472 <a name="_sub3" href="#_subfunctions" class="code">function centerpixel = find_center_column(linesum,pixelspacing)</a>
-0473 
-0474 number_of_columns = length(linesum);
+0471 centerpixel = round((loc_min + loc_max)/2);
+0472 
+0473 <span class="comment">%%%%%%%%%%%%%%%%%%%%%%% SUB-FUNCTION %%%%%%%%%%%%%%%%%%%%%%%</span>
+0474 <a name="_sub3" href="#_subfunctions" class="code">function centerpixel = find_center_column(linesum,pixelspacing)</a>
 0475 
-0476 <span class="comment">%figure; plot(linesum);</span>
+0476 number_of_columns = length(linesum);
 0477 
-0478 <span class="comment">% find smallest element larger than zero</span>
-0479 n=0;
-0480 <span class="keyword">for</span> i=1:number_of_columns,
-0481    <span class="keyword">if</span>(linesum(i) &gt; 0)
-0482       n = n + 1;
-0483       <span class="keyword">if</span>( n == 1) 
-0484           smallest = linesum(i);
-0485       <span class="keyword">elseif</span> (linesum(i) &lt; smallest)
-0486              smallest = linesum(i);    
-0487       <span class="keyword">end</span>    
-0488    <span class="keyword">end</span>    
-0489 <span class="keyword">end</span>
-0490 
-0491 <span class="comment">% make zero elements equal to smallest</span>
-0492 <span class="keyword">for</span> i=1:number_of_columns,
-0493    <span class="keyword">if</span> (linesum(i)==0)
-0494        linesum(i)= smallest;
-0495    <span class="keyword">end</span>    
-0496 <span class="keyword">end</span>
-0497 
-0498 <span class="comment">% laat een mask van plus min 30 mm lopen</span>
-0499 bandbreedte = round(30/pixelspacing);
-0500 
-0501 test_waarde = zeros( 1, bandbreedte );
-0502 <span class="keyword">for</span> i = bandbreedte + 1 : number_of_columns - bandbreedte - 1,
-0503    test_waarde(i) = 0;
-0504    <span class="keyword">for</span> j= 1:bandbreedte,   
-0505      som = ((linesum(i-j) + linesum(i+j))/2) - linesum(i);
-0506      ratio = linesum(i-j) / linesum(i+j);
-0507      <span class="keyword">if</span> (ratio &gt; 1)
-0508          ratio = 1/ratio;
-0509      <span class="keyword">end</span>    
-0510      som = som * ratio;
-0511      test_waarde(i) = test_waarde(i) + som;
-0512    <span class="keyword">end</span>
-0513 <span class="keyword">end</span>
-0514 
-0515 <span class="keyword">for</span> i = number_of_columns - bandbreedte : number_of_columns,
-0516    test_waarde(i) = 0;
-0517 <span class="keyword">end</span>
-0518        
-0519 <span class="comment">%figure; plot(test_waarde);</span>
-0520 
-0521 <span class="comment">% find the center</span>
-0522 [maximum loc_max] = max(test_waarde);
-0523 
-0524 centerpixel = loc_max;
+0478 <span class="comment">%figure; plot(linesum);</span>
+0479 
+0480 <span class="comment">% find smallest element larger than zero</span>
+0481 n=0;
+0482 <span class="keyword">for</span> i=1:number_of_columns,
+0483    <span class="keyword">if</span>(linesum(i) &gt; 0)
+0484       n = n + 1;
+0485       <span class="keyword">if</span>( n == 1) 
+0486           smallest = linesum(i);
+0487       <span class="keyword">elseif</span> (linesum(i) &lt; smallest)
+0488              smallest = linesum(i);    
+0489       <span class="keyword">end</span>    
+0490    <span class="keyword">end</span>    
+0491 <span class="keyword">end</span>
+0492 
+0493 <span class="comment">% make zero elements equal to smallest</span>
+0494 <span class="keyword">for</span> i=1:number_of_columns,
+0495    <span class="keyword">if</span> (linesum(i)==0)
+0496        linesum(i)= smallest;
+0497    <span class="keyword">end</span>    
+0498 <span class="keyword">end</span>
+0499 
+0500 <span class="comment">% laat een mask van plus min 30 mm lopen</span>
+0501 bandbreedte = round(30/pixelspacing);
+0502 
+0503 test_waarde = zeros( 1, bandbreedte );
+0504 <span class="keyword">for</span> i = bandbreedte + 1 : number_of_columns - bandbreedte - 1,
+0505    test_waarde(i) = 0;
+0506    <span class="keyword">for</span> j= 1:bandbreedte,   
+0507      som = ((linesum(i-j) + linesum(i+j))/2) - linesum(i);
+0508      ratio = linesum(i-j) / linesum(i+j);
+0509      <span class="keyword">if</span> (ratio &gt; 1)
+0510          ratio = 1/ratio;
+0511      <span class="keyword">end</span>    
+0512      som = som * ratio;
+0513      test_waarde(i) = test_waarde(i) + som;
+0514    <span class="keyword">end</span>
+0515 <span class="keyword">end</span>
+0516 
+0517 <span class="keyword">for</span> i = number_of_columns - bandbreedte : number_of_columns,
+0518    test_waarde(i) = 0;
+0519 <span class="keyword">end</span>
+0520        
+0521 <span class="comment">%figure; plot(test_waarde);</span>
+0522 
+0523 <span class="comment">% find the center</span>
+0524 [maximum loc_max] = max(test_waarde);
 0525 
-0526 
+0526 centerpixel = loc_max;
 0527 
-0528 <span class="comment">%%%%%%%%%%%%%%%%%%%%%%%% SUB-FUNCTION %%%%%%%%%%%%%%%%%%%%%</span>
-0529 <span class="comment">% find zero-crossing in a 1D array, supposed to be the 2nd derivative of</span>
-0530 <span class="comment">% the image intensity (in the Radon transform)</span>
-0531 <span class="comment">% Return value is 0 when crossing is not found.</span>
-0532 <a name="_sub4" href="#_subfunctions" class="code">function zerocross_pix = find_zerocrossing_pix( x )</a>
-0533 <span class="comment">% search the zero crossing only between the maximum and the minimum</span>
-0534 [~, max_i] = max( x );
-0535 [~, min_i] = min( x ); <span class="comment">% min should have higher index than max</span>
-0536 
-0537 <span class="comment">% check if we should be able to find a proper zero crossing</span>
-0538 <span class="keyword">if</span> ( x(max_i) &lt; 0 ) || ( x(min_i) &gt; 0 )
-0539     fprintf( 2, <span class="string">'ERROR in SQ_MR_geomZ: cannot find edge. No zero-crossing of 2nd derivative.'</span> );
-0540     zerocross_pix = 0;
-0541     <span class="keyword">return</span>
-0542 <span class="keyword">end</span>
-0543 <span class="comment">% find the index where the sign has changed</span>
-0544 <span class="keyword">for</span> ii = max_i:min_i
-0545     <span class="keyword">if</span> x(ii) &lt; 0, <span class="keyword">break</span>, <span class="keyword">end</span>
-0546 <span class="keyword">end</span>
-0547 <span class="comment">% interpolate between pixels</span>
-0548 zerocross_pix = (ii-1) + x(ii-1) ./ ( x(ii-1) - x(ii) );
-0549 
-0550 
+0528 
+0529 
+0530 <span class="comment">%%%%%%%%%%%%%%%%%%%%%%%% SUB-FUNCTION %%%%%%%%%%%%%%%%%%%%%</span>
+0531 <span class="comment">% find zero-crossing in a 1D array, supposed to be the 2nd derivative of</span>
+0532 <span class="comment">% the image intensity (in the Radon transform)</span>
+0533 <span class="comment">% Return value is 0 when crossing is not found.</span>
+0534 <a name="_sub4" href="#_subfunctions" class="code">function zerocross_pix = find_zerocrossing_pix( x )</a>
+0535 <span class="comment">% search the zero crossing only between the maximum and the minimum</span>
+0536 [~, max_i] = max( x );
+0537 [~, min_i] = min( x ); <span class="comment">% min should have higher index than max</span>
+0538 
+0539 <span class="comment">% check if we should be able to find a proper zero crossing</span>
+0540 <span class="keyword">if</span> ( x(max_i) &lt; 0 ) || ( x(min_i) &gt; 0 )
+0541     fprintf( 2, <span class="string">'ERROR in SQ_MR_geomZ: cannot find edge. No zero-crossing of 2nd derivative.'</span> );
+0542     zerocross_pix = 0;
+0543     <span class="keyword">return</span>
+0544 <span class="keyword">end</span>
+0545 <span class="comment">% find the index where the sign has changed</span>
+0546 <span class="keyword">for</span> ii = max_i:min_i
+0547     <span class="keyword">if</span> x(ii) &lt; 0, <span class="keyword">break</span>, <span class="keyword">end</span>
+0548 <span class="keyword">end</span>
+0549 <span class="comment">% interpolate between pixels</span>
+0550 zerocross_pix = (ii-1) + x(ii-1) ./ ( x(ii-1) - x(ii) );
 0551 
 0552 
 0553 
-0554 <span class="comment">%%%%%%%%%%%%%%%%%%%%%%%% SUB-FUNCTION %%%%%%%%%%%%%%%%%%%%%</span>
-0555 <span class="comment">% Turn the found edge into a red line</span>
-0556 <a name="_sub5" href="#_subfunctions" class="code">function [x,y] = draw_the_edge(CenterPixel,largest_dimension,Distance_pix,Theta_deg)</a>
-0557 
-0558 x(1) = CenterPixel(2) - largest_dimension .* sin(2*pi*Theta_deg/360);
-0559 x(2) = CenterPixel(2) + largest_dimension .* sin(2*pi*Theta_deg/360);
-0560 y(1) = CenterPixel(1) - largest_dimension .* cos(2*pi*Theta_deg/360);
-0561 y(2) = CenterPixel(1) + largest_dimension .* cos(2*pi*Theta_deg/360);
-0562 
-0563 x = x + Distance_pix .* cos(2*pi*Theta_deg/360);
-0564 y = y - Distance_pix .* sin(2*pi*Theta_deg/360);
-0565 
-0566 
-0567 <span class="comment">%%%%%%%%%%%%%%%%%%%%%%%% SUB-FUNCTION %%%%%%%%%%%%%%%%%%%%%</span>
-0568 <span class="comment">% Make a distance line</span>
-0569 <a name="_sub6" href="#_subfunctions" class="code">function [x,y] = draw_the_distance(CenterPixel,Distance_pix,Theta_deg)</a>
-0570 
-0571 x(1)= CenterPixel(2);
-0572 x(2)= CenterPixel(2) + Distance_pix .* cos(2*pi*Theta_deg/360);
-0573 y(1)= CenterPixel(1);
-0574 y(2)= CenterPixel(1) - Distance_pix .* sin(2*pi*Theta_deg/360);</pre></div>
-<hr><address>Generated on Fri 07-Aug-2015 09:34:21 by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" target="_parent">m2html</a></strong> &copy; 2005</address>
+0554 
+0555 
+0556 <span class="comment">%%%%%%%%%%%%%%%%%%%%%%%% SUB-FUNCTION %%%%%%%%%%%%%%%%%%%%%</span>
+0557 <span class="comment">% Turn the found edge into a red line</span>
+0558 <a name="_sub5" href="#_subfunctions" class="code">function [x,y] = draw_the_edge(CenterPixel,largest_dimension,Distance_pix,Theta_deg)</a>
+0559 
+0560 x(1) = CenterPixel(2) - largest_dimension .* sin(2*pi*Theta_deg/360);
+0561 x(2) = CenterPixel(2) + largest_dimension .* sin(2*pi*Theta_deg/360);
+0562 y(1) = CenterPixel(1) - largest_dimension .* cos(2*pi*Theta_deg/360);
+0563 y(2) = CenterPixel(1) + largest_dimension .* cos(2*pi*Theta_deg/360);
+0564 
+0565 x = x + Distance_pix .* cos(2*pi*Theta_deg/360);
+0566 y = y - Distance_pix .* sin(2*pi*Theta_deg/360);
+0567 
+0568 
+0569 <span class="comment">%%%%%%%%%%%%%%%%%%%%%%%% SUB-FUNCTION %%%%%%%%%%%%%%%%%%%%%</span>
+0570 <span class="comment">% Make a distance line</span>
+0571 <a name="_sub6" href="#_subfunctions" class="code">function [x,y] = draw_the_distance(CenterPixel,Distance_pix,Theta_deg)</a>
+0572 
+0573 x(1)= CenterPixel(2);
+0574 x(2)= CenterPixel(2) + Distance_pix .* cos(2*pi*Theta_deg/360);
+0575 y(1)= CenterPixel(1);
+0576 y(2)= CenterPixel(1) - Distance_pix .* sin(2*pi*Theta_deg/360);</pre></div>
+<hr><address>Generated on Wed 22-Nov-2017 16:40:02 by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" target="_parent">m2html</a></strong> &copy; 2005</address>
 </body>
 </html>
