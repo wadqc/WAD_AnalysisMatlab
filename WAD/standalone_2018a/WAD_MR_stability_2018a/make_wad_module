@@ -1,5 +1,5 @@
 #!/bin/sh
-wadmodule=WAD_MR-stability
+wadmodule=WAD_MR_stability
 moduleSuffix=_mcr94_x64.exe
 subdir=for_redistribution_files_only
 # startupscript should have extension .sh

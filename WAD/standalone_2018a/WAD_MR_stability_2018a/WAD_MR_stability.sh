@@ -1,6 +1,6 @@
 #!/bin/bash
 # wrapper script for MATLAB compiled WAD analysis modules
-moduleExe="for_redistribution_files_only/WAD_MR-stability_mcr94_x64.exe"
+moduleExe="for_redistribution_files_only/WAD_MR_stability_mcr94_x64.exe"
 
 # MCR version
 MCRVERSION="v94"
