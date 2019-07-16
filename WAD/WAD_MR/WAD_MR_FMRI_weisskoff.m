@@ -58,13 +58,16 @@ function WAD_MR_FMRI_weisskoff( i_iSeries, sSeries, sParams )
 % replaced imshow() by imagesc(); imshow produces error when in Linux
 % called from WAD-Processor running as a service (without a display).
 % ------------------------------------------------------------------------
+% 2019-07-12 / JK
+% adapted to WAD2
+% ------------------------------------------------------------------------
 
 
 
 %% version info
 my.name = 'WAD_MR_FMRI_weisskoff';
 my.version = '0.3.1';
-my.date = '20170111';
+my.date = '20190712';
 WAD_vbprint( ['Module ' my.name ' Version ' my.version ' (' my.date ')'] );
 
 
@@ -84,28 +87,48 @@ end
 % <roisize>
 % ROI size for detrending and summary statistics (SNR, FSNR etc)
 if isfield( sParams, 'roisize' ) && ~isempty( sParams.roisize )
-    roisize = sParams.roisize;
+    % in WAD2 the number is passed as string
+    if ischar( sParams.roisize )
+        roisize = round( str2double( sParams.roisize ) );
+    else
+        roisize = round( sParams.roisize );
+    end
 else
     roisize = 20; % default ROI size
 end
 
 % max ROI size for Weisskoff plot
 if isfield( sParams, 'WK_MxRoisize' ) && ~isempty( sParams.WK_MxRoisize )
-    WK_MxRoisize = sParams.WK_MxRoisize;
+    % in WAD2 the number is passed as string
+    if ischar( sParams.WK_MxRoisize )
+        WK_MxRoisize = round( str2double( sParams.WK_MxRoisize ) );
+    else
+        WK_MxRoisize = round( sParams.WK_MxRoisize );
+    end
 else
     WK_MxRoisize = 20; % default ROI size
 end
 
 % detrending: order of polynomal fit
 if isfield( sParams, 'detrendOrder' ) && ~isempty( sParams.detrendOrder )
-    detrendOrder = sParams.detrendOrder;
+    % in WAD2 the number is passed as string
+    if ischar( sParams.detrendOrder )
+        detrendOrder = round( str2double( sParams.detrendOrder ) );
+    else
+        detrendOrder = round( sParams.detrendOrder );
+    end
 else
     detrendOrder = 5; % default detrend order
 end
 
 % initial volumes (measurements, acquisitions, samples, whatever you like to call them) to skip
 if isfield( sParams, 'nVolumesToSkip' ) && ~isempty( sParams.nVolumesToSkip )
-    nVolumesToSkip = sParams.nVolumesToSkip;
+    % in WAD2 the number is passed as string
+    if ischar( sParams.nVolumesToSkip )
+        nVolumesToSkip = round( str2double( sParams.nVolumesToSkip ) );
+    else
+        nVolumesToSkip = round( sParams.nVolumesToSkip );
+    end
 else
     nVolumesToSkip = 2; % default volumes to skip
 end
@@ -266,8 +289,8 @@ end
 % display waitbar in interactive mode
 if isInteractive, h = waitbar( 0, 'Calculating...' ); end
 
-WAD_resultsAppendString( 1, '---------', '--- Weisskoff test ---' )
-WAD_resultsAppendString( 2, '---------', '--- Weisskoff test ---' )
+%WAD_resultsAppendString( 1, '---------', '--- Weisskoff test ---' )
+%WAD_resultsAppendString( 2, '---------', '--- Weisskoff test ---' )
 
 WAD_vbprint( ['Skipping first ' num2str(nVolumesToSkip) ' volumes.'] );
 WAD_resultsAppendFloat( 2, nVolumesToSkip, 'volumes skipped', [], 'Volumes' );
@@ -552,7 +575,7 @@ ylim( [ 0.01 10 ] );
 grid on
 
 WAD_resultsAppendFigure( 1, hFigPlots2, 'WK_weisskoff', 'Weiskoff Plot' );
-if quiet, delete( hFigPlots1 ); end  % delete non-visible image
+if quiet, delete( hFigPlots2 ); end  % delete non-visible image
 
 
 %% close waitbar in interactive mode
