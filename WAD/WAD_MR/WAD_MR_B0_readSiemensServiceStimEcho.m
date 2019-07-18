@@ -44,6 +44,11 @@ function [magnitude, phase] = WAD_MR_B0_readSiemensServiceStimEcho( i_iSeries, s
 % V1.1
 % - new (v1.1) style action limits
 % ------------------------------------------------------------------------
+% 20190718 / JK
+% V1.2
+% - changed test criteria to recognize the Field service sequence on XA11
+%   software level (Sola, Vida)
+% ------------------------------------------------------------------------
 
 
 % output arguments
@@ -58,8 +63,8 @@ phase = [];
 
 % version info
 my.name = 'WAD_MR_B0_readSiemensServiceStimEcho';
-my.version = '1.1';
-my.date = '20131127';
+my.version = '1.2';
+my.date = '20190718';
 WAD_vbprint( ['Module ' my.name ' Version ' my.version ' (' my.date ')'] );
 
 
@@ -81,8 +86,9 @@ fname = sSeries.instance( 1 ).filename;
 WAD_vbprint( [my.name ':   Check type of B0 map... reading DICOM header of file ' fname ] );
 info = dicominfo( fname );
 
-if isfield( info, 'SequenceVariant' ) &&  strcmp( info.SequenceVariant, 'SERVICE\SP' ) ...
-    && isfield( info, 'SequenceName' ) &&  strcmp( info.SequenceName, '*' )
+if isfield( info, 'SequenceVariant' ) ...
+    && ( strcmp( info.SequenceVariant, 'SERVICE\SP' ) || strcmp( info.SequenceVariant, 'SP\SK' ) )
+    % && isfield( info, 'SequenceName' ) && strcmp( info.SequenceName, '*' )
     % Siemens stimulated echo service sequence
     WAD_vbprint( [my.name ':   Detected Siemens service stimulated echo.'] );
 else
