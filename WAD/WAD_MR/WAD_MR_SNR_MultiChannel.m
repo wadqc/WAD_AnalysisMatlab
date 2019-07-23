@@ -79,6 +79,10 @@ function WAD_MR_SNR_MultiChannel( i_iSeries, sSeries, sParams )
 %        "ROIradius": "75"
 %      }
 % ------------------------------------------------------------------------
+% 2019-07-23 / JK
+% Bug: search combined image in combined coils series, not in uncombined
+% coils series
+% ------------------------------------------------------------------------
 
 % produce a figure on the screen or be quiet...
 quiet = true;
@@ -92,8 +96,8 @@ global WAD
 
 % version info
 my.name = 'WAD_MR_SNR_MultiChannel';
-my.version = '2.0';
-my.date = '20170721';
+my.version = '2.1';
+my.date = '20190723';
 WAD_vbprint( ['Module ' my.name ' Version ' my.version ' (' my.date ')'] );
 
 
@@ -119,7 +123,19 @@ end
 % ---------------------------------------------
 inum = sParams.combinedImage;
 % handle specials...
-if isequal( inum, WAD.const.inNextSeries ) 
+if isequal( inum, WAD.const.inNextSeries ) || startsWith( inum, WAD.const.inSeries )
+    if isequal( inum, WAD.const.inNextSeries )
+        combinedSeriesNumber = sSeries.number + 1;
+    elseif startsWith( inum, [WAD.const.inSeries '+'] ) || startsWith( inum, [WAD.const.inSeries '-'] )
+        % inSeries+2000 or inSeries-3
+        % series number offset relative to current series
+        combinedSeriesNumber = sSeries.number + str2double( inum( length( WAD.const.inSeries )+1:end) );
+    else
+        % inSeries4001
+        % series number
+        combinedSeriesNumber = str2double( inum( length( WAD.const.inSeries ):end) );
+    end
+        
     % -----------------------
     % find the next series...
     % -----------------------
@@ -127,7 +143,7 @@ if isequal( inum, WAD.const.inNextSeries )
     curStudy = WAD.in.patient(1).study(1);
     i_nSeries = length( curStudy.series );
     for ii = 1:i_nSeries
-        if ( curStudy.series( ii ).number == sSeries.number + 1 )
+        if ( curStudy.series( ii ).number == combinedSeriesNumber )
             sCCSeries = curStudy.series( ii );
             foundNextSeries = true;
             break;
