@@ -181,8 +181,8 @@ end
 % find the image (array order can be different from instance numbering)
 % ---------------------------------------------
 foundImage = false;
-for ii = 1:length( sSeries.instance )
-    if ( sSeries.instance(ii).number == inum )
+for ii = 1:length( sCCSeries.instance )
+    if ( sCCSeries.instance(ii).number == inum )
         ci = ii;
         foundImage = true;
         break;
