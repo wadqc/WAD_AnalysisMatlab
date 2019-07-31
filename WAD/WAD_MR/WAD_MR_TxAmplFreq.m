@@ -85,11 +85,14 @@ function WAD_MR_TxAmplFreq( i_iSeries, sSeries, sParams )
 % V1.1.2
 % WAD2 support
 % ------------------------------------------------------------------------
-
+% 20190731 / JK
+% V1.1.3
+% Support Tx Amplidtude from Siemens XA11 (compatibility mode DICOM)
+% ------------------------------------------------------------------------
 % version info
 my.name = 'WAD_MR_TxAmplFreq';
-my.version = '1.1.2';
-my.date = '20181003';
+my.version = '1.1.3';
+my.date = '20190731';
 WAD_vbprint( ['Module ' my.name ' Version ' my.version ' (' my.date ')'] );
 
 
@@ -175,7 +178,8 @@ my.name = 'WAD_MR_TxAmplFreq:getField';
 if isfield( fieldinfo, 'type' )
     if strcmp( fieldinfo.type, 'char' )
         % convert this dicom field to the requested type 'char'
-        x = cast( dicomheader.(fieldinfo.field)(:), fieldinfo.type )';
+        % and remove tab characters
+        x = regexprep( cast( dicomheader.(fieldinfo.field)(:), fieldinfo.type )', '\t', '');
 
         if isfield( fieldinfo, 'pattern' )
             % find the starting pattern
