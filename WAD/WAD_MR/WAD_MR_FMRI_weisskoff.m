@@ -66,8 +66,8 @@ function WAD_MR_FMRI_weisskoff( i_iSeries, sSeries, sParams )
 
 %% version info
 my.name = 'WAD_MR_FMRI_weisskoff';
-my.version = '0.3.1';
-my.date = '20190712';
+my.version = '0.3.2';
+my.date = '20190731';
 WAD_vbprint( ['Module ' my.name ' Version ' my.version ' (' my.date ')'] );
 
 
@@ -167,7 +167,25 @@ WAD_vbprint( ['Number of images: ' num2str(nImages) ] );
 % Probe first image
 infoFirst = dicominfo( sSeries.instance( instanceNumSortedIndex(1) ).filename );
 
-nVolumesTotal = infoFirst.NumberOfTemporalPositions;
+% get number of volumes (temporal phases)
+if isfield( infoFirst, 'NumberOfTemporalPositions' )
+    WAD_vbprint( [my.name ': Getting number of volumes from header field NumberOfTemporalPositions'] );
+    nVolumesTotal = infoFirst.NumberOfTemporalPositions;
+elseif isfield( sParams, 'nVolumesField' )
+    % implements flexible config from DICOM header including private fields
+    nVolumesFieldinfo = [];
+    nVolumesFieldinfo.field = sParams.nVolumesField;
+    if isfield( sParams, 'nVolumesType' )
+        nVolumesFieldinfo.type = sParams.nVolumesType;
+    end
+    if isfield( sParams, 'nVolumesPattern' )
+        nVolumesFieldinfo.pattern = sParams.nVolumesPattern;
+    end
+    % get info from specified field in DICOM header
+    WAD_vbprint( [my.name ': Getting number of volumes from header field ' nVolumesFieldinfo.field ] );
+    nVolumesTotal = getField( infoFirst, nVolumesFieldinfo ) + 1;
+end
+
 nVolumes = nVolumesTotal - nVolumesToSkip;
 
 if mod( nImages, nVolumesTotal )
@@ -242,7 +260,7 @@ else
         WAD_vbprint( ['Manufacturer = ' vendor ] );
 
         switch vendor
-            case {'GE MEDICAL SYSTEMS', 'SIEMENS', 'TOSHIBA'}
+            case {'GE MEDICAL SYSTEMS', 'SIEMENS', 'Siemens', 'TOSHIBA'}
                 % Siemens / GE / Toshiba give all slices of a volume
                 WAD_vbprint('Siemens / GE / Toshiba slice/time order.');
                 innerloopIsSlice = true;
@@ -598,3 +616,55 @@ function F = logTSNR( x, n )
 % x(1) --> SNR
 % x(2) --> lambda
 F = log ( TSNR( x, n ) );
+
+
+% Local function that reads the numerical value from a DICOM field.
+% Implemented are
+% - typecast (for implicit type DICOM files and private fields)
+% - string search (needed for Siemens systems)
+function content = getField( dicomheader, fieldinfo )
+my.name = 'WAD_MR_TxAmplFreq:getField';
+% get requested number from the dicom header
+if isfield( fieldinfo, 'type' )
+    if strcmp( fieldinfo.type, 'char' )
+        % convert this dicom field to the requested type 'char'
+        % and remove tab characters
+        x = regexprep( cast( dicomheader.(fieldinfo.field)(:), fieldinfo.type )', '\t', '');
+
+        if isfield( fieldinfo, 'pattern' )
+            % find the starting pattern
+            %numstart = strfind( x, char(fieldinfo.pattern(1)) ) + length( char(fieldinfo.pattern(1)) );
+            numstart = strfind( x, fieldinfo.pattern ) + length( fieldinfo.pattern );
+            if numstart
+                % find the trailing pattern 
+                %numend = strfind( x(numstart:end), char(fieldinfo.pattern(2)) );
+                numend = strfind( x(numstart:end), char(10) );
+                if numend
+                    if ( numend < 3 )
+                        WAD_vbprint( [my.name ': Error: reading from header (no number between starting and trailing patterns).'] );
+                        content = -1;
+                    end
+                    content = str2num( x(numstart:numstart+numend(1)-2) );
+                else
+                    WAD_vbprint( [my.name ': Error: reading from header (trailing pattern not found).'] );
+                    content = -1;
+                end
+            else
+                WAD_vbprint( [my.name ': Error: reading from header (starting pattern not found).'] );
+                content = -1;
+            end
+        else
+            % no pattern to search for, just convert...
+            content = str2num( x );
+        end % pattern 
+    else
+        % not char, we need to typecast the field
+        content = double( typecast( dicomheader.(fieldinfo.field), fieldinfo.type ) );
+    end
+else
+    % no additional field type specifiers... should be a number known in
+    % dicom dictionary
+    content = double( dicomheader.(fieldinfo.field) );
+end
+
+return
