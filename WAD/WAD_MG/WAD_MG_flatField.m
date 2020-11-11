@@ -52,6 +52,9 @@ function WAD_MG_flatField( i_iSeries, sSeries, sParams )
 % 20171023 / JK
 % Support WAD2.0
 % ------------------------------------------------------------------------
+% 20190906 / Mette Stam
+% Made analysis of tomosynthesis images in BPO format possible
+% ------------------------------------------------------------------------
 
 
 % ----------------------
@@ -84,13 +87,31 @@ img = dicomread( info );
 
 szImg = size( img );
 
+% check if image is conventional or tomo projection
+if size(szImg,2) == 2; % conventional image
+    type_img = 'conventional';
+elseif size(szImg,2) == 4; % tomo projection image
+    type_img = 'tomo projection';
+    middleSlice = ceil(szImg(4)/2);
+    img = img(:,:,:,middleSlice);
+    szImg = size( img ); % replacing image by middle slice tomo projection image
+end
+
+
 % testcase: set region with low SNR
 %RR = uint16(randn(50,50) .* 25);
 %img(3001:3050,1001:1050) = img(3001:3050,1001:1050) + RR(:,:);
 
 % pixel size
-szPxX_mm = info.PixelSpacing(2);
-szPxY_mm = info.PixelSpacing(1);
+switch type_img
+    case  'conventional'
+        szPxX_mm = info.PixelSpacing(2);
+        szPxY_mm = info.PixelSpacing(1);
+    case 'tomo projection'
+        szPxX_mm = info.SharedFunctionalGroupsSequence.Item_1.FramePixelDataPropertiesSequence.Item_1.ImagerPixelSpacing(2);
+        szPxY_mm = info.SharedFunctionalGroupsSequence.Item_1.FramePixelDataPropertiesSequence.Item_1.ImagerPixelSpacing(1);
+end
+
 
 % ROI size in mm
 szROI_mm = 10;
@@ -496,3 +517,4 @@ if roi.threshold > 0
         roi.devPixRoiMean(roi.nDevPix) = roimean;
     end
 end
+

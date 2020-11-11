@@ -39,7 +39,12 @@ function WAD_MG_AEC( i_iSeries, sSeries, sParams )
 % 20131127 / JK
 % Support new (v1.1) style action limits
 % ------------------------------------------------------------------------
-
+% 20190906 / Mette Stam
+% Ajusted to support tomosynthesis images in BPO format
+% ------------------------------------------------------------------------
+% 20200617 / Manon Koot
+% Ajusted to support tomosynthesis images in BPO format
+% ------------------------------------------------------------------------
 % ----------------------
 % GLOBALS
 % ----------------------
@@ -66,20 +71,33 @@ catch err
     return
 end
 
+
+%load image
+img = dicomread( dicomheader );
+szImg = size( img );
+
+% check if image is conventional or tomosynthesis projection
+if size(szImg,2) == 2 % conventional image
+    type_img = 'conventional';
+elseif size(szImg,2) == 4 % tomosynthesis projection image
+    type_img = 'tomo projection';
+end
+
 % ----------------------------
 % mAs
 % ----------------------------
 % mAs should be defined, but check anyway...
-[value, status] = getFieldFromDicomHdr( dicomheader, 'ExposureInuAs' );
-if status
-    WAD_resultsAppendFloat( 1, double(value) / 1000.0, 'Exposure', 'mAs', 'AEC' );
-else
-    [value, status] = getFieldFromDicomHdr( dicomheader, 'Exposure' );
-    if status
-        WAD_resultsAppendFloat( 1, double(value), 'Exposure', 'mAs', 'AEC' );
-    else
-        WAD_vbprint( [my.name ':   ERROR: neither ExposureInuAs nor Exposure field are defined in DICOM header.'] );
-    end
+switch type_img
+    case  'conventional'
+        if isfield(dicomheader,'ExposureInuAs')==1
+            WAD_resultsAppendFloat( 1, double( getFieldFromDicomHdr( dicomheader, 'ExposureInuAs' )) / 1000.0, 'Exposure', 'mAs', 'AEC' );
+        elseif isfield(dicomheader,'Exposure')==1
+            WAD_resultsAppendFloat( 1, double( getFieldFromDicomHdr( dicomheader, 'Exposure' )), 'Exposure', 'mAs', 'AEC' );
+        else
+            WAD_vbprint( [my.name ':   ERROR: neither ExposureInuAs nor Exposure field are defined in DICOM header.'] );
+        end
+    case 'tomo projection'
+        WAD_resultsAppendFloat( 1, double( getFieldFromDicomHdr( dicomheader, 'ExposureInmAs' )), 'Exposure', 'mAs', 'AEC' );
 end
 
 
@@ -88,9 +106,11 @@ end
 % ----------------------------
 % check if field is defined in config file ...
 if isfield( sParams, 'EI_field' ) && ~isempty( sParams.EI_field )
-    [value, status] = getFieldFromDicomHdr( dicomheader, sParams.EI_field );
-    if status
-        WAD_resultsAppendFloat( 1, double(value), 'Exposure Index', [], 'AEC' );
+    switch type_img
+        case  'conventional'
+            WAD_resultsAppendFloat( 1, double( getFieldFromDicomHdr( dicomheader, sParams.EI_field )), 'Exposure Index', [], 'AEC' );
+        case 'tomo projection'
+            WAD_resultsAppendFloat( 1, double( getFieldFromDicomHdr( dicomheader.SharedFunctionalGroupsSequence.Item_1.Unknown_0018_9542.Item_1, sParams.EI_field )), 'Exposure Index', [], 'AEC' );
     end
 else
     WAD_vbprint( [my.name ':   Error: no parameter for EI_field containing the DICOM field name for exposure index.'] );
@@ -103,54 +123,54 @@ end
 % ----------------------------
 % exposure time
 % ----------------------------
-[value, status] = getFieldFromDicomHdr( dicomheader, 'ExposureTime' );
-if status
-    WAD_resultsAppendFloat( 1, double(value), 'Exposure Time', [], 'AEC' );
+switch type_img
+    case  'conventional'
+        WAD_resultsAppendFloat( 1, double( getFieldFromDicomHdr( dicomheader, 'ExposureTime' )), 'Exposure Time', [], 'AEC' );
+    case 'tomo projection'
+        WAD_resultsAppendFloat( 1, double( getFieldFromDicomHdr( dicomheader.SharedFunctionalGroupsSequence.Item_1.Unknown_0018_9542.Item_1, 'ExposureTimeInms' )), 'Exposure Time', [], 'AEC' );
 end
 
 
 % ----------------------------
 % organ dose
 % ----------------------------
-[value, status] = getFieldFromDicomHdr( dicomheader, 'OrganDose' );
-if status
-    WAD_resultsAppendFloat( 1, double(value), 'Organ Dose', [], 'AEC' );
-end
+% For tomosynthesis images there is an organ dose defined per projection
+% and for the entire dataset. The numbers do not match completely so 
+% suspected is that the organ dose per frame is the intended dose and the 
+% total organ dose (in dicomheader.OrganDose) is a measured dose. Needed is
+% the collective total of the organ dose.
+WAD_resultsAppendFloat( 1, double( getFieldFromDicomHdr( dicomheader, 'OrganDose' )), 'Organ Dose', [], 'AEC' );
 
 
 % ----------------------------
 % entrance dose
 % ----------------------------
-[value, status] = getFieldFromDicomHdr( dicomheader, 'EntranceDoseInmGy' );
-if status
-    WAD_resultsAppendFloat( 1, double(value), 'EntranceDose', 'mGy', 'AEC' );
-end
+% For tomosynthesis images there is an entrance dose defined per projection
+% and for the entire dataset. These numbers match. Needed is the collective
+% total of the entrance dose.
+WAD_resultsAppendFloat( 1, double( getFieldFromDicomHdr( dicomheader, 'EntranceDoseInmGy' )), 'EntranceDose', 'mGy', 'AEC' );
 
 
 % ----------------------------
 % kVp
 % ----------------------------
-[value, status] = getFieldFromDicomHdr( dicomheader, 'KVP' );
-if status
-    WAD_resultsAppendFloat( 1, double(value), 'kVp', 'kV', 'AEC' );
-end
+WAD_resultsAppendFloat( 1, double(getFieldFromDicomHdr( dicomheader, 'KVP' )), 'kVp', 'kV', 'AEC' );
 
 
 % ----------------------------
 % anode target material
 % ----------------------------
-[value, status] = getFieldFromDicomHdr( dicomheader, 'AnodeTargetMaterial' );
-if status
-    WAD_resultsAppendString( 1, value, 'AEC Anode Target Material' );
-end
+WAD_resultsAppendString( 1, getFieldFromDicomHdr( dicomheader, 'AnodeTargetMaterial' ), 'AEC Anode Target Material' );
 
 
 % ----------------------------
 % filter material
 % ----------------------------
-[value, status] = getFieldFromDicomHdr( dicomheader, 'FilterMaterial' );
-if status
-    WAD_resultsAppendString( 1, value, 'AEC Filter Material' );
+switch type_img
+    case  'conventional'
+        WAD_resultsAppendString( 1, getFieldFromDicomHdr( dicomheader, 'FilterMaterial' ), 'AEC Filter Material' );
+    case 'tomo projection'
+        WAD_resultsAppendString( 1, getFieldFromDicomHdr( dicomheader.SharedFunctionalGroupsSequence.Item_1.Unknown_0018_9556.Item_1, 'FilterMaterial' ), 'AEC Filter Material' );
 end
 
 
@@ -158,24 +178,20 @@ end
 % ExposureControlModeDescription
 % gives position of AEC sensor
 % ----------------------------
-[value, status] = getFieldFromDicomHdr( dicomheader, 'ExposureControlModeDescription' );
-if status
-    WAD_resultsAppendString( 1, value, 'AEC Sensor' );
-end
+WAD_resultsAppendString( 1, getFieldFromDicomHdr( dicomheader, 'ExposureControlModeDescription' ), 'AEC Sensor' );
 
 
 
-function [value, status] = getFieldFromDicomHdr( hdr, fieldname )
-% local function returns value of dicom field, status true when valid.
+
+function [value] = getFieldFromDicomHdr( hdr, fieldname )
+% local function returns value of dicom field.
 my.name = 'WAD_MG_AEC:getFieldFromDicomHdr';
-status = false;
 value  = 0;
 
 % check existence of field in header, and get value
 if isfield( hdr, fieldname )
     WAD_vbprint( [my.name ':   Getting "' fieldname '" from header...'], 2 );
     value = hdr.(fieldname);
-    status = true;
 else
-    WAD_vbprint( [my.name ':   Field "' fieldname '" not defined in DICOM header.'] );
+    WAD_vbprint( [my.name ':   Field "' fieldname '" not defined in DICOM header.'] ); %this error might be put at a different position because it is confusing when a dicom tag can be at different positions
 end
